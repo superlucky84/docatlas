@@ -84,7 +84,7 @@ document set that people and agents share, kept current and kept tidy.
 | --- | --- | --- |
 | `REQUIREMENTS.md` | What are we building? | Scope, success criteria, constraints, assumptions, non-goals |
 | `DESIGN.md` | How will we build it? | Architecture, contracts, policies, test strategy, a decision checklist |
-| `IMPLEMENT.md` | In what order? | Phases with entry criteria, task checklists, baseline tests, exit criteria, and the current handoff |
+| `IMPLEMENT.md` | In what order? | Phases with entry criteria, task checklists, baseline tests, exit criteria, and `Refs:` and `Files:` records, plus the current handoff |
 | `MANUAL_TEST_CHECKLIST.md` | How do we accept it? | Release-facing manual checks with pass/fail criteria |
 
 Split out extra documents such as `CONTRACTS.md`, `SCHEMA.md`, or `PROTOCOL.md` only when
@@ -138,12 +138,48 @@ write by hand too.
   `M-*`. Follow the existing scheme and never renumber.
 - Link every major design decision to at least one validation step.
 - Mark a checklist item `[x]` only with evidence. Unfinished items stay open.
+- Give each phase a `Refs:` line with the IDs it covers, and give each implemented phase a
+  `Files:` list of the files it changed, taken from git. See [Phase records](#phase-records-refs-and-files).
 - Keep one canonical copy of each contract or plan. Update it rather than writing a new plan.
 - Keep the documents resumable: another agent must be able to continue from the documents
   alone.
 - Keep one current handoff block: **Done**, **Next**, **Blockers**, and **Latest commit**.
   Replace it when you stop; git keeps the history.
 - Ask before destructive data operations, and keep secrets out of git.
+
+### Phase records: Refs and Files
+
+Each phase in `IMPLEMENT.md` keeps two short records in a fixed format: the IDs the phase
+covers and the files it changed. People read them as part of the phase, and tools can pull
+them out line by line to search by file or by requirement, or to build other documents.
+Git alone does not give this: several phases often share one commit, squash merges erase
+phase boundaries, and git does not know which requirement a change served.
+
+```markdown
+## Phase 2 — Guest session: done
+
+Refs: RQ-1, DC-1, M-1
+
+- [x] Issue a signed guest session cookie.
+
+Files:
+- `services/checkout/session.js` (added)
+- `services/checkout/orders.js` (modified)
+- `services/checkout/legacy-cart.js` -> `services/checkout/cart.js` (renamed)
+```
+
+- **Refs** goes right under the phase heading. Write full IDs separated by commas
+  (`RQ-1, RQ-3`, not `RQ-1·3`), or `Refs: none`. A subheading inherits its parent's `Refs:`.
+- **Files** goes after the phase's checklist and records. Each item is a path from the
+  repository root in backticks, followed by `(added)`, `(modified)`, `(deleted)`, or
+  `(renamed)`. A phase that changed nothing gets `Files: none`. Many generated files in one
+  folder can be a single folder entry ending in `/`.
+- Write Files when an implemented phase ends, whichever agent implemented it, from git
+  (`git status`, `git diff --name-status`, and new untracked files), not from memory. List only
+  this phase's changes, documents included, and leave out uncommitted changes from earlier
+  phases. Planned files stay in the checklist text.
+- Keep `Refs:`, `Files:`, the kinds, and `none` in English whatever language the documents
+  use. Tools skip code blocks, so examples like the one above are not records.
 
 ## Where documents live
 

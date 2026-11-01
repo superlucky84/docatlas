@@ -3,7 +3,7 @@ name: doc-driven-reviewer-v1
 description: Use only when the user asks for or approves a code review, for example when offered one at the end of a phase. Reviews uncommitted changes read-only, with or without formal design documents, against the documented phase, project rules, or stated intent, and returns a severity-ranked report.
 metadata:
   short-description: phase-driven code reviewer
-  version: 1.4.0
+  version: 1.5.0
 ---
 
 # Doc-Driven Reviewer Playbook
@@ -63,6 +63,7 @@ Evaluate the changes in these categories:
   - Checklist items are marked `[x]` only with evidence; unfinished items stay open or are recorded.
   - Contract or behavior changes are reflected in `DESIGN*.md`, `README.md`, and related docs.
   - Confirmed requests, design proposals, and implemented behavior stay distinct; no `TBD` is resolved silently.
+  - Phase records, when the documents use them: the reviewed phase has a `Refs:` line under its heading with full IDs separated by `, ` that exist in the documents (or `Refs: none`), and a `Files:` block with one `` - `<path>` (<kind>) `` with a repository-root path and kind `added`, `modified`, `deleted`, or `renamed` (a rename is `` - `<old>` -> `<new>` (renamed) ``) per changed file, or `Files: none`. Compare the block with the changes collected in step 1; when several phases are uncommitted, compare their blocks together. A missing, extra, or wrongly typed file, or a missing block or line, is a `warning`.
 - **Improvement suggestions**: performance, maintainability, or structure. Not blockers.
 
 ### 5) Severity Classification

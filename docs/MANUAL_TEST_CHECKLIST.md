@@ -350,7 +350,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 
 ### M-19 — 구현 계획의 Refs·Files 표기
 
-대응: RQ-20 / DC-30. 예제: examples/sample-shop/docs/checkout/IMPLEMENT.md(TBD-b 제안).
+대응: RQ-20 / DC-30. 예제: examples/sample-shop/docs/checkout/IMPLEMENT.md(DC-30 b).
 아래 항목은 구현 후의 인수 기준이다.
 
 - [ ] METHOD 두 언어판의 작성 규칙에서 Refs·Files의 형식과 이유가 읽히고, 세 스킬·룰의 규칙과 맞는다.
@@ -364,7 +364,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] docatlas로 kit 1.1.0을 설치한 환경에서 새 kit을 담은 문서 지도가 업데이트 안내를 보이고, 다시 설치하면 세 스킬·룰이 바뀌고 안내가 사라진다.
 
 통과: 사람과 도구가 구현 계획만 읽고 단계별 관련 ID와 바뀐 파일을 정확히 찾는다.
-상태: 설계 제안. DC-30 확정 후 구현한다. 미실행.
+상태: 구현됨(kit 1.2.0, 배포 전). 아래 자동 확인 외에 사람의 실제 세션 확인은 미실행이다.
 
 ## Phase 1 자동 검증 대응
 
@@ -471,6 +471,19 @@ test/integration/package.test.js의 부모 1개·하위 3개, 총 4개가 Node 2
 | M-16 | 강제 교체 후 실패 복구와 백업·권한 유지·설치 잠금과 동시 실행·한글/공백·CRLF·판정 후 링크·낮은 버전·ctxbin 사본 | agent-kit-hardening.test.js |
 | M-16 | production tarball의 npm 실행기로 한글·공백 HOME에 미리보기·설치·재실행 (macOS 로컬, PR #1 CI의 macOS·Windows 통과) | platform.test.js |
 | M-16·17 | F-09: 개발 의존성 설치본으로 도움말→미리보기→설치→재실행, 프로젝트 --all 설치와 경고, 문서 무변경, 낡은 기록 안내→갱신 후 사라짐, 수정본 종료 3과 --force 백업 | integration/agent-kit.test.js |
+
+## Refs·Files 표기 자동 확인 — 2026-11-01
+
+아래는 M-19의 자동 근거이며 사람의 실제 세션 확인 체크박스를 대신하지 않는다. 환경: Linux / Node 22.23.4.
+
+| 항목 | 확인 | 결과 |
+| --- | --- | --- |
+| M-19 | 파싱 계약 정규식의 일회성 스크립트로 구현 계획의 새 작업 절과 예제 checkout 추출 | 단계·물려받은 Refs·파일·renamed가 기대와 같고 코드 펜스 예시는 0건 |
+| M-19 | 새 작업 절의 Files 블록 합집합과 git status | 변경 19개로 같음 |
+| M-19 | designer 스킬·룰만 읽고 형식·작성 시점·git 출처·영어 라벨 찾기 | 모두 있음. implementer·reviewer에도 형식이 있음 |
+| M-19 | METHOD.md와 METHOD.ko.md 구조 대조 | 제목·목록·코드 블록·표 행·링크 수 동일 |
+| M-19 | main(kit 1.1.0)으로 설치한 임시 HOME에서 새 kit 안내와 재설치 | 안내 한 줄, 미리보기 replace(recorded) 6, 설치 후 designer 1.3.0, 안내 사라짐 |
+| M-19 | npm run check · npm test · npm pack --dry-run | kit 1.2.0 세 쌍, 159개 중 156개 통과·3개 건너뜀·실패 0, 45개 파일 |
 
 ## 0.4.1 배포 준비 확인 — 2026-10-30
 

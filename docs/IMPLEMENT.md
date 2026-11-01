@@ -23,7 +23,7 @@
 - 완료: DC-21 METHOD 한국어판과 examples/ 합성 예제 프로젝트. M-18 사람 확인은 남아 있다.
 - 완료: DC-28 기본 설치 항목을 designer·implementer·reviewer 세 쌍으로 변경. 0.4.0으로 게시했다.
 - 완료: DC-29 문서 위치 원칙을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영. 0.4.1로 게시했다.
-- 진행 중: RQ-20·DC-30 구현 계획의 Refs·Files 표기. 기준 문서 4종을 갱신했고 DC-30의 세 TBD 확인을 기다린다.
+- 완료(배포 전): RQ-20·DC-30 구현 계획의 Refs·Files 표기. METHOD 두 언어판과 kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0).
 
 기술 선택은 각 단계에서 근거와 검증을 기록해 DC/IC를 해소한다.
 상세 계약을 바꾸면 요구사항·설계·단계·수동 기준을 같은 작업에서 갱신한다.
@@ -1094,13 +1094,13 @@ Confluence 갱신(2026-10-30, 사용자 요청): 사용자의 개인 공간 페�
 스킬은 1.2.0 전체로, 룰은 팀원이 정한 이름(doc-driven-designer)과 tools 머리말을 유지하고 본문만 최신으로 바꿨다.
 v5→v6 비교에서 바뀐 구간은 그 두 블록뿐이다. 팀 페이지의 다른 절과 갱신일 표시는 바꾸지 않았다.
 
-## 구현 계획의 Refs·Files 표기 — 기준 문서 완료, 결정 확인 대기
+## 구현 계획의 Refs·Files 표기 — 완료(배포 전)
 
 Refs: RQ-20, DC-30, M-19
 진입: 2026-11-01 사용자 결정(Files와 Refs 둘 다, 스킬·룰 포함, 문서부터). 기준 커밋 0373bbc.
 기준 검증(0373bbc, Linux / Node 22.23.4): 문법 72개·agent kit 1.1.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀(root 권한)·실패 0.
-이 작업 절부터 [설계의 RQ-20 계약](./DESIGN.md#구현-계획의-refsfiles-표기--rq-20-계약설계-제안) 형식을 쓴다.
-형식이 DC-30 확정에서 바뀌면 이 절의 표기도 함께 고친다.
+이 작업 절부터 [설계의 RQ-20 계약](./DESIGN.md#구현-계획의-refsfiles-표기--rq-20-계약) 형식을 쓴다.
+이전 절의 "대응:" 줄과 문장 속 파일 언급은 소급해 고치지 않는다(DC-30 b).
 
 ### 기준 문서 — 완료
 
@@ -1110,6 +1110,7 @@ Refs: RQ-20, DC-30, M-19
 - [x] 확인: 바뀐 문서의 상대 링크·앵커와 git diff --check. 제품 코드·스킬·룰은 바꾸지 않았다.
 - [x] 후속 결정(2026-11-01) 반영: designer만으로 Refs·Files가 동작하고 implementer·reviewer는 강화 개념이다.
   설계의 역할 표, 아래 1단계 작업, M-19를 고쳤다. 이전 제안(Files는 implementer만 쓴다)을 바꿨다.
+- [x] DC-30 확정(2026-11-01, 사용자 "추천대로 진행해"): 영어 라벨, 새 작업부터·예제 checkout만, docatlas 검색은 별도 후속. 네 문서의 TBD 표시를 닫았다.
 
 Files:
 - `docs/REQUIREMENTS.md` (modified)
@@ -1117,48 +1118,85 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### 1단계 — 규칙 원본
+### 1단계 — 규칙 원본: 완료
 
-진입: DC-30의 세 TBD가 정해지고 설계의 형식이 확정된다.
+진입: DC-30의 세 TBD가 정해지고 설계의 형식이 확정된다. 2026-11-01 충족.
 
-- [ ] METHOD.md 작성 규칙에 Refs·Files 항목과 짧은 예시를 더하고 문서 세트 표의 IMPLEMENT.md 설명을 확인한다.
-  METHOD.ko.md에 같은 변경을 하고 두 문서의 구조(제목·목록·코드 펜스·표 행·링크 수)가 같은지 확인한다.
-- [ ] designer SKILL.md(단독으로 완결): IMPLEMENT.md 단계 틀에 Refs 줄과 Files 블록 형식·출처 규칙을 넣고, ID를 줄여 쓰지 않는 규칙과
-  예정한 파일을 Files에 적지 않는 규칙을 둔다. Phase Completion에 구현한 단계를 마칠 때 git에서 Files를 쓰는 규칙을,
-  완료 기준에 단계별 Refs를 더한다. metadata.version 1.3.0.
-- [ ] designer 룰: Refs를 쓰고, 구현한 단계를 마칠 때 Files를 쓰는 규칙을 둔다.
-- [ ] implementer SKILL.md(강화): 형식을 한두 줄로 다시 적고, 단계 시작 때 기존 변경 목록 확인, 문서 동기화 때 Files 작성과 Refs 확인,
-  완료 보고에 Files. 서브에이전트이고 구현 계획이 범위 밖이면 블록을 보고로 돌려준다. metadata.version 1.2.0.
-- [ ] reviewer SKILL.md(강화): 형식을 한두 줄로 다시 적고, Doc sync에서 Files와 수집한 변경 목록, Refs와 기준 문서의 ID를 비교해
-  어긋나면 warning. metadata.version 1.5.0.
-- [ ] implementer·reviewer 룰에 각 역할의 규칙을 한 줄씩 더한다. 세 룰의 머리말은 name·description만 둔다.
-- [ ] manifest.json: 세 항목 버전, 이전 해시를 previous로 옮기고 새 해시 기록, kitVersion 1.2.0. agent-kit/README.md 표, CHANGELOG Unreleased.
-- [ ] README 요약의 문서 표와 규칙이 여전히 맞는지 확인한다. 맞으면 바꾸지 않는다.
-- [ ] TBD-b가 제안대로 정해지면 examples/sample-shop/docs/checkout/IMPLEMENT.md의 단계에 Refs와 Files를 넣는다.
+- [x] METHOD.md 작성 규칙에 Refs·Files 항목과 "Phase records: Refs and Files" 하위 절(이유·예시·규칙 4개)을 더하고,
+  문서 세트 표의 IMPLEMENT.md 설명에 두 기록을 넣었다. METHOD.ko.md에 같은 변경("Phase 기록: Refs와 Files").
+  두 문서의 구조(이번 일회성 집계로 제목 17·목록 52·코드 블록 4·표 행 23·링크 12)가 같다.
+- [x] designer SKILL.md(단독으로 완결): Standard Artifact Flow의 IMPLEMENT.md 항목, 새 Phase Records 절(예시·형식·작성 시점·git 출처·
+  영어 라벨·기존 단계는 요청 없이 소급하지 않음), Phase Completion에 단계를 마칠 때 Files 기록과 Refs 확인
+  (implementer 사용 여부와 무관), Completion Criteria에 Refs. ID를 줄여 쓰지 않는 규칙은 Working Rules가 아니라 Phase Records에 뒀다. 1.3.0.
+- [x] designer 룰: 13번 규칙(Refs 작성, 구현한 단계를 마칠 때 git에서 Files 작성, 예정 파일 금지, 영어 라벨).
+- [x] implementer SKILL.md(강화): 단계 시작 때 git status로 기존 변경 기록, 문서 동기화 때 형식을 다시 적은 Files 작성과 Refs 확인,
+  범위 밖이면 보고로 반환, 완료 보고 템플릿에 Files. 1.2.0. 룰: 8번 규칙을 넣고 뒤 번호를 하나씩 밀었으며 완료 보고에 Files.
+- [x] reviewer SKILL.md(강화): Doc sync에 "문서가 phase 기록을 쓸 때" Refs·Files를 수집한 변경과 비교해 어긋나면 warning.
+  여러 단계가 커밋 전이면 블록을 합쳐 비교. 1.5.0. 룰: 12번 규칙.
+  기록을 쓰지 않는 기존 프로젝트에 경고가 쏟아지지 않도록 "문서가 기록을 쓸 때"로 한정했다.
+- [x] manifest.json: designer 1.3.0·implementer 1.2.0·reviewer 1.5.0, kitVersion 1.2.0. 세 항목의 이전 스킬·룰 파일 해시를 previous로 옮겼다
+  (출처: docatlas agent kit 1.0.0~1.1.0, designer 스킬은 1.1.0). agent-kit/README.md 표·kit 버전, CHANGELOG Unreleased.
+- [x] README 요약의 문서 표와 규칙은 새 규칙과 모순되지 않아 바꾸지 않았다.
+- [x] DC-30 b에 따라 examples/sample-shop/docs/checkout/IMPLEMENT.md의 다섯 단계에 Refs를, 끝난 Phase 1·2에 Files를 넣었다.
+  진행 중인 Phase 3에는 Files를 두지 않아 "단계를 마칠 때 쓴다"를 보여 준다. 예제 README의 checkout 설명도 고쳤다. 예제 문서는 21개 그대로다.
 
 기준 테스트: npm run check(버전·해시·previous 규칙), npm test.
-종료 기준: METHOD 두 언어판과 세 스킬·룰이 같은 형식과 역할을 말하고 kit 검사와 기존 테스트가 통과한다. 제품 코드는 바뀌지 않는다.
+결과: 문법 72개·agent kit 1.2.0 세 쌍 통과. npm test는 버전 고정 테스트 2개만 실패해 Test Hardening에서 고쳤다.
+종료 기준: METHOD 두 언어판과 세 스킬·룰이 같은 형식과 역할을 말하고 kit 검사와 기존 테스트가 통과한다. 제품 코드는 바뀌지 않는다. 충족했다.
 
-### Test Hardening
+Files:
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/skills/doc-driven-implementer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-implementer-v1.md` (modified)
+- `agent-kit/skills/doc-driven-reviewer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-reviewer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `agent-kit/README.md` (modified)
+- `CHANGELOG.md` (modified)
+- `examples/sample-shop/README.md` (modified)
+- `examples/sample-shop/docs/checkout/IMPLEMENT.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
 
-- [ ] manifest를 고치기 전 npm run check가 해시와 metadata.version 불일치로 실패하고, 고친 뒤 통과하는 것을 확인한다.
-- [ ] 버전을 고정한 테스트(agent-kit-plan.test.js의 kitVersion, agent-kit-install.test.js의 도움말 버전)가 실패하는 것을 확인하고 기대값을 고친다.
-- [ ] 설계의 파싱 계약 정규식으로 이 작업 절과 예제 checkout에서 Refs·Files를 뽑아 기대한 단계·ID·파일과 같은지,
-  METHOD·DESIGN의 코드 펜스 예시는 잡히지 않는지 확인한다. 검사 스크립트를 저장소에 둘지는 TBD-c와 함께 정한다.
-- [ ] 이 작업 절의 Files 블록을 git diff --name-status와 대조한다.
-- [ ] designer 스킬·룰만 읽어 Refs·Files의 형식·출처·작성 시점을 모두 찾을 수 있는지 대조한다. implementer·reviewer를 참조해야만
-  알 수 있는 규칙이 없어야 한다. implementer·reviewer도 각자 형식을 담고 있는지 확인한다.
+### Test Hardening: 완료
+
+- [x] manifest를 고치기 전 npm run check가 오류 9개(metadata.version 불일치 3·해시 불일치 6)로 실패하고, 고친 뒤 통과했다.
+- [x] 버전 고정 테스트 2개가 실패하는 것을 확인하고 기대값을 고쳤다. agent-kit-plan.test.js의 kitVersion 1.1.0→1.2.0,
+  agent-kit-install.test.js의 도움말 designer 1.2.0→1.3.0. 버전 변경을 알아채게 하는 의도된 고정이므로 그대로 둔다.
+- [x] 설계의 파싱 계약 정규식으로 만든 일회성 스크립트(저장소 밖)로 이 작업 절과 예제 checkout에서 Refs·Files를 뽑았다.
+  단계·물려받은 Refs·파일·renamed 항목이 기대와 같고, METHOD 두 언어판·designer 스킬·DESIGN의 코드 펜스 예시는 잡히지 않았다.
+- [x] 이 작업 절의 Files 블록을 합친 목록이 git status의 변경 19개와 같다.
+- [x] designer 스킬·룰만으로 형식·작성 시점·git 출처·영어 라벨을 모두 찾을 수 있다. implementer·reviewer를 참조해야 아는 규칙은 없고,
+  두 스킬·룰도 각자 형식을 담고 있다.
 
 종료 기준: 형식 오류와 버전 불일치가 검사에서 드러나고, 실제 기록이 파싱 계약으로 정확히 추출된다.
-designer만으로 규칙이 완결된다.
+designer만으로 규칙이 완결된다. 충족했다.
 
-### Integration Test
+Files:
+- `test/agent-kit-plan.test.js` (modified)
+- `test/agent-kit-install.test.js` (modified)
+- `docs/IMPLEMENT.md` (modified)
 
-- [ ] npm run check, npm test, npm pack --dry-run(파일 수 45 유지 확인), 바뀐 문서의 링크 검사, git diff --check.
-- [ ] 임시 HOME에 kit 1.1.0을 설치한 기록을 두고 새 kit의 문서 지도 업데이트 안내와 agents install 미리보기(세 스킬·룰 replace)를 확인한다.
+### Integration Test: 자동 검증 완료
+
+- [x] npm run check, npm test, npm pack --dry-run, 바뀐 문서의 링크 검사, git diff --check.
+  Linux / Node 22.23.4: 문법 72개·agent kit 1.2.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀(root 권한)·실패 0,
+  pack 45개 파일·58.7 kB(파일 수 그대로), 바뀐 문서 10개의 상대 링크 34개 문제 0, git diff --check 통과.
+- [x] ~/.claude만 있는 임시 HOME에 main(0373bbc, kit 1.1.0)의 agents install로 6개를 설치한 뒤, 새 코드의 미리보기는 replace(recorded) 6이었다.
+  문서 지도 시작 시 "kit 1.2.0 is available (installed 1.1.0)" 안내가 나왔고, 설치 후 스킬은 designer 1.3.0이며 안내가 사라졌다.
 - [ ] 단계 끝 리뷰(doc-driven-reviewer-v1)는 사용자가 고른다.
 
+npm run test:platform·test:integration·test:browser는 제품 코드와 설치 동작이 바뀌지 않아 실행하지 않았다.
 종료 기준: 설치본 갱신과 안내가 기존 kit 변경 때와 같이 동작하고, 패키지 구성이 그대로다. 배포 버전과 시점은 사용자가 정한다.
+사람의 M-19 확인(실제 에이전트 세션)은 남아 있다.
+
+Files:
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ## 검증 예제와 기록
 
@@ -1393,15 +1431,18 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-10-30): 사용자 전역 사본을 ctxbin sync 대신 docatlas@0.4.1로 맞췄다(사용자 선택으로 --force, 백업 후). 다시 실행하면 unchanged 12.
   이후 갱신은 docatlas로만 한다. ctxbin sync를 실행하면 ctxbin 표기로 되돌아간다.
 - 완료(2026-10-30): Confluence 개인 공간 페이지와 팀원의 팀 페이지를 designer 1.2.0으로 갱신했다. 팀 페이지는 스킬·룰 코드 블록만 바꿨다.
-- 완료(2026-11-01): RQ-20·DC-30 구현 계획의 Refs·Files 표기를 기준 문서 4종에 기록했다(작업 브랜치 ccr-9dd9ad4c-9qnhod).
-  사용자는 Files와 Refs를 둘 다 넣고, 세 스킬·룰에 규칙을 넣고, 문서부터 갱신하기로 했다. 형식은 설계의 RQ-20 계약(설계 제안)이다.
-  후속 결정: 보통 designer만 쓰므로 designer만으로 Refs·Files가 동작하고 implementer·reviewer는 강화 개념이다. 역할 표와 1단계·M-19에 반영했다.
-- 다음(RQ-20): 사용자가 DC-30의 세 TBD를 정한다. (a) 라벨 영어 고정, (b) 새 작업부터·예제 checkout만 새 형식, (c) docatlas 검색 기능은 별도 후속이 제안이다.
-  정해지면 구현 계획의 "구현 계획의 Refs·Files 표기" 1단계(METHOD·세 스킬·룰·manifest)를 진행한다.
+- 완료(2026-11-01, 배포 전): RQ-20·DC-30 구현 계획의 Refs·Files 표기(작업 브랜치 ccr-9dd9ad4c-9qnhod, main 반영 전).
+  사용자 결정: Files와 Refs 둘 다, 세 스킬·룰에 규칙, 문서부터. designer만으로 동작하고 implementer·reviewer는 강화 개념이다.
+  DC-30의 세 TBD는 제안대로 정했다(영어 라벨, 새 작업부터·예제 checkout만, docatlas 검색은 별도 후속).
+  METHOD 두 언어판, kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0), 예제 checkout, CHANGELOG Unreleased를 고쳤다.
+  검증 결과는 위 "구현 계획의 Refs·Files 표기" 절에 있다.
+- 다음(RQ-20): 단계 끝 리뷰 여부를 사용자가 정한다. 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점도 사용자가 정한다.
+  M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
+  docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
   사용자 환경은 0.4.1부터 docatlas 기록이 생겨 다음 kit 변경 때 확인할 수 있다.
   M-18의 DC-29 항목(위치 절 읽기, 구조가 불분명한 프로젝트에서 designer 1.2.0이 위치를 묻는지),
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
-- 차단: RQ-20 1단계는 DC-30의 TBD 결정을 기다린다. 다른 작업의 차단은 없다.
+- 차단: 없음.
 - 최신 확인 커밋: 0373bbc(main). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.

@@ -5,6 +5,17 @@ changes on main that are not published yet.
 Agent skill and rule versions are tracked separately in
 [agent-kit/manifest.json](agent-kit/manifest.json).
 
+## Unreleased
+
+- Agent kit 1.2.0 with `doc-driven-designer-v1` 1.3.0, `doc-driven-implementer-v1` 1.2.0, and
+  `doc-driven-reviewer-v1` 1.5.0. Each phase in `IMPLEMENT.md` now gets a `Refs:` line with the
+  IDs it covers and, once implemented, a `Files:` list of the files it changed, taken from git, in
+  a fixed format that tools can read line by line. The designer alone writes both. The implementer
+  also keeps earlier uncommitted work out of a phase's list, and the reviewer reports a list that
+  does not match the changes. Existing phases are left as they are. If you installed the skills
+  with `docatlas agents install`, the document map shows a one-line notice; run the same command
+  again to update them.
+
 ## 0.4.1 — 2026-10-30
 
 - Agent kit 1.1.0 with `doc-driven-designer-v1` 1.2.0. The designer places new documents at the

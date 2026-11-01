@@ -603,10 +603,10 @@ guide/는 이 저장소 기획 문서(docs/)와 구분하며, 저장소 지도(d
 - 이전 README의 사용법 정보는 지우지 않고 새 위치로 옮긴다. 버전별 신규 표시는 CHANGELOG.md로 옮긴다.
 - package.json은 description과 keywords만 바꾼다. 이름·버전·bin·files·의존성은 그대로다.
 
-## 구현 계획의 Refs·Files 표기 — RQ-20 계약(설계 제안)
+## 구현 계획의 Refs·Files 표기 — RQ-20 계약
 
 2026-11-01 사용자 결정: 구현 계획의 단계마다 Refs(다루는 ID)와 Files(실제로 바꾼 파일)를 둘 다 남긴다.
-아래 형식은 설계 제안이며 DC-30의 세 TBD가 정해지면 확정한다. 아직 METHOD·스킬·룰에 반영하지 않았다.
+같은 날 사용자가 DC-30의 세 TBD를 제안대로 정해 아래 형식을 확정했다. METHOD 두 언어판과 kit 1.2.0에 반영했다(배포 전).
 
 목적: 사람이 읽는 단계 기록을 그대로 두면서, 줄 단위 규칙만으로 "단계 → ID → 파일"을 뽑아낼 수 있게 한다.
 뽑아낸 결과로 파일별 변경 이력, 요구사항별 관련 파일 같은 검색과 2차 문서를 만든다.
@@ -645,7 +645,7 @@ Files:
   (확인된 요청·설계 제안·구현된 동작 구분). 같은 파일을 여러 단계가 바꾸면 단계마다 적는다. 단계를 다시 열면 블록을 고쳐 쓴다.
 - 출처: 기억이 아니라 git에서 만든다. `git status --porcelain`, `git diff --name-status`, 추적되지 않은 새 파일을 본다.
   앞 단계의 커밋하지 않은 변경이 남아 있으면 단계 시작 때 확인한 변경 목록을 빼고 이 단계의 것만 적는다.
-- 언어(TBD-a 제안): `Refs:`·`Files:`·kind·`none`은 문서 언어와 상관없이 영어로 쓴다. 나머지 본문은 프로젝트 언어를 따른다.
+- 언어(DC-30 a): `Refs:`·`Files:`·kind·`none`은 문서 언어와 상관없이 영어로 쓴다. 나머지 본문은 프로젝트 언어를 따른다.
 
 ### 파싱 계약
 
@@ -669,25 +669,25 @@ implementer·reviewer는 다른 스킬이 설치됐다고 가정하지 않고 �
 | --- | --- | --- |
 | designer (기본, 단독으로 완결) | 형식을 정의하고 단계를 만들 때 쓴다. | 단계를 만들 때는 쓰지 않는다(예정한 파일은 체크리스트 문장으로). 구현한 단계를 마칠 때, 그 단계를 구현한 에이전트가 git에서 만들어 쓴다. |
 | implementer (강화) | 단계를 마칠 때 실제 범위와 맞는지 확인하고 고친다. | 단계 시작 때 기존 변경 목록을 확인해 앞 단계 변경과 구분하고, 문서 동기화 때 쓴다. 완료 보고의 변경 파일과 같다. 서브에이전트이고 구현 계획이 범위 밖이면 블록을 보고에 담아 돌려준다. |
-| reviewer (강화) | ID가 기준 문서에 있는지 확인한다. | 수집한 변경 목록과 비교한다. 빠지거나 남는 항목, 완료 단계의 블록 누락은 doc sync warning이다. 읽기 전용이므로 고치지 않는다. |
+| reviewer (강화) | ID가 기준 문서에 있는지 확인한다. | 수집한 변경 목록과 비교한다. 빠지거나 남는 항목, 완료 단계의 블록 누락은 doc sync warning이다. 문서가 이 기록을 쓸 때만 확인해, 기록을 쓰지 않는 기존 프로젝트에 경고를 내지 않는다. 읽기 전용이므로 고치지 않는다. |
 
-### 바뀌는 파일과 버전(제안)
+### 바뀌는 파일과 버전
 
 - METHOD.md·METHOD.ko.md: 작성 규칙에 Refs·Files 항목과 짧은 예시를 더한다. 문서 세트 표의 IMPLEMENT.md 설명도 확인한다.
-- designer 스킬: Standard Artifact Flow의 IMPLEMENT.md 항목에 Refs·Files 형식과 출처 규칙, Working Rules에 ID를 줄여 쓰지 않는 규칙,
-  Phase Completion에 단계를 마칠 때 Files를 쓰는 규칙, Completion Criteria에 단계별 Refs. designer 룰에도 같은 규칙을 둔다.
+- designer 스킬: Standard Artifact Flow의 IMPLEMENT.md 항목에서 새 Phase Records 절(형식·출처·작성 시점·ID를 줄여 쓰지 않는 규칙·영어 라벨·
+  기존 단계는 요청 없이 소급하지 않음)을 가리키고, Phase Completion에 단계를 마칠 때 Files를 쓰는 규칙, Completion Criteria에 단계별 Refs. designer 룰에도 같은 규칙을 둔다.
 - agent-kit 세 스킬과 세 룰: 위 역할 표의 규칙. designer 1.2.0→1.3.0, implementer 1.1.0→1.2.0, reviewer 1.4.0→1.5.0, kitVersion 1.1.0→1.2.0.
   manifest의 이전 해시 이동·새 해시 기록, agent-kit/README.md 표, CHANGELOG Unreleased. 룰 머리말은 name·description만 둔다.
 - README 요약의 문서 표와 규칙이 여전히 맞는지 확인한다. 맞으면 바꾸지 않는다.
-- 예제(TBD-b 제안): examples/sample-shop/docs/checkout/IMPLEMENT.md의 단계에 Refs와 Files를 넣어 형식을 보여 준다. 문서 수는 그대로다.
+- 예제(DC-30 b): examples/sample-shop/docs/checkout/IMPLEMENT.md의 단계에 Refs와 Files를 넣어 형식을 보여 준다. 문서 수는 그대로다.
 - 버전을 고정한 테스트(agent-kit-plan.test.js의 kitVersion, agent-kit-install.test.js의 도움말 버전)는 의도된 고정이므로 기대값만 고친다.
 - 다음 패키지 버전은 TBD다. 스킬만 바뀐 0.4.1의 전례로는 패치 버전이다.
 
 ### 이 저장소에 적용
 
-- RQ-20 작업 절부터 Refs·Files를 쓴다. 기존 절의 "대응:" 줄과 문장 속 파일 언급은 그대로 둔다(TBD-b 제안).
+- RQ-20 작업 절부터 Refs·Files를 쓴다. 기존 절의 "대응:" 줄과 문장 속 파일 언급은 그대로 둔다(DC-30 b).
 - 수집기·서버·화면·설치 동작은 바꾸지 않는다. docatlas가 이 표기를 수집해 파일→단계, ID→파일 검색을 제공하는 기능은
-  별도 요구사항으로 다룬다(TBD-c 제안). 그때도 원본 문서는 읽기만 한다.
+  별도 요구사항으로 다룬다(DC-30 c). 그때도 원본 문서는 읽기만 한다.
 
 ## 결정 체크리스트
 
@@ -799,10 +799,10 @@ implementer·reviewer는 다른 스킬이 설치됐다고 가정하지 않고 �
 - [x] DC-29: 2026-10-30 사용자 선택. 블로그 글의 문서 위치 원칙 중 저장소에 없던 것(코드가 보여 주는 묶음 따르기, 모듈마다 docs/ 두지 않기,
   여러 모듈 기능은 위치 하나, 구조가 불분명하면 에이전트가 제안하고 사람이 결정)을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영한다.
   0.4.1로 배포한다(2026-10-30 사용자 결정). M-18.
-- [ ] DC-30: 2026-11-01 사용자 결정. 구현 계획의 단계마다 Refs와 Files를 둘 다 남기고, 세 스킬·룰에 규칙을 넣으며, 문서부터 갱신한다.
+- [x] DC-30: 2026-11-01 사용자 결정. 구현 계획의 단계마다 Refs와 Files를 둘 다 남기고, 세 스킬·룰에 규칙을 넣으며, 문서부터 갱신한다.
   후속 결정: designer만으로 Refs·Files가 모두 동작하고 implementer·reviewer는 강화 개념이다(위 역할 표).
-  형식은 위 RQ-20 계약(설계 제안)이다. 남은 TBD: (a) 라벨·kind를 문서 언어와 상관없이 영어로 고정할지 — 제안: 고정,
-  (b) 기존 단계를 소급할지 — 제안: 새 작업부터, 예제 checkout만 새 형식, (c) docatlas 수집·검색 기능을 이번에 할지 — 제안: 별도 후속. M-19.
+  형식은 위 RQ-20 계약이다. 세 TBD는 같은 날 사용자가 제안대로 정했다: (a) 라벨·kind·none은 문서 언어와 상관없이 영어,
+  (b) 기존 단계는 소급하지 않고 새 작업부터, 예제 checkout만 새 형식, (c) docatlas 수집·검색 기능은 별도 후속. M-19.
 - [x] DC-28: 2026-10-29 사용자 선택. 기본 설치를 designer·implementer·reviewer 세 쌍 모두로 바꾸고, 도움말의 포함 여부 질문 단계를
   없앤다. 일부만 원하면 --only. --all과 클라이언트 자동 감지는 그대로 둔다(~/.agents의 Codex 감지 포함, 사용자가 유지 선택).
   kit 원본 내용이 같아 kitVersion은 올리지 않는다. 다음 배포. M-16.

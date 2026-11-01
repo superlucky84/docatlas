@@ -3,7 +3,7 @@ name: doc-driven-implementer-v1
 description: Use only when the user explicitly asks to use doc-driven-implementer. Implements an existing IMPLEMENT.md plan phase by phase with completion gates, test evidence, and doc/handoff synchronization.
 metadata:
   short-description: phase-driven implementer
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Doc-Driven Implementer Playbook
@@ -33,6 +33,7 @@ If sources conflict, stop and resolve the conflict explicitly with the user.
 - Find the target phase (or named work section) in `IMPLEMENT*.md`.
 - Confirm entry criteria and dependencies are satisfied.
 - List concrete implementation tasks and baseline tests for the phase.
+- Run `git status --porcelain` and note files that are already changed, so the phase's `Files:` block can leave out earlier uncommitted work.
 
 ### 2) Implement
 - Make minimal, coherent code changes aligned to that phase only.
@@ -45,6 +46,9 @@ If sources conflict, stop and resolve the conflict explicitly with the user.
 
 ### 4) Sync Documents
 - Update `IMPLEMENT*.md` phase checklist status (`[ ]` -> `[x]`) for completed items only.
+- Record the phase's files after its checklist and records: a `Files:` line followed by one item per file this phase changed, `` - `<path>` (<kind>) `` with a repository-root path and kind `added`, `modified`, `deleted`, or `renamed` (a rename is `` - `<old>` -> `<new>` (renamed) ``). Build it from git (`git status --porcelain`, `git diff --name-status`, and untracked files), not from memory; include documents and leave out the files noted at kickoff unless this phase changed them again. Write `Files: none` when nothing changed.
+- Check the `Refs:` line right under the phase heading: full IDs separated by `, ` (never `RQ-1·3`), or `Refs: none`. Add or correct it to match what the phase covered. Keep `Refs:`, `Files:`, the kinds, and `none` in English.
+- As a subagent whose scope excludes `IMPLEMENT*.md`, return the `Files:` block in the completion report for the caller to record.
 - Record unresolved items clearly (do not silently skip).
 - If behavior changed materially, sync corresponding `DESIGN*.md` and `README.md` sections.
 
@@ -80,6 +84,7 @@ If sources conflict, stop and resolve the conflict explicitly with the user.
 ## Recommended Completion Report Template
 - `Phase`: <name>
 - `Code`: <what changed>
+- `Files`: <the phase's `Files:` block>
 - `Tests`: <commands + results>
 - `Review`: <verdict + open findings, or `not run`>
 - `Docs`: <files updated>

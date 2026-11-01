@@ -3,7 +3,7 @@ name: doc-driven-designer-v1
 description: Use when a user wants help capturing requirements and co-producing design and implementation documentation before or during development. Build and maintain REQUIREMENTS.md, DESIGN.md, IMPLEMENT.md, and MANUAL_TEST_CHECKLIST.md with explicit decision checklists, phased plans, and test gates that support multi-agent handoff.
 metadata:
   short-description: documentation-first designer
-  version: 1.2.0
+  version: 1.3.0
 ---
 
 # Doc-Driven Designer Playbook
@@ -36,6 +36,7 @@ Translate user requirements into a maintainable document set that guides impleme
 3. Update `IMPLEMENT.md`.
    - Split work into phases with entry criteria, implementation checklist, baseline tests, and exit criteria.
    - Include late-stage **Test Hardening** and **Integration Test** phases.
+   - Give each phase a `Refs:` line, and each implemented phase a `Files:` block (see Phase Records).
 4. Update `MANUAL_TEST_CHECKLIST.md`.
    - Define release-facing manual checks and pass/fail criteria.
 
@@ -50,6 +51,28 @@ Translate user requirements into a maintainable document set that guides impleme
 - Link major design decisions to at least one validation step.
 - Require explicit confirmation for destructive data operations, and keep secrets out of git.
 
+## Phase Records
+Each phase in `IMPLEMENT.md` keeps two records in a fixed format, so people and tools can find, line by line, which IDs a phase covers and which files it changed.
+
+```markdown
+## Phase 2 — Guest session: done
+
+Refs: RQ-1, DC-1, M-1
+
+- [x] Issue a signed guest session cookie.
+
+Files:
+- `services/checkout/session.js` (added)
+- `services/checkout/orders.js` (modified)
+- `services/checkout/legacy-cart.js` -> `services/checkout/cart.js` (renamed)
+```
+
+- `Refs:` is one line right under the phase heading, written when you create the phase. List full IDs separated by `, ` (`RQ-1, RQ-3`, never `RQ-1·3`), or write `Refs: none`. A subheading inherits its parent's `Refs:`.
+- `Files:` is one line after the phase's checklist and records, followed directly by one item per changed file: `` - `<path>` (<kind>) `` with kind `added`, `modified`, `deleted`, or `renamed`; a rename is `` - `<old>` -> `<new>` (renamed) ``. Paths are from the repository root with `/`. Write `Files: none` when the phase changed nothing. Many generated files in one folder may be one entry ending in `/`. Explanations go in the checklist, not in the items.
+- Never write `Files:` while planning; planned files stay in checklist text. When an implemented phase ends, the agent that implemented it writes `Files:` from git (`git status --porcelain`, `git diff --name-status`, and untracked files), not from memory. List only this phase's changes, documents included, and leave out uncommitted changes from earlier phases. Rewrite the block if the phase is reopened. When a phase has subheadings, give each subheading that changed files its own block.
+- Keep `Refs:`, `Files:`, the kinds, and `none` in English whatever language the documents use.
+- Leave existing phases without these records as they are unless the user asks to backfill them.
+
 ## Multi-Agent Rules
 - Each document has one writer at a time. In multi-agent work, the main agent owns the canonical documents and the handoff block; subagents edit documents only within the scope they are given and return proposed changes for anything else.
 
@@ -59,11 +82,12 @@ Translate user requirements into a maintainable document set that guides impleme
 - Do not reorganize existing handoff history unless the user asks. When asked, move superseded notes and old verification logs into a history file (e.g., `docs/handoff/`).
 
 ## Phase Completion
+- When an implementation phase from these documents is finished, record its `Files:` block (see Phase Records) and check its `Refs:` line before reporting. This applies whether or not an implementer skill is in use.
 - When an implementation phase from these documents is finished and a reviewer such as `doc-driven-reviewer-v1` is available, ask the user whether to review the phase's changes or continue to the next phase. Skip the question when the user already decided, and never start a review without the user's answer.
 
 ## Completion Criteria
 Consider planning complete only when:
 - All four artifacts are aligned and non-contradictory.
 - Decision checklists are resolved or clearly tracked.
-- Each implementation phase has entry criteria, baseline tests, and exit criteria.
+- Each implementation phase has a `Refs:` line, entry criteria, baseline tests, and exit criteria.
 - Hardening and integration test phases are present.

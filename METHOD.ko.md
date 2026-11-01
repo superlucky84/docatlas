@@ -77,7 +77,7 @@ checkout 기능의 Phase 3 중간에 세션이 끝나고, 새 에이전트가 �
 | --- | --- | --- |
 | `REQUIREMENTS.md` | 무엇을 만드는가? | 범위, 성공 기준, 제약, 가정, 하지 않을 것 |
 | `DESIGN.md` | 어떻게 만드는가? | 구조, 계약, 정책, 테스트 전략, 결정 체크리스트 |
-| `IMPLEMENT.md` | 어떤 순서로 만드는가? | 진입 기준·작업 체크리스트·기준 테스트·종료 기준을 갖춘 phase와 현재 인계 |
+| `IMPLEMENT.md` | 어떤 순서로 만드는가? | 진입 기준·작업 체크리스트·기준 테스트·종료 기준과 `Refs:`·`Files:` 기록을 갖춘 phase, 그리고 현재 인계 |
 | `MANUAL_TEST_CHECKLIST.md` | 어떻게 인수하는가? | 릴리스 전에 사람이 확인할 항목과 통과/실패 기준 |
 
 `CONTRACTS.md`, `SCHEMA.md`, `PROTOCOL.md` 같은 추가 문서는 계약에 별도 명세가 필요하거나 계획이
@@ -125,11 +125,44 @@ phase에서 빈틈을 메웁니다. 에이전트가 쓰는 코드가 많아질�
   번호를 다시 매기지 않습니다.
 - 주요 설계 결정은 하나 이상의 검증 단계와 연결합니다.
 - 체크리스트 항목은 근거가 있을 때만 `[x]`로 표시합니다. 끝나지 않은 항목은 열어 둡니다.
+- 각 phase에는 다루는 ID를 적은 `Refs:` 줄을 두고, 구현을 마친 phase에는 git에서 확인한 바뀐 파일을
+  `Files:` 목록으로 남깁니다. [Phase 기록](#phase-기록-refs와-files)을 참고하세요.
 - 계약과 계획은 기준본을 하나만 둡니다. 새 계획을 쓰지 말고 기준본을 고칩니다.
 - 다른 에이전트가 문서만 보고 이어서 일할 수 있게 유지합니다.
 - 현재 인계 블록은 하나만 둡니다: **완료(Done)**, **다음(Next)**, **차단 요인(Blockers)**,
   **최신 커밋(Latest commit)**. 작업을 멈출 때 이 블록을 교체하고, 이전 내용은 git이 기억합니다.
 - 파괴적인 데이터 작업은 먼저 묻고, 비밀 정보는 git에 넣지 않습니다.
+
+### Phase 기록: Refs와 Files
+
+`IMPLEMENT.md`의 각 phase는 정해진 형식의 짧은 기록 두 가지를 남깁니다. 그 phase가 다루는 ID와 바꾼
+파일입니다. 사람은 phase의 일부로 읽고, 도구는 줄 단위로 뽑아 파일별·요구사항별로 검색하거나 다른 문서를
+만드는 데 씁니다. git만으로는 이 정보를 얻기 어렵습니다. 여러 phase가 한 커밋에 섞이기 쉽고, squash
+병합은 phase 경계를 지우며, git은 어떤 요구사항 때문에 바뀌었는지 모릅니다.
+
+```markdown
+## Phase 2 — Guest session: done
+
+Refs: RQ-1, DC-1, M-1
+
+- [x] Issue a signed guest session cookie.
+
+Files:
+- `services/checkout/session.js` (added)
+- `services/checkout/orders.js` (modified)
+- `services/checkout/legacy-cart.js` -> `services/checkout/cart.js` (renamed)
+```
+
+- **Refs**는 phase 제목 바로 아래에 둡니다. 전체 ID를 쉼표로 구분해 쓰고(`RQ-1·3`이 아니라 `RQ-1, RQ-3`),
+  해당하는 ID가 없으면 `Refs: none`이라고 씁니다. 하위 제목은 상위 제목의 `Refs:`를 물려받습니다.
+- **Files**는 phase의 체크리스트와 기록 뒤에 둡니다. 항목마다 저장소 루트 기준 경로를 백틱으로 감싸고
+  `(added)`, `(modified)`, `(deleted)`, `(renamed)` 중 하나를 붙입니다. 바꾼 파일이 없는 phase는
+  `Files: none`입니다. 한 폴더에 생성된 파일이 많으면 `/`로 끝나는 폴더 항목 하나로 적을 수 있습니다.
+- Files는 구현한 phase를 마칠 때, 어느 에이전트가 구현했든 기억이 아니라 git(`git status`,
+  `git diff --name-status`, 추적되지 않은 새 파일)에서 만듭니다. 문서를 포함해 이 phase의 변경만 적고,
+  앞 phase에서 커밋하지 않은 변경은 뺍니다. 예정한 파일은 체크리스트 문장에 남깁니다.
+- 문서를 어떤 언어로 쓰든 `Refs:`, `Files:`, 변경 종류, `none`은 영어로 씁니다. 도구는 코드 블록을
+  건너뛰므로 위와 같은 예시는 기록으로 잡히지 않습니다.
 
 ## 문서를 두는 곳
 

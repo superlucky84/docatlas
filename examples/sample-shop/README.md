@@ -6,7 +6,8 @@ None of the code exists; only the documents do.
 
 - `docs/checkout/` has the complete set of four documents: requirements with status labels,
   a design with a decision checklist (one decision still `TBD`), a phased implementation
-  plan with Test Hardening, Integration Test, and a handoff, and manual checks with a run log.
+  plan with Test Hardening, Integration Test, `Refs:` and `Files:` records, and a handoff, and
+  manual checks with a run log.
 - The other features show what real projects look like: partial document sets, nested
   features (`checkout/payments`, `catalog/search`), a shared contract in `docs/shared/`, and
   documents kept beside code in `services/` and `web/`.
