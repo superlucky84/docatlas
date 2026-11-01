@@ -6,7 +6,7 @@ import path from 'node:path';
 export const PRIVATE_PATH = ['.docatlas', 'private'];
 export const EXCLUDE_COMMENT = '# docatlas private documents (docatlas private init)';
 
-async function kind(filename) {
+export async function kind(filename) {
   try {
     const stat = await fs.lstat(filename);
     if (stat.isSymbolicLink()) return 'link';
@@ -17,7 +17,7 @@ async function kind(filename) {
   }
 }
 
-const blockReason = found => (found === 'link' ? 'symbolic-link' : 'wrong-type');
+export const blockReason = found => (found === 'link' ? 'symbolic-link' : 'wrong-type');
 
 export function privatePath(root) {
   return path.join(root, ...PRIVATE_PATH);
@@ -60,6 +60,27 @@ export async function countFiles(directory) {
     }
   }
   return count;
+}
+
+// Lists the private folder for a backup: regular files to copy, and everything else (links, devices) to skip.
+// Paths are relative to the folder, use /, and come in a fixed order.
+export async function collectFiles(directory, prefix = '') {
+  const found = { files: [], skipped: [] };
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  for (const entry of entries) {
+    const relative = prefix + entry.name;
+    if (entry.isDirectory()) {
+      const inner = await collectFiles(path.join(directory, entry.name), relative + '/');
+      found.files.push(...inner.files);
+      found.skipped.push(...inner.skipped);
+    } else if (entry.isFile()) {
+      found.files.push(relative);
+    } else {
+      found.skipped.push({ path: relative, reason: entry.isSymbolicLink() ? 'symbolic-link' : 'wrong-type' });
+    }
+  }
+  return found;
 }
 
 // Reads info/exclude as bytes so text in any encoding survives. present: the pattern is already a line.

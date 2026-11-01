@@ -407,7 +407,8 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 개인 문서의 Files·Refs가 저장소 루트 기준 경로로 관련 코드와 공개 문서를 가리킨다.
 
 통과: 개인 문서가 팀원에게 흔적 없이 내 작업 폴더에만 있고, 지도에서는 구분돼 보인다.
-상태: 1단계(init·status·git 숨김)와 2단계(문서 지도의 Private 그룹·배지) 구현. 2단계 자동 근거: test/private-map.test.js, test/browser/private.spec.js. 자동 근거: test/private.test.js가 git status에 개인 문서가 안 보이고 agents.json은 보이며,
+상태: 1단계(init·status·git 숨김)와 2단계(문서 지도의 Private 그룹·배지) 구현. 2단계 자동 근거: test/private-map.test.js, test/browser/private.spec.js
+(Platform checks run 41302543992, 6b903f2, macOS·Windows × Node 22·24 통과). 자동 근거: test/private.test.js가 git status에 개인 문서가 안 보이고 agents.json은 보이며,
 .gitignore가 생기지 않고 exclude에 패턴이 한 번만 들어감을 확인한다. 지도·스킬은 구현 전이고 사람 확인은 미실행이다.
 
 ### M-22 — 개인 문서 백업과 복구
@@ -423,7 +424,9 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] "개인 문서 백업해 줘"라고 하면 에이전트가 백업을 실행하고, 개인 문서 스킬로 문서를 고친 뒤에도 백업이 생긴다.
 
 통과: 컴퓨터를 바꾸거나 다시 clone해도 개인 문서를 잃지 않는다.
-상태: 계획. DC-34·35 확정(2026-11-01), 구현 전이다.
+상태: 3단계 구현(backup·list·restore·지도 시작 안내). 자동 근거: test/private-backup.test.js가 같은 origin의 두 clone에서
+백업 → 작업 폴더 삭제 → 새 clone 미리보기(쓰기 없음) → 복구(문서와 exclude 줄)를 확인하고, 같은 내용 건너뜀·conflict 보존·--force 전 백업·
+손상 백업·심볼릭 링크·숨김 실패·지도 안내(복구 뒤 사라짐, 파일 쓰기 없음)를 확인한다. 에이전트·스킬 항목은 4단계 뒤, 사람 확인은 미실행이다.
 
 ## Phase 1 자동 검증 대응
 

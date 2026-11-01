@@ -786,34 +786,68 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
   not-ignored로 종료 3을 내고 사용자에게 보이게 한다(같은 init을 반복하라고 안내하지 않는다). `--dry-run`도 패턴 줄이 이미 있으면 같은 확인을 한다.
 - 노출 판정은 Markdown뿐 아니라 개인 폴더의 모든 파일(이미지 등)로 한다. status는 documents(Markdown)와 files(전체)를 따로 보여 준다.
 
-### 명령과 모듈(DC-35) — 1단계에서 init·status·help 구현
+### 명령과 모듈(DC-35) — 1단계 init·status·help, 3단계 backup·list·restore 구현
 
 - 새 모듈 `src/private/`: 위치 준비, 숨김 확인, 백업, 목록, 복구. 수집기·서버·화면·agent-kit과 독립이다.
 - 명령: `docatlas private init | status | backup | list | restore | help`. agents 명령처럼 대화형 입력 없이 탭 구분 결과 줄과 종료 코드를 내고,
   `restore`는 `--dry-run` 미리보기를 지원한다. `help`는 에이전트가 읽고 실행할 순서를 안내한다.
   - init: `.docatlas/private/`를 만들고 git 숨김 규칙을 확인·추가한다.
-  - status: 개인 문서 수, 숨김 상태를 보여 준다(1단계). 마지막 백업과의 차이는 3단계에서 더한다.
+  - status: 개인 문서 수, 숨김 상태, 마지막 백업과의 차이를 보여 준다.
+  - backup·list·restore: 아래 "백업과 복구". `--key`는 이 세 명령, `--from`·`--force`는 restore, `--dry-run`은 init·restore에만 쓴다.
 - 결과 줄: 두 명령 모두 첫 줄에 `root <폴더>`. init은 `<action> folder`, `<action> exclude <파일> <패턴>`, `warning not-git`, `blocked <이유> <경로>`,
-  `summary`. status는 folder·documents·files·git·exclude·ignored·tracked·summary(ok|empty|exposed|tracked|blocked|not-git).
+  `summary`. status는 folder·documents·files·git·exclude·ignored·tracked·backup·summary(ok|empty|exposed|tracked|blocked|not-git).
+- 결과 줄(3단계): backup·list·restore는 `root` 다음에 `key <키> <origin|local|option>`과 `store <키 폴더>`를 낸다.
+  - backup: `warning no-origin`, `warning <symbolic-link|wrong-type> <개인 폴더 기준 경로>`(복사하지 않은 항목),
+    `<create|unchanged|skip> backup <백업 폴더 또는 ->`, `summary backup=<action> files=<n>`.
+  - list: `backup <이름> <createdAt> <파일 수> <backup|before-restore> <commit 또는 ->`(최신순), `warning invalid-backup <폴더>`, `summary backups=<n>`.
+  - restore: `from <이름> <createdAt> <파일 수> <reason>`, init과 같은 folder·exclude 줄, `--force`면 `<create> backup <복구 전 백업 폴더>`,
+    `<create|unchanged|conflict|overwrite> file <경로>`, `blocked <symbolic-link|wrong-type> <경로>`,
+    `summary create=<n> unchanged=<n> conflict=<n> overwrite=<n> blocked=<n>`. `--dry-run`이면 동작 줄과 summary가 `dry-run`으로 시작한다.
+    백업이 없으면 `missing backup <폴더>`, 백업이 손상됐으면 `blocked damaged <경로>` 또는 `blocked invalid-backup <폴더>`로 아무것도 쓰지 않는다.
 - 종료 3의 뜻: agents는 "완료했지만 결정 필요"이고, private init은 "쓰기 전에 멈춤" 또는 "줄은 썼지만 git이 아직 폴더를 봄", status는 "사용자가 봐야 할 상태"다.
+  backup은 "쓰기 전에 멈춤"(막힌 경로), restore는 "쓰기 전에 멈춤"(백업 없음·손상·막힌 경로·숨기지 못함) 또는
+  "나머지는 복구했지만 conflict나 blocked 파일이 남음"이다. list는 백업이 없어도 0이다.
 - 쓰기는 `.docatlas/private/`, `.git/info/exclude`, 백업 위치로 한정한다. 심볼릭 링크는 따라가지 않는다.
 
-### 백업과 복구(DC-34)
+### 백업과 복구(DC-34) — 3단계 구현
 
-- 백업 위치: `~/.docatlas/private-backups/<프로젝트 키>/<UTC 시각>/`. 각 백업에 파일 목록·해시·원본 커밋·시각을 담은 manifest를 둔다.
-- 프로젝트 키: `origin` 원격 주소를 정규화한 값(예: github.com/superlucky84/docatlas, 계정 정보와 .git 제거). 그래서 다른 위치에 새로 clone해도
-  같은 키를 찾는다. 원격이 없으면 `local/<폴더 이름>`과 경고, `--key`로 바꿀 수 있다.
-- 마지막 백업과 내용이 같으면 새 백업을 만들지 않는다. 백업은 모두 보관하고 정리는 후속이다(DC-34).
-- 복구: 새 clone에서 같은 키의 최신 백업(또는 `--from <백업>`)을 고른다. 계획은 create·unchanged·conflict로 보여 주고,
-  다른 내용의 기존 파일(conflict)은 건너뛴다. `--force`일 때만 현재 파일을 먼저 백업한 뒤 덮어쓴다. 복구는 git 숨김 규칙도 다시 넣는다.
+- 백업 위치: `~/.docatlas/private-backups/<프로젝트 키>/<UTC 시각>/`. 시각 이름은 `YYYYMMDDTHHMMSSZ`(Windows가 금지하는 `:` 없음)이고
+  같은 초에 겹치면 `-2`, `-3`을 붙인다. 각 백업은 `manifest.json`과 `files/`(개인 폴더 기준 상대 경로 그대로)다.
+  manifest(format 1): createdAt(ISO 시각), key, reason(`backup` | `before-restore`), root(만든 작업 폴더), commit(HEAD 또는 null),
+  files(`{ path, size, sha256 }`, `/` 구분 상대 경로, 경로 순). 원격 주소 원문은 계정 정보가 섞일 수 있어 담지 않는다.
+- 백업은 같은 키 폴더 안의 임시 폴더(`.partial-…`)에 파일과 manifest를 모두 쓴 뒤 시각 이름으로 바꾼다. 실패하면 임시 폴더를 지운다.
+  그래서 manifest가 없거나 읽을 수 없는 폴더는 백업이 아니다(list가 경고). 새로 만드는 백업 폴더는 0700, 파일은 0600이다.
+- 백업 위치의 `.docatlas`·`private-backups`·키 폴더·백업 폴더가 심볼릭 링크거나 폴더가 아니면 막는다(종료 3). 동기화 폴더 지정은 TBD다.
+- 프로젝트 키: git의 `remote.origin.url`을 정규화한다. 계정 정보·포트·끝의 `/`와 `.git`을 지우고 `호스트/경로`로 만든 뒤 소문자로 바꾼다
+  (Windows·macOS 폴더는 대소문자를 구분하지 않는다). 그래서 `https://`·`ssh://`·`git://` 주소와 `git@host:owner/repo`가 같은 키가 된다.
+  로컬 경로 원격은 `file/<경로>`다. 각 부분에서 Windows가 금지하는 문자(`<>:"\|?*`, 제어 문자)와 공백은 `-`로 바꾸고 끝의 점은 지우며,
+  `.`·`..`·빈 부분은 버리고, Windows 예약 이름(con 등)에는 앞에 `_`를 붙인다.
+  origin이 없거나 git 밖이면 `local/<루트 폴더 이름>`과 경고(no-origin)다. `--key <키>`로 바꿀 수 있다
+  (`/`로 이은 부분이 모두 위 규칙을 이미 지키는 값. 소문자로 바꾸며, 아니면 종료 2). 그래서 출력된 키는 그대로 `--key`에 쓸 수 있다.
+- backup: 루트의 `.docatlas/private/` 아래 모든 일반 파일(이미지 포함)을 복사한다. 심볼릭 링크와 다른 종류는 복사하지 않고 경고한다.
+  파일이 하나도 없으면 백업하지 않는다(skip). 빈 백업이 최신이 되어 복구할 백업을 가리지 않게 하기 위해서다.
+  최신 일반 백업(reason backup)과 경로·해시가 모두 같으면 새로 만들지 않는다(unchanged). 백업은 모두 보관한다(정리는 후속).
+- list: 키의 백업을 최신순으로 보여 준다. 백업이 없어도 종료 0이다.
+- restore: 기본은 최신 일반 백업이다. `--force`가 만드는 복구 전 백업(reason before-restore)은 목록에 보이고 `--from <이름>`으로만 고른다.
+  1. init과 같은 확인(홈, git, 개인 폴더 링크, 추적 파일, exclude 링크)에서 막히면 아무것도 쓰지 않는다.
+  2. 백업을 검증한다. manifest 경로가 안전한 상대 경로인지, 각 파일의 크기·해시가 맞는지 본다. 하나라도 틀리면 아무것도 쓰지 않는다(종료 3).
+  3. 파일마다 계획을 세운다: 없으면 create, 같으면 unchanged, 다르면 conflict, 경로나 그 부모가 링크거나 폴더가 아니면 blocked.
+     `--dry-run`은 여기까지 보여 주고 끝난다. 숨김 줄이 이미 있으면 init처럼 check-ignore로 숨겨지는지도 미리 본다.
+  4. 숨김 줄을 먼저 넣는다(init과 같은 폴더 만들기·exclude 추가·check-ignore 확인). 숨겨지지 않으면 파일을 쓰지 않고 종료 3이다.
+  5. `--force`이고 conflict가 있으면 현재 개인 폴더 전체를 먼저 백업한다(before-restore). 그 뒤 conflict는 overwrite가 된다.
+  6. 파일을 쓴다. 새 파일은 배타적 생성(`wx`), 덮어쓰기는 같은 폴더의 임시 파일을 쓴 뒤 이름 바꾸기라 링크를 따라가지 않는다.
+     백업에 없는 현재 파일은 지우지 않는다. conflict나 blocked가 남으면 나머지를 복구한 뒤 종료 3, 아니면 0이다.
+- status는 summary 앞에 `backup <same|changed|none|unknown> <최신 일반 백업 이름 또는 ->` 줄을 더한다. summary 값은 그대로다.
 - 백업 시점: 명령으로 한다. 사용자가 말로 시키면 에이전트가 실행하고, 개인 문서 스킬은 문서를 고친 뒤에도 실행한다.
   문서 지도는 읽기 전용 원칙대로 백업하지 않는다.
 - 복구는 자동이 아니다(clone은 프로그램을 실행시키지 않는다). 잊지 않도록 두 안내를 둔다.
-  (1) 문서 지도 시작 때 루트의 `.docatlas/private/`에 문서가 없고 같은 키의 백업이 있으면 터미널에 한 줄
-  `Private documents: a backup from <날짜> is available. Restore with: docatlas private restore --dry-run`을 출력한다.
+  (1) 문서 지도 시작 때 루트의 `.docatlas/private/`에 파일이 없고 같은 키의 일반 백업이 있으면 터미널에 한 줄
+  `Private documents: a backup from <YYYY-MM-DD HH:MM UTC> is available. Restore with: docatlas private restore --dry-run`을 출력한다.
+  지도 루트가 git 최상위가 아니면(하위 폴더에서 연 지도) 안내하지 않는다. 실행 폴더에서 찾은 루트가 지도 루트와 다르면 명령에 `--root <루트>`를 붙인다.
   스킬 업데이트 안내(PR-10)와 같이 읽기만 하고, 안내를 만들지 못해도 지도 실행에 영향을 주지 않는다.
   (2) 개인 문서 스킬은 새 문서를 만들기 전에 폴더가 비어 있고 백업이 있으면 복구할지 먼저 묻는다. 묻지 않는 자동 복구는 없다.
 - 백업 위치를 클라우드 동기화 폴더로 바꾸는 옵션(`--to` 또는 설정)은 TBD.
+- 동시 실행 잠금은 두지 않았다(Test Hardening에서 정한다). 같은 초의 두 백업은 다른 이름이 된다.
 
 ### 문서 지도(DC-36) — 2단계 구현
 

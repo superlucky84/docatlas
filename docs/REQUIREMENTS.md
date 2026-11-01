@@ -44,7 +44,7 @@
 | ../docatlas.config.json | 이 저장소 문서 지도의 수집 범위를 docs/로 한정 | DC-21 적용 완료 |
 | ../guide/ | 사용 가이드: 문서 지도·설정·지원 환경 | DC-25 작성 완료 |
 | ../.github/workflows/publish.yml | 버전 태그로 npm 게시(Trusted Publishing), 수동 실행은 dry-run 리허설 | RQ-21 작성 |
-| ../src/private/ | 개인 문서 위치 준비·git 숨김·백업·복구 | RQ-22 1단계 init·status·help 구현, 백업·복구는 계획 |
+| ../src/private/ | 개인 문서 위치 준비·git 숨김·백업·복구 | RQ-22·23: init·status·help(1단계), backup·list·restore와 지도 시작 안내(3단계) 구현 |
 
 설치되는 프로젝트는 입력 데이터의 소유자다. 도구의 설치 위치와 문서를 읽을
 프로젝트 위치를 구분한다.

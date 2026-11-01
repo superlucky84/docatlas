@@ -76,3 +76,17 @@ export async function trackedFiles(root, { git = 'git' } = {}) {
   if (!result.ok) throw new Error('git ls-files failed: ' + (result.message || 'unknown error'));
   return result.stdout.split('\0').filter(Boolean);
 }
+
+// The raw origin address, or null when there is no origin. Only its normalized form is ever stored.
+export async function originUrl(root, { git = 'git' } = {}) {
+  const result = await runGit(root, ['config', '--get', 'remote.origin.url'], git);
+  if (result.status === 1) return null;
+  if (!result.ok) throw new Error('git config failed: ' + (result.message || 'unknown error'));
+  return result.stdout.trim() || null;
+}
+
+// The current commit, or null in a repository without commits.
+export async function headCommit(root, { git = 'git' } = {}) {
+  const result = await runGit(root, ['rev-parse', '--verify', '-q', 'HEAD'], git);
+  return result.ok ? result.stdout.trim() || null : null;
+}

@@ -7,6 +7,7 @@ import { startServer } from './server/index.js';
 import { runAgents } from './agent-kit/command.js';
 import { agentKitNotice } from './agent-kit/notice.js';
 import { runPrivate } from './private/command.js';
+import { privateBackupNotice } from './private/notice.js';
 
 const metadata = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const help = [
@@ -18,6 +19,8 @@ const help = [
   '  docatlas agents install [options]  Install doc-driven agent skills for Claude Code and Codex.',
   '  docatlas agents help               Steps for people and AI agents running the install.',
   '  docatlas private init|status       Keep documents only you see in .docatlas/private/.',
+  '  docatlas private backup|list|restore',
+  '                                     Copy them to ~/.docatlas/private-backups/ and back.',
   '  docatlas private help              Steps for people and AI agents using private documents.', '',
   'Compatibility aliases: docmap, ddd-docmap', '',
   'Options:',
@@ -49,7 +52,7 @@ export async function run(args, {
     return runAgents(args.slice(1), { stdout, stderr, home, cwd, kitDir, now });
   }
   if (args[0] === 'private') {
-    return runPrivate(args.slice(1), { stdout, stderr, cwd });
+    return runPrivate(args.slice(1), { stdout, stderr, cwd, home, now });
   }
   let values;
   try {
@@ -109,6 +112,10 @@ export async function run(args, {
   void agentKitNotice({ home: home ?? os.homedir(), root: session.snapshot.project.rootLabel, kitDir }).then(message => {
     if (message && !stopping) stdout.write(message + '\n');
   });
+  void privateBackupNotice({ home: home ?? os.homedir(), root: session.snapshot.project.rootLabel, cwd: cwd ?? process.cwd() })
+    .then(message => {
+      if (message && !stopping) stdout.write(message + '\n');
+    });
   if (!values['no-open']) {
     void Promise.resolve().then(() => {
       if (!stopping) return opener(session.url);

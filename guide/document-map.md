@@ -106,6 +106,14 @@ Private badge. `docatlas private init` creates the folder and hides it from git 
 only, so teammates never see it; run `docatlas private help` for the details. The map reads
 the folder at the root it was opened with, so open the map from the project root.
 
+The folder disappears with the clone, so keep copies outside it. `docatlas private backup`
+saves the files to `~/.docatlas/private-backups/<origin>/<time>/` and skips the copy when
+nothing changed. In a new clone of the same repository, `docatlas private restore --dry-run`
+previews the restore and `docatlas private restore` brings the files and the git hiding rule
+back. Restore never overwrites a file that differs unless you add `--force`, which saves the
+current files first. When the private folder is empty and a backup exists, the map prints a
+one-line reminder in the terminal; it never restores on its own.
+
 ## Reading and links
 
 The reader renders tables, fenced code, and read-only task checks, with an outline

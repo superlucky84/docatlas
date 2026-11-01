@@ -1434,7 +1434,7 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 개인 문서와 백업 — 1단계 완료
+## 개인 문서와 백업 — 3단계 완료
 
 Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
 진입: 2026-11-01 사용자 요청과 DC-32 선택. 기준 커밋 df7748f(main·작업 브랜치).
@@ -1664,16 +1664,50 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### 3단계 — 백업과 복구
+### 3단계 — 백업과 복구: 완료
 
-진입: 1단계 완료.
+진입: 1단계 완료. 2단계까지 완료(6b903f2, Platform checks run 41302543992가 macOS·Windows × Node 22·24에서 통과).
+사용자가 컨텍스트를 비운 뒤 "이어서 해 줘"라고 해 2단계 리뷰 없이 3단계로 진행했다(2026-11-01). 2단계 리뷰는 요청하면 따로 한다.
+기준 검증(6b903f2, Linux / Node 22.23.4): 2단계 종료 검증과 같은 커밋이다. npm run check 통과, npm test 189개 중 184개 통과·5개 건너뜀·실패 0.
 
-- [ ] backup(같은 내용이면 건너뜀, manifest), list, restore(미리보기·create/unchanged/conflict·--force 전 백업·숨김 규칙 복원).
-- [ ] 문서 지도 시작 때 개인 문서가 없고 백업이 있으면 터미널 한 줄 안내(읽기만, 실패해도 지도 실행 유지).
-- [ ] 프로젝트 키(origin 정규화, 원격 없음 경고, --key).
+- [x] 계약: DESIGN "백업과 복구(DC-34) — 3단계 구현"에 백업 폴더 이름·manifest·키 정규화·restore 순서·결과 줄·종료 코드를 먼저 적었다.
+- [x] 프로젝트 키(key.js): origin 정규화(계정 정보·포트·.git 제거, 소문자, Windows 금지 문자·공백은 `-`, 예약 이름 앞 `_`,
+  인코딩된 `/`·`..`도 폴더를 늘리거나 벗어나지 못함), origin 없으면 `local/<폴더 이름>`과 경고, `--key` 검사.
+- [x] 백업 저장소(store.js): 임시 폴더에 파일과 manifest를 쓴 뒤 시각 이름으로 바꾸기, 같은 초는 `-2`, 0700/0600,
+  링크를 따라가지 않는 읽기(O_NOFOLLOW), 저장소 경로의 링크 막기, 최신 일반 백업과 같으면 건너뜀, 빈 폴더는 백업 안 함.
+- [x] 복구(restore.js·command.js): init과 같은 확인 → 백업 검증(경로·크기·해시) → create/unchanged/conflict/blocked 계획 →
+  숨김 줄 먼저(숨겨지지 않으면 파일을 쓰지 않음) → `--force`면 복구 전 백업 → 쓰기(`wx`, 덮어쓰기는 임시 파일 뒤 이름 바꾸기).
+  기본 복구 대상은 최신 일반 백업이고 복구 전 백업은 `--from`으로만 고른다. 백업에 없는 파일은 지우지 않는다.
+- [x] list, status의 `backup <same|changed|none|unknown>` 줄, help(에이전트 순서: 고친 뒤 backup, 복구는 미리보기 → 사용자 확인 → 복구, --force는 사용자가 원할 때만).
+- [x] 문서 지도 시작 안내(notice.js): 지도 루트가 git 최상위이고 개인 폴더에 파일이 없으며 일반 백업이 있을 때 한 줄. 읽기만 하고 실패하면 안내 없음.
+  실행 폴더의 루트가 지도 루트와 다르면 명령에 `--root`를 붙인다.
+- [x] 사용 가이드 document-map에 백업·복구 문단, CLI 도움말에 backup|list|restore 줄, test:platform에 새 테스트 파일.
 
-기준 테스트: 임시 HOME과 두 clone(같은 origin)에서 백업 → 새 clone 복구, 충돌 보존, 심볼릭 링크 거부, 쓰기 범위 확인.
-종료 기준: 작업 폴더를 지운 뒤에도 새 clone에서 문서와 숨김 규칙이 돌아오고, 기존 파일은 말없이 덮어쓰이지 않는다.
+기준 테스트: 임시 HOME과 두 clone(같은 origin, 다른 주소 형식)에서 백업 → 새 clone 복구, 충돌 보존, 심볼릭 링크 거부, 쓰기 범위 확인.
+결과: test/private-backup.test.js 12개 통과(키 정규화, 작업 폴더를 지운 뒤 새 clone 미리보기·복구와 숨김, 같은 내용 건너뜀·빈 폴더·같은 초 이름·권한,
+conflict 보존과 --force 전 백업·기본 대상·`--from` 되돌리기, 손상·잘못된 manifest·없는 백업에서 쓰기 없음, 링크 복사 안 함·링크 부모 blocked·링크 저장소 막기,
+숨김 실패·추적 파일에서 멈춤, origin 없는 local 키와 `--key`, status 비교, 옵션 검사, 지도 안내 함수와 실제 지도 실행의 안내 줄).
+npm run check 통과(문법 84개), npm test 201개 중 196개 통과·5개 건너뜀·실패 0, npm pack --dry-run 53개 파일·73.7 kB.
+화면 변경이 없어 브라우저 테스트는 실행하지 않았다. 새 테스트의 Windows 결과는 Platform checks로 확인한다.
+종료 기준: 작업 폴더를 지운 뒤에도 새 clone에서 문서와 숨김 규칙이 돌아오고, 기존 파일은 말없이 덮어쓰이지 않는다. 충족했다.
+
+Files:
+- `src/private/key.js` (added)
+- `src/private/store.js` (added)
+- `src/private/restore.js` (added)
+- `src/private/notice.js` (added)
+- `src/private/command.js` (modified)
+- `src/private/folder.js` (modified)
+- `src/private/git.js` (modified)
+- `src/private/index.js` (modified)
+- `src/cli.js` (modified)
+- `test/private-backup.test.js` (added)
+- `package.json` (modified)
+- `guide/document-map.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ### 4단계 — 개인 문서 스킬·룰
 
@@ -1961,7 +1995,11 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): 사용자 우려(규칙 복잡, Windows)에 따라 1단계를 단순화했다. git 밖은 실행한 폴더, git 밖 판단은 git의 답, 플랫폼 CI에 개인 문서 테스트.
   Platform checks(run 41286187387, cf2e790)가 macOS·Windows × Node 22·24에서 모두 통과했다.
 - 완료(2026-11-01, RQ-22 2단계): 문서 지도의 Private 그룹과 배지. 결과는 "개인 문서와 백업" 절 2단계에 있다.
-- 다음(RQ-22·23): 2단계를 리뷰할지 3단계(백업과 복구)로 갈지 사용자가 정한다.
+- 완료(2026-11-01): 2단계 변경의 Platform checks(run 41302543992, 6b903f2)가 macOS·Windows × Node 22·24에서 통과했다.
+- 완료(2026-11-01, RQ-23 3단계): `docatlas private backup|list|restore`, status의 백업 비교, 문서 지도 시작 안내. 결과는 "개인 문서와 백업" 절 3단계에 있다.
+  사용자가 컨텍스트를 비운 뒤 이어서 하라고 해 2단계 리뷰 없이 진행했다.
+- 다음(RQ-22·23): 4단계(doc-driven-private-v1 스킬·룰, manifest default false, 설치 안내). 원하면 그 전에 2·3단계 리뷰.
+  3단계 새 테스트의 Windows 결과(Platform checks)를 확인한다. 그 뒤 Test Hardening(동시 실행 잠금 등)과 Integration Test(F-10).
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1971,4 +2009,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 그리고 이 인계 커밋(2단계)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 그리고 이 인계 커밋(3단계)이 있다. 0.4.1 게시본은 fcb4e68이다.
