@@ -5,7 +5,7 @@ changes on main that are not published yet.
 Agent skill and rule versions are tracked separately in
 [agent-kit/manifest.json](agent-kit/manifest.json).
 
-## Unreleased
+## 0.4.2 — 2026-11-01
 
 - Agent kit 1.2.0 with `doc-driven-designer-v1` 1.3.0, `doc-driven-implementer-v1` 1.2.0, and
   `doc-driven-reviewer-v1` 1.5.0. Each phase in `IMPLEMENT.md` now gets a `Refs:` line with the

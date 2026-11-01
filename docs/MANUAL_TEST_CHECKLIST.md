@@ -490,6 +490,18 @@ test/integration/package.test.js의 부모 1개·하위 3개, 총 4개가 Node 2
 | M-19 | main(kit 1.1.0)으로 설치한 임시 HOME에서 새 kit 안내와 재설치 | 리뷰 반영 뒤 ~/.claude·~/.codex로 다시 실행: 안내 한 줄, 미리보기 replace(recorded) 12, 설치 후 세 항목 새 버전, 안내 사라짐. 기록 없는 Codex 사본 6개는 replace(previous-file) |
 | M-19 | npm run check · npm test · npm pack --dry-run | 리뷰 반영 뒤 다시 실행: kit 1.2.0 세 쌍, 159개 중 156개 통과·3개 건너뜀·실패 0, 45개 파일·58.3 kB |
 
+## 0.4.2 배포 준비 확인 — 2026-11-01
+
+사용자 결정: RQ-20(kit 1.2.0, designer 1.3.0·implementer 1.2.0·reviewer 1.5.0)을 0.4.2 패치로 배포한다. 아래 자동 확인은 기존 수동 인수 체크박스를 대신하지 않는다.
+
+- [x] manifest·lockfile·CLI가 0.4.2를 표시하고 CHANGELOG에 0.4.2 항목이 있다.
+- [x] 문법·Node·플랫폼·통합 테스트와 pack/publish dry-run이 통과하고 파일 수가 45개다.
+  2026-11-01 Linux / Node 22.23.4: Node 159개 중 156개 통과·3개 건너뜀, 플랫폼 6개, 통합 5개(F-07은 브라우저 경로를 임시로 맞춤),
+  docatlas@0.4.2 45개 파일·58.3 kB. agents help가 Kit 1.2.0과 세 항목 새 버전 default를 출력했다.
+- [ ] main CI가 macOS·Windows × Node 22·24 네 작업 모두 통과한다.
+- [ ] 사용자가 게시 후 npm view docatlas@0.4.2 version과 npx --yes docatlas@0.4.2 agents help(designer 1.3.0)를 확인한다.
+- [ ] docatlas로 kit 1.1.0을 설치한 실제 환경에서 0.4.2 문서 지도가 업데이트 안내를 한 줄 보이고, 같은 설치 명령 뒤 사라진다(M-17·M-19).
+
 ## 0.4.1 배포 준비 확인 — 2026-10-30
 
 사용자 결정: DC-29(designer 1.2.0·kit 1.1.0)를 0.4.1 패치로 배포한다. 아래 자동 확인은 기존 수동 인수 체크박스를 대신하지 않는다.

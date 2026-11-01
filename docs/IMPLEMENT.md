@@ -23,7 +23,8 @@
 - 완료: DC-21 METHOD 한국어판과 examples/ 합성 예제 프로젝트. M-18 사람 확인은 남아 있다.
 - 완료: DC-28 기본 설치 항목을 designer·implementer·reviewer 세 쌍으로 변경. 0.4.0으로 게시했다.
 - 완료: DC-29 문서 위치 원칙을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영. 0.4.1로 게시했다.
-- 완료(배포 전): RQ-20·DC-30 구현 계획의 Refs·Files 표기. METHOD 두 언어판과 kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0).
+- 완료: RQ-20·DC-30 구현 계획의 Refs·Files 표기. METHOD 두 언어판과 kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0).
+  0.4.2로 main에 반영했고 npm 게시는 사용자 단계다.
 
 기술 선택은 각 단계에서 근거와 검증을 기록해 DC/IC를 해소한다.
 상세 계약을 바꾸면 요구사항·설계·단계·수동 기준을 같은 작업에서 갱신한다.
@@ -1330,6 +1331,50 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+## 0.4.2 배포 준비 — main 반영, 게시 대기
+
+Refs: RQ-20, DC-30, M-17, M-19
+진입: RQ-20을 작업 브랜치 ccr-9dd9ad4c-9qnhod에 커밋했다(81dce98, 리뷰 두 번 반영). 사용자가 0.4.2로 main 반영과 배포 준비를 요청했다(2026-11-01).
+기준 검증(81dce98, Linux / Node 22.23.4): 문법 72개·agent kit 1.2.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀·실패 0.
+
+- [x] manifest·lockfile을 npm version 0.4.2 --no-git-tag-version --ignore-scripts로 갱신했다. CLI --version이 0.4.2를 출력한다.
+- [x] CHANGELOG의 Unreleased를 0.4.2 — 2026-11-01로 옮겼다. 날짜는 npm 게시일(UTC)이며 다른 날 게시하면 고친다.
+- [x] npm run check, npm test, npm run test:platform, npm run test:integration, npm pack --dry-run, npm publish --dry-run.
+  문법 72개·agent kit 1.2.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀(root 권한)·실패 0, 플랫폼 6개, 통합 5개.
+  pack·publish dry-run: docatlas@0.4.2, 45개 파일, 58.3 kB, latest·public. 레지스트리의 latest는 아직 0.4.1이다.
+  통합의 F-07은 처음에 실패했다. 이 작업 환경에 고정 버전(@playwright/test 1.64.1)이 찾는 브라우저 1248번이 없고 1243번만 있어서다.
+  임시 폴더에 1243번을 1248번 이름으로 링크하고 PLAYWRIGHT_BROWSERS_PATH로 지정해 통과했다. 저장소 코드는 바꾸지 않았다.
+- [x] agents help가 Kit 1.2.0과 designer 1.3.0·implementer 1.2.0·reviewer 1.5.0 default를 출력한다.
+- [x] 사용자 요청으로 작업 브랜치를 main에 fast-forward로 반영해 푸시한다(PR 없음). 작업 브랜치는 지우지 않는다.
+
+종료 기준: 0.4.2 후보의 파일 구성과 버전 표시가 맞고 검사가 통과하며 main에 반영된다. main CI 확인·실제 npm publish·태그는 그다음 단계다.
+
+Files:
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 사용자가 실행할 0.4.2 배포 절차
+
+package.json은 이미 0.4.2이므로 npm version을 다시 실행하지 않는다. main CI가 통과한 뒤 main에서 게시한다.
+
+```sh
+git checkout main
+git pull --ff-only origin main
+npm whoami --registry=https://registry.npmjs.org/
+npm publish --dry-run --access public --registry=https://registry.npmjs.org/
+npm publish --access public --registry=https://registry.npmjs.org/
+npm view docatlas version --registry=https://registry.npmjs.org/
+npx --yes docatlas@0.4.2 agents help
+npx --yes docatlas@0.4.2 agents install --dry-run
+```
+
+선택: git tag v0.4.2, git push origin v0.4.2. 2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -1563,7 +1608,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-10-30): 사용자 전역 사본을 ctxbin sync 대신 docatlas@0.4.1로 맞췄다(사용자 선택으로 --force, 백업 후). 다시 실행하면 unchanged 12.
   이후 갱신은 docatlas로만 한다. ctxbin sync를 실행하면 ctxbin 표기로 되돌아간다.
 - 완료(2026-10-30): Confluence 개인 공간 페이지와 팀원의 팀 페이지를 designer 1.2.0으로 갱신했다. 팀 페이지는 스킬·룰 코드 블록만 바꿨다.
-- 완료(2026-11-01, 배포 전): RQ-20·DC-30 구현 계획의 Refs·Files 표기(작업 브랜치 ccr-9dd9ad4c-9qnhod, main 반영 전).
+- 완료(2026-11-01): RQ-20·DC-30 구현 계획의 Refs·Files 표기(작업 브랜치 ccr-9dd9ad4c-9qnhod).
   사용자 결정: Files와 Refs 둘 다, 세 스킬·룰에 규칙, 문서부터. designer만으로 동작하고 implementer·reviewer는 강화 개념이다.
   DC-30의 세 TBD는 제안대로 정했다(영어 라벨, 새 작업부터·예제 checkout만, docatlas 검색은 별도 후속).
   METHOD 두 언어판, kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0), 예제 checkout, CHANGELOG Unreleased를 고쳤다.
@@ -1571,9 +1616,11 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   사용자 요청으로 두 번 리뷰했다. 첫 리뷰 warning 5개, 두 번째 리뷰 warning 3개를 모두 고쳤다(두 번 모두 critical 0).
   designer 스킬은 0373bbc 대비 +27.8%다.
   커밋: 956fc14·7a630af(기준 문서), e1087a8(구현), a824c9b(분량 정리), ade4291(리뷰 반영), ea4e9d8(참고 기록임을 알리기),
-  이 인계 커밋(두 번째 리뷰 반영).
+  81dce98(두 번째 리뷰 반영), 0.4.2 준비 커밋(main 반영).
   사용자 우려에 따라 Refs·Files가 참고 기록일 뿐 전체 색인이 아니라는 안내를 designer 스킬·룰, METHOD, AGENTS.md 예시와 이 저장소 AGENTS.md에 넣었다.
-- 다음(RQ-20): 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점은 사용자가 정한다.
+- 완료(2026-11-01): 사용자 결정으로 0.4.2 배포를 준비했다. 버전·CHANGELOG·검사·dry-run을 마치고 main에 fast-forward로 반영했다.
+  결과와 사용자 절차는 위 "0.4.2 배포 준비" 절에 있다.
+- 다음(RQ-20): main CI 통과를 확인한 뒤 사용자가 0.4.2를 npm에 게시하고 원하면 태그 v0.4.2를 만든다.
   M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1582,4 +1629,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: ea4e9d8(작업 브랜치, main은 0373bbc). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
+- 최신 확인 커밋: 81dce98(두 번째 리뷰 반영). 그 위의 0.4.2 준비 커밋이 main의 최신이며 SHA는 git log -1로 확인한다. 0.4.1 게시본은 fcb4e68이다.

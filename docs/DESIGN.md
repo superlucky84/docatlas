@@ -515,6 +515,9 @@ CHANGELOG의 Unreleased를 0.4.0으로 옮긴다.
 첫 kit 내용 변경이라 docatlas로 설치한 사용자는 문서 지도 시작 시 업데이트 안내 한 줄을 보고,
 같은 설치 명령을 다시 실행하면 designer 스킬만 바뀌고 나머지는 unchanged로 기록이 갱신되어 안내가 사라진다.
 설치 기록이 없는 손 복사본에는 안내가 없고, 손으로 고친 사본은 skip-modified로 남는다. CHANGELOG의 Unreleased를 0.4.1로 옮긴다.
+0.4.2(2026-11-01 사용자 결정): kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0)을 담는(RQ-20·DC-30) 패치 배포다. CLI 동작은 바뀌지 않는다.
+docatlas로 설치한 사용자는 문서 지도 시작 시 업데이트 안내 한 줄을 보고, 같은 설치 명령을 다시 실행하면 세 스킬·룰이 바뀌고 안내가 사라진다.
+설치 기록이 없는 Codex 사본도 0.3.0~0.4.1 변환본이면 이전 버전으로 인식해 교체한다. CHANGELOG의 Unreleased를 0.4.2로 옮긴다.
 
 배포 패키지에 CLI·수집기·서버·빌드된 화면을 함께 포함한다.
 설치 대상 프로젝트에서 화면 빌드를 실행하지 않게 한다.
@@ -693,7 +696,7 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - 버전을 고정한 테스트(agent-kit-plan.test.js의 kitVersion, agent-kit-install.test.js의 도움말 버전)는 의도된 고정이므로 기대값만 고친다.
 - manifest previous에 세 룰의 이전 Codex 변환본 해시(codex-agent, docatlas 0.3.0~0.4.1)도 둔다. 설치 기록이 없는 Codex 사본도
   수정본(skip-modified)이 아니라 이전 버전으로 인식해 교체한다(2026-11-01 리뷰 suggestion).
-- 다음 패키지 버전은 TBD다. 스킬만 바뀐 0.4.1의 전례로는 패치 버전이다.
+- 패키지 버전은 0.4.2다(2026-11-01 사용자 결정). 스킬만 바뀐 0.4.1의 전례를 따른 패치 버전이다.
 
 ### 이 저장소에 적용
 
