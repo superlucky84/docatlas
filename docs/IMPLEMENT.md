@@ -1108,6 +1108,8 @@ Refs: RQ-20, DC-30, M-19
 - [x] 설계에 형식·규칙·파싱 계약·역할·바뀌는 파일과 버전 제안을 두고, DC-30을 세 TBD와 함께 열었다.
 - [x] 구현 계획에 이 작업 절과 인계를, 수동 검증에 M-19를 더했다.
 - [x] 확인: 바뀐 문서의 상대 링크·앵커와 git diff --check. 제품 코드·스킬·룰은 바꾸지 않았다.
+- [x] 후속 결정(2026-11-01) 반영: designer만으로 Refs·Files가 동작하고 implementer·reviewer는 강화 개념이다.
+  설계의 역할 표, 아래 1단계 작업, M-19를 고쳤다. 이전 제안(Files는 implementer만 쓴다)을 바꿨다.
 
 Files:
 - `docs/REQUIREMENTS.md` (modified)
@@ -1121,12 +1123,15 @@ Files:
 
 - [ ] METHOD.md 작성 규칙에 Refs·Files 항목과 짧은 예시를 더하고 문서 세트 표의 IMPLEMENT.md 설명을 확인한다.
   METHOD.ko.md에 같은 변경을 하고 두 문서의 구조(제목·목록·코드 펜스·표 행·링크 수)가 같은지 확인한다.
-- [ ] designer SKILL.md: IMPLEMENT.md 단계 틀에 Refs 줄과 Files 블록 형식을 넣고, ID를 줄여 쓰지 않는 규칙과
-  예정한 파일을 Files에 적지 않는 규칙을 둔다. 완료 기준에 단계별 Refs를 더한다. metadata.version 1.3.0.
-- [ ] implementer SKILL.md: 단계 시작 때 기존 변경 목록 확인, 문서 동기화 때 git에서 만든 Files 작성과 Refs 확인,
+- [ ] designer SKILL.md(단독으로 완결): IMPLEMENT.md 단계 틀에 Refs 줄과 Files 블록 형식·출처 규칙을 넣고, ID를 줄여 쓰지 않는 규칙과
+  예정한 파일을 Files에 적지 않는 규칙을 둔다. Phase Completion에 구현한 단계를 마칠 때 git에서 Files를 쓰는 규칙을,
+  완료 기준에 단계별 Refs를 더한다. metadata.version 1.3.0.
+- [ ] designer 룰: Refs를 쓰고, 구현한 단계를 마칠 때 Files를 쓰는 규칙을 둔다.
+- [ ] implementer SKILL.md(강화): 형식을 한두 줄로 다시 적고, 단계 시작 때 기존 변경 목록 확인, 문서 동기화 때 Files 작성과 Refs 확인,
   완료 보고에 Files. 서브에이전트이고 구현 계획이 범위 밖이면 블록을 보고로 돌려준다. metadata.version 1.2.0.
-- [ ] reviewer SKILL.md: Doc sync에서 Files와 수집한 변경 목록, Refs와 기준 문서의 ID를 비교하고 어긋나면 warning. metadata.version 1.5.0.
-- [ ] 세 에이전트 룰에 각 역할의 규칙을 한 줄씩 더한다. 머리말은 name·description만 둔다.
+- [ ] reviewer SKILL.md(강화): 형식을 한두 줄로 다시 적고, Doc sync에서 Files와 수집한 변경 목록, Refs와 기준 문서의 ID를 비교해
+  어긋나면 warning. metadata.version 1.5.0.
+- [ ] implementer·reviewer 룰에 각 역할의 규칙을 한 줄씩 더한다. 세 룰의 머리말은 name·description만 둔다.
 - [ ] manifest.json: 세 항목 버전, 이전 해시를 previous로 옮기고 새 해시 기록, kitVersion 1.2.0. agent-kit/README.md 표, CHANGELOG Unreleased.
 - [ ] README 요약의 문서 표와 규칙이 여전히 맞는지 확인한다. 맞으면 바꾸지 않는다.
 - [ ] TBD-b가 제안대로 정해지면 examples/sample-shop/docs/checkout/IMPLEMENT.md의 단계에 Refs와 Files를 넣는다.
@@ -1141,8 +1146,11 @@ Files:
 - [ ] 설계의 파싱 계약 정규식으로 이 작업 절과 예제 checkout에서 Refs·Files를 뽑아 기대한 단계·ID·파일과 같은지,
   METHOD·DESIGN의 코드 펜스 예시는 잡히지 않는지 확인한다. 검사 스크립트를 저장소에 둘지는 TBD-c와 함께 정한다.
 - [ ] 이 작업 절의 Files 블록을 git diff --name-status와 대조한다.
+- [ ] designer 스킬·룰만 읽어 Refs·Files의 형식·출처·작성 시점을 모두 찾을 수 있는지 대조한다. implementer·reviewer를 참조해야만
+  알 수 있는 규칙이 없어야 한다. implementer·reviewer도 각자 형식을 담고 있는지 확인한다.
 
 종료 기준: 형식 오류와 버전 불일치가 검사에서 드러나고, 실제 기록이 파싱 계약으로 정확히 추출된다.
+designer만으로 규칙이 완결된다.
 
 ### Integration Test
 
@@ -1387,6 +1395,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-10-30): Confluence 개인 공간 페이지와 팀원의 팀 페이지를 designer 1.2.0으로 갱신했다. 팀 페이지는 스킬·룰 코드 블록만 바꿨다.
 - 완료(2026-11-01): RQ-20·DC-30 구현 계획의 Refs·Files 표기를 기준 문서 4종에 기록했다(작업 브랜치 ccr-9dd9ad4c-9qnhod).
   사용자는 Files와 Refs를 둘 다 넣고, 세 스킬·룰에 규칙을 넣고, 문서부터 갱신하기로 했다. 형식은 설계의 RQ-20 계약(설계 제안)이다.
+  후속 결정: 보통 designer만 쓰므로 designer만으로 Refs·Files가 동작하고 implementer·reviewer는 강화 개념이다. 역할 표와 1단계·M-19에 반영했다.
 - 다음(RQ-20): 사용자가 DC-30의 세 TBD를 정한다. (a) 라벨 영어 고정, (b) 새 작업부터·예제 checkout만 새 형식, (c) docatlas 검색 기능은 별도 후속이 제안이다.
   정해지면 구현 계획의 "구현 계획의 Refs·Files 표기" 1단계(METHOD·세 스킬·룰·manifest)를 진행한다.
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).

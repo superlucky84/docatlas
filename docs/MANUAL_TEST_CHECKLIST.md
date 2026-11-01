@@ -354,10 +354,12 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 아래 항목은 구현 후의 인수 기준이다.
 
 - [ ] METHOD 두 언어판의 작성 규칙에서 Refs·Files의 형식과 이유가 읽히고, 세 스킬·룰의 규칙과 맞는다.
-- [ ] designer 1.3.0으로 새 기능의 구현 계획을 만들면 각 단계 제목 아래에 줄여 쓰지 않은 ID의 Refs 줄이 있고, Files 블록은 없다.
-- [ ] implementer 1.2.0으로 단계를 마치면 Files 블록이 실제 git 변경(added·modified·deleted·renamed)과 같고,
-  검증만 한 단계는 `Files: none`이며, 커밋하지 않은 앞 단계의 변경이 섞이지 않는다.
-- [ ] reviewer 1.5.0이 Files에 빠진 파일이나 바뀌지 않은 파일이 있으면 doc sync warning으로 보고한다.
+- [ ] designer 1.3.0만 설치한 환경(--only doc-driven-designer-v1)에서 새 기능의 구현 계획을 만들면 각 단계 제목 아래에
+  줄여 쓰지 않은 ID의 Refs 줄이 있고, 아직 구현하지 않은 단계에는 Files 블록이 없다.
+- [ ] 같은 designer 단독 환경에서 한 단계를 구현하고 마치면 implementer·reviewer 없이도 그 단계에 실제 git 변경
+  (added·modified·deleted·renamed)과 같은 Files 블록이 남고, 검증만 한 단계는 `Files: none`이다.
+- [ ] implementer 1.2.0을 함께 쓰면 커밋하지 않은 앞 단계의 변경이 섞이지 않고, 완료 보고의 변경 파일이 Files와 같다(강화).
+- [ ] reviewer 1.5.0이 Files에 빠진 파일이나 바뀌지 않은 파일이 있으면 doc sync warning으로 보고한다(강화).
 - [ ] 설계의 파싱 계약 규칙만으로 새 단계의 Refs·Files를 뽑을 수 있고, 코드 펜스 안의 형식 예시는 잡히지 않는다.
 - [ ] docatlas로 kit 1.1.0을 설치한 환경에서 새 kit을 담은 문서 지도가 업데이트 안내를 보이고, 다시 설치하면 세 스킬·룰이 바뀌고 안내가 사라진다.
 

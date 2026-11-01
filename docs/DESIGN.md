@@ -660,15 +660,22 @@ Files:
 
 ### 역할
 
+2026-11-01 사용자 결정: 보통 designer만 쓴다. designer 스킬·룰만으로 Refs와 Files가 모두 동작해야 하고,
+implementer·reviewer는 있을 때 같은 규칙을 강화한다. 둘이 없어도 기능이 빠지지 않는다.
+designer 스킬은 이미 구현 중 단계 완료(Phase Completion)와 인계 규칙을 담고 있으므로, 단계를 마칠 때의 Files 작성도 거기에 둔다.
+implementer·reviewer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 한두 줄로 다시 적는다.
+
 | 역할 | Refs | Files |
 | --- | --- | --- |
-| designer | 단계를 만들 때 쓴다. 형식을 정의한다. | 쓰지 않는다. 예정한 파일은 체크리스트 문장으로 남긴다. |
-| implementer | 단계를 마칠 때 실제 범위와 맞는지 확인하고 고친다. | 단계 시작 때 기존 변경 목록을 확인하고, 문서 동기화 때 git에서 만들어 쓴다. 완료 보고의 변경 파일과 같다. 서브에이전트이고 구현 계획이 범위 밖이면 블록을 보고에 담아 돌려준다. |
-| reviewer | ID가 기준 문서에 있는지 확인한다. | 수집한 변경 목록과 비교한다. 빠지거나 남는 항목, 완료 단계의 블록 누락은 doc sync warning이다. 읽기 전용이므로 고치지 않는다. |
+| designer (기본, 단독으로 완결) | 형식을 정의하고 단계를 만들 때 쓴다. | 단계를 만들 때는 쓰지 않는다(예정한 파일은 체크리스트 문장으로). 구현한 단계를 마칠 때, 그 단계를 구현한 에이전트가 git에서 만들어 쓴다. |
+| implementer (강화) | 단계를 마칠 때 실제 범위와 맞는지 확인하고 고친다. | 단계 시작 때 기존 변경 목록을 확인해 앞 단계 변경과 구분하고, 문서 동기화 때 쓴다. 완료 보고의 변경 파일과 같다. 서브에이전트이고 구현 계획이 범위 밖이면 블록을 보고에 담아 돌려준다. |
+| reviewer (강화) | ID가 기준 문서에 있는지 확인한다. | 수집한 변경 목록과 비교한다. 빠지거나 남는 항목, 완료 단계의 블록 누락은 doc sync warning이다. 읽기 전용이므로 고치지 않는다. |
 
 ### 바뀌는 파일과 버전(제안)
 
 - METHOD.md·METHOD.ko.md: 작성 규칙에 Refs·Files 항목과 짧은 예시를 더한다. 문서 세트 표의 IMPLEMENT.md 설명도 확인한다.
+- designer 스킬: Standard Artifact Flow의 IMPLEMENT.md 항목에 Refs·Files 형식과 출처 규칙, Working Rules에 ID를 줄여 쓰지 않는 규칙,
+  Phase Completion에 단계를 마칠 때 Files를 쓰는 규칙, Completion Criteria에 단계별 Refs. designer 룰에도 같은 규칙을 둔다.
 - agent-kit 세 스킬과 세 룰: 위 역할 표의 규칙. designer 1.2.0→1.3.0, implementer 1.1.0→1.2.0, reviewer 1.4.0→1.5.0, kitVersion 1.1.0→1.2.0.
   manifest의 이전 해시 이동·새 해시 기록, agent-kit/README.md 표, CHANGELOG Unreleased. 룰 머리말은 name·description만 둔다.
 - README 요약의 문서 표와 규칙이 여전히 맞는지 확인한다. 맞으면 바꾸지 않는다.
@@ -793,6 +800,7 @@ Files:
   여러 모듈 기능은 위치 하나, 구조가 불분명하면 에이전트가 제안하고 사람이 결정)을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영한다.
   0.4.1로 배포한다(2026-10-30 사용자 결정). M-18.
 - [ ] DC-30: 2026-11-01 사용자 결정. 구현 계획의 단계마다 Refs와 Files를 둘 다 남기고, 세 스킬·룰에 규칙을 넣으며, 문서부터 갱신한다.
+  후속 결정: designer만으로 Refs·Files가 모두 동작하고 implementer·reviewer는 강화 개념이다(위 역할 표).
   형식은 위 RQ-20 계약(설계 제안)이다. 남은 TBD: (a) 라벨·kind를 문서 언어와 상관없이 영어로 고정할지 — 제안: 고정,
   (b) 기존 단계를 소급할지 — 제안: 새 작업부터, 예제 checkout만 새 형식, (c) docatlas 수집·검색 기능을 이번에 할지 — 제안: 별도 후속. M-19.
 - [x] DC-28: 2026-10-29 사용자 선택. 기본 설치를 designer·implementer·reviewer 세 쌍 모두로 바꾸고, 도움말의 포함 여부 질문 단계를
