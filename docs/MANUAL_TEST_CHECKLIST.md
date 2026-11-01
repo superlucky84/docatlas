@@ -359,8 +359,10 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 같은 designer 단독 환경에서 한 단계를 구현하고 마치면 implementer·reviewer 없이도 그 단계에 실제 git 변경
   (added·modified·deleted·renamed)과 같은 Files 블록이 남고, 검증만 한 단계는 `Files: none`이다.
   커밋하지 않고 두 단계를 이어 구현해도 앞 단계 파일은 이 단계가 다시 바꾸지 않았다면 빠지고, 새 폴더의 파일은 파일 단위로 적힌다.
-- [ ] Files 기록이 없는 예전 단계 본문에만 나오는 파일로 "이 파일과 관련된 문서를 찾아 달라"고 하면, designer만 설치한 에이전트와
-  AGENTS.md 안내만 있는 에이전트가 모두 그 단계를 빠뜨리지 않고 찾는다. 기록이 있는 단계와 섞인 구현 계획에서 확인한다.
+- [ ] 기록이 있는 단계와 없는 단계가 섞인 프로젝트(예: examples/sample-shop은 checkout에만 기록이 있다)에서, Files 기록이 없는 문서 본문에만
+  나오는 파일로 관련 문서를 찾아 달라고 하면 그 문서를 빠뜨리지 않는다. 두 경우를 나눠 확인한다.
+  (1) 스킬을 명시해 부른다: "doc-driven-designer-v1을 써서 이 파일과 관련된 문서를 찾아 줘".
+  (2) 스킬 없이 AGENTS.md 안내만 있는 에이전트에게 같은 요청을 한다. 문서 찾기 요청에서는 designer 스킬이 자동으로 실리지 않을 수 있다.
 - [ ] implementer 1.2.0을 함께 쓰면 완료 보고의 변경 파일이 Files와 같다(강화).
 - [ ] reviewer 1.5.0이 Files에 빠진 파일이나 바뀌지 않은 파일이 있으면 doc sync warning으로 보고한다(강화).
 - [ ] 설계의 파싱 계약 규칙만으로 새 단계의 Refs·Files를 뽑을 수 있고, 코드 펜스 안의 형식 예시는 잡히지 않는다.
@@ -482,7 +484,7 @@ test/integration/package.test.js의 부모 1개·하위 3개, 총 4개가 Node 2
 | 항목 | 확인 | 결과 |
 | --- | --- | --- |
 | M-19 | 파싱 계약 정규식의 일회성 스크립트로 구현 계획의 새 작업 절과 예제 checkout 추출 | 단계·물려받은 Refs·파일·renamed가 기대와 같고 코드 펜스 예시는 0건 |
-| M-19 | 새 작업 절의 Files 블록 합집합과 git status | 변경 19개로 같음 |
+| M-19 | 새 작업 절의 Files 블록 합집합과 git 변경 | e1087a8 시점 19개로 같음. 두 번째 리뷰(ea4e9d8 기준)에서 합집합 21개가 git diff 0373bbc...HEAD와 같음 |
 | M-19 | designer 스킬·룰만 읽고 형식·작성 시점·git 출처·영어 라벨 찾기 | 모두 있음(리뷰 반영 뒤 앞 단계 변경 빼기 포함). implementer는 한 줄 형식, reviewer는 문서 블록과 git 변경을 비교 |
 | M-19 | METHOD.md와 METHOD.ko.md 구조 대조 | 제목·목록·코드 블록·표 행·링크 수 동일 |
 | M-19 | main(kit 1.1.0)으로 설치한 임시 HOME에서 새 kit 안내와 재설치 | 리뷰 반영 뒤 ~/.claude·~/.codex로 다시 실행: 안내 한 줄, 미리보기 replace(recorded) 12, 설치 후 세 항목 새 버전, 안내 사라짐. 기록 없는 Codex 사본 6개는 replace(previous-file) |

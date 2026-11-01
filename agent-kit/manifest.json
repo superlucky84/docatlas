@@ -8,11 +8,11 @@
       "default": true,
       "skill": {
         "path": "skills/doc-driven-designer-v1/SKILL.md",
-        "sha256": "e40fe6be805914a7c57fd53b4df62dfb7b8cc3ba6e058101681ac4ce8a5e6dcc"
+        "sha256": "c22d7f737ad7c6bc41096048236c01651a1be8b99063312bb885e1961477c9d4"
       },
       "agent": {
         "path": "agents/doc-driven-designer-v1.md",
-        "sha256": "a462280dc49a3846d6b31c780423bc7653b2d7ea7d4c9becec891a1b13595551"
+        "sha256": "da1c557ab7e62affe05753af95ffd36adc1d83d05bcfb7d35f8a7e7e53216378"
       },
       "previous": [
         {

@@ -1215,6 +1215,8 @@ Files:
 - [x] 배포 전이라 항목 버전과 kitVersion은 그대로 두고 manifest의 현재 해시만 다시 기록했다. previous 항목은 그대로다.
 - [x] npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0).
 
+종료 기준: 동작을 바꾸지 않고 새 스킬·룰 문장이 줄어들며 검사와 테스트가 통과한다. 충족했다.
+
 Files:
 - `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
 - `agent-kit/agents/doc-driven-designer-v1.md` (modified)
@@ -1249,6 +1251,8 @@ Files 블록이 커밋별 실제 변경과 같음을 대조했다.
   ~/.claude와 ~/.codex가 있는 임시 HOME에 main(0373bbc)으로 12개 설치 → 새 미리보기 replace(recorded) 12, 문서 지도 안내 한 줄,
   설치 후 designer 1.3.0·implementer 1.2.0·reviewer 1.5.0, 안내 사라짐. 설치 기록을 지운 Codex 사본 6개는 replace(previous-file) 6.
 
+종료 기준: 리뷰의 warning 5개가 해결되고 검사·테스트·업그레이드 확인을 다시 통과한다. 충족했다(두 번째 리뷰에서 확인).
+
 Files:
 - `METHOD.md` (modified)
 - `METHOD.ko.md` (modified)
@@ -1273,7 +1277,12 @@ Files:
 - [x] 스킬 없이 문서 검색을 부탁받은 에이전트도 알 수 있게 METHOD 두 언어판의 Phase 기록 절과 AGENTS.md 예시, 예제 AGENTS.md,
   이 저장소 AGENTS.md(RQ-20 이전 절에는 기록이 없다는 안내)에 한 줄씩 넣었다. CHANGELOG Unreleased에도 적고 문단을 정리했다.
 - [x] 분량(0373bbc 대비 단어 수): designer 스킬 +27.1%(1,185), designer 룰 +27.3%(336). 배포 전이라 버전은 그대로, 해시만 다시 기록했다.
-- [x] npm run check, npm test, METHOD 두 언어판 구조 대조, 바뀐 문서 링크, 파싱 확인, git diff --check. 결과는 아래 인계와 같다.
+- [x] 확인(Linux / Node 22.23.4): npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0),
+  METHOD 두 언어판 구조 동일(이번 일회성 집계로 제목 17·목록 53·코드 블록 4·표 행 23·링크 12), 바뀐 문서의 상대 링크 29개 문제 0,
+  파싱 계약으로 이 작업 절의 하위 단계 7개 추출, git diff --check 통과.
+
+종료 기준: 스킬을 쓰든 AGENTS.md 안내만 있든 에이전트가 기록이 참고용임을 읽을 수 있고, 검사와 테스트가 통과한다. 충족했다.
+실제 세션 확인은 M-19에 남아 있다.
 
 Files:
 - `AGENTS.md` (modified)
@@ -1284,6 +1293,38 @@ Files:
 - `agent-kit/agents/doc-driven-designer-v1.md` (modified)
 - `agent-kit/manifest.json` (modified)
 - `examples/sample-shop/AGENTS.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 두 번째 리뷰 반영 — 완료
+
+진입: 사용자가 리뷰를 한 번 더 요청했다(2026-11-01). 별도 에이전트가 a824c9b...HEAD를 중심으로 읽기 전용 리뷰를 했다.
+결과: REQUEST_CHANGES, critical 0·warning 3·suggestion 8. 첫 리뷰의 W1~W5와 반영했다는 suggestion은 모두 해결로 확인했다
+(리뷰어가 check·test·해시·파싱·단어 수·줄 길이를 다시 쟀고, Codex previous 해시를 0373bbc·fcb4e68의 룰로 다시 계산했다).
+
+- [x] W1 기존 동작이 좁아진 것: designer Completion Criteria의 "모든 단계에 진입·기준 테스트·종료 기준"을 되살리고 Refs만 새 단계로 한정했다.
+  ade4291에서 "new"가 항목 전체에 붙어 기존 기준까지 새 단계로 좁아졌던 실수다.
+- [x] W2 CHANGELOG의 역할 설명을 W1 수정 뒤 상태로 고쳤다(designer가 앞 단계 파일도 빼고, implementer는 같은 규칙에 보고를 더함).
+- [x] W3 참고 기록 단계의 [x]에 실제 결과를 적었다.
+- [x] 반영한 suggestion: "When you start implementing it"(계획 시점과 구분), "the document text", DESIGN의 designer 룰 설명을 실제(요약)와 맞춤,
+  여러 세션에 걸친 단계의 한계를 TBD에 추가, M-19 검색 항목을 스킬 명시 호출과 AGENTS.md만 있는 경우로 나눔,
+  CHANGELOG에 METHOD의 AGENTS.md 예시를 복사한 사용자에게 새 줄을 옮기라는 안내, 후속 검색 기능 동작을 설계 제안으로 표시,
+  REQUIREMENTS 인수 기준·구현됨 줄에 참고 기록 안내, 인계의 낡은 수치·문장, MANUAL의 측정 시점, 세 하위 단계의 종료 기준.
+- [x] 분량(0373bbc 대비 단어 수): designer 스킬 +27.8%(1,191), designer 룰 +27.7%(337). 새 줄 최대 356자(스킬, 기존 456)·204자(룰, 기존 194).
+  배포 전이라 버전은 그대로, 해시만 다시 기록했다.
+- [x] 확인(Linux / Node 22.23.4): npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0),
+  METHOD 두 언어판 구조 동일(제목 17·목록 53·코드 블록 4·표 행 23·링크 12), 바뀐 문서의 상대 링크 29개 문제 0,
+  파싱 계약으로 하위 단계 8개 추출, 이 블록과 git status의 변경 8개가 같음, git diff --check 통과.
+
+종료 기준: 두 번째 리뷰의 warning 3개가 해결되고 검사·테스트가 통과한다. 충족했다.
+
+Files:
+- `CHANGELOG.md` (modified)
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
 - `docs/REQUIREMENTS.md` (modified)
 - `docs/DESIGN.md` (modified)
 - `docs/IMPLEMENT.md` (modified)
@@ -1527,10 +1568,12 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   DC-30의 세 TBD는 제안대로 정했다(영어 라벨, 새 작업부터·예제 checkout만, docatlas 검색은 별도 후속).
   METHOD 두 언어판, kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0), 예제 checkout, CHANGELOG Unreleased를 고쳤다.
   검증 결과는 위 "구현 계획의 Refs·Files 표기" 절에 있다. 사용자 우려에 따라 새 스킬·룰 문장을 줄였다(designer 스킬 +36%→+21%).
-  사용자 요청으로 리뷰했다(REQUEST_CHANGES, critical 0·warning 5). warning 5개를 모두 고쳐 designer 스킬은 +24%다.
-  커밋: 956fc14·7a630af(기준 문서), e1087a8(구현), a824c9b(분량 정리), ade4291(리뷰 반영), 이 인계 커밋(참고 기록임을 알리기).
+  사용자 요청으로 두 번 리뷰했다. 첫 리뷰 warning 5개, 두 번째 리뷰 warning 3개를 모두 고쳤다(두 번 모두 critical 0).
+  designer 스킬은 0373bbc 대비 +27.8%다.
+  커밋: 956fc14·7a630af(기준 문서), e1087a8(구현), a824c9b(분량 정리), ade4291(리뷰 반영), ea4e9d8(참고 기록임을 알리기),
+  이 인계 커밋(두 번째 리뷰 반영).
   사용자 우려에 따라 Refs·Files가 참고 기록일 뿐 전체 색인이 아니라는 안내를 designer 스킬·룰, METHOD, AGENTS.md 예시와 이 저장소 AGENTS.md에 넣었다.
-- 다음(RQ-20): 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점도 사용자가 정한다.
+- 다음(RQ-20): 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점은 사용자가 정한다.
   M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1539,4 +1582,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: ade4291(작업 브랜치, main은 0373bbc). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
+- 최신 확인 커밋: ea4e9d8(작업 브랜치, main은 0373bbc). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
