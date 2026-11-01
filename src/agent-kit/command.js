@@ -26,13 +26,15 @@ const OTHER_AGENTS = 'If you are an agent other than Claude Code or Codex, do no
 
 export function agentsHelp(kit, kitDir = KIT_DIRECTORY) {
   const items = kit
-    ? kit.items.map(item => '  ' + item.name.padEnd(27) + item.version.padEnd(8) + (item.default ? 'default' : 'with --all or --only'))
+    ? kit.items.map(item => '  ' + item.name.padEnd(27) + item.version.padEnd(8) + (item.default ? 'default' : 'with --all or --only') +
+      (item.requires?.length ? '; needs ' + item.requires.join(', ') : ''))
     : ['  (the agent kit could not be read)'];
   return [
     'docatlas agents — install doc-driven agent skills and rules for Claude Code and Codex', '',
     'For AI agents running this for a user:',
     '  1. Without --only, the command installs the kit items marked default below. If the user wants',
-    '     only some, add --only <name> for each.',
+    '     only some, add --only <name> for each. An item that needs another one works only when that',
+    '     one is installed too, so add --only for both unless it is already installed.',
     '  2. Preview: docatlas agents install --dry-run [options]',
     '  3. Show the preview lines to the user and ask for approval.',
     '  4. Apply: run the same command without --dry-run.',

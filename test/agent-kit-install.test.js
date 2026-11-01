@@ -49,6 +49,8 @@ test('the agents help covers every install option, action and exit code', async 
   for (const name of ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1']) {
     assert.match(help, new RegExp('^  ' + name + ' +\\d+\\.\\d+\\.\\d+ +default$', 'm'), name);
   }
+  assert.match(help, /^  doc-driven-private-v1 +\d+\.\d+\.\d+ +with --all or --only; needs doc-driven-designer-v1$/m);
+  assert.ok(help.includes('add --only for both unless it is already installed'));
   assert.ok(!help.includes('ask whether to add'), 'the default already installs every item, so agents do not ask first');
   const main = spawnSync(process.execPath, [cliPath, '--help'], { encoding: 'utf8' });
   assert.match(main.stdout, /docatlas agents help {2,}Steps for people and AI agents/);

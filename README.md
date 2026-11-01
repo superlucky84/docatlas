@@ -39,7 +39,7 @@ Read the full method in [METHOD.md](https://github.com/superlucky84/docatlas/blo
 | Part | What it is | Start with |
 | --- | --- | --- |
 | The method | The workflow and its writing rules | [METHOD.md](https://github.com/superlucky84/docatlas/blob/main/METHOD.md) |
-| Agent kit | Designer, implementer, and reviewer skills and rules for Claude Code and Codex | `npx docatlas agents install` |
+| Agent kit | Designer, implementer, and reviewer skills and rules for Claude Code and Codex, plus an optional one for private documents | `npx docatlas agents install` |
 | Document map | A local browser view of every document in a project | `npx docatlas` |
 | Example | A made-up shop with a complete document set, shown in the screenshot above | [examples/sample-shop](https://github.com/superlucky84/docatlas/tree/main/examples/sample-shop) |
 
@@ -75,8 +75,10 @@ You need Node.js 22+ and npm.
 | `doc-driven-designer-v1` | Co-writes the four documents with you and turns open questions into decisions |
 | `doc-driven-implementer-v1` | Implements one phase at a time with test evidence, synced documents, and a handoff |
 | `doc-driven-reviewer-v1` | Reviews uncommitted changes read-only and returns a severity-ranked report |
+| `doc-driven-private-v1` | Keeps documents only you see in `.docatlas/private/`, written like the designer's, with backups |
 
-All three are installed by default.
+The first three are installed by default. The private documents skill needs the designer and is
+installed with `--all` ([details](agent-kit/README.md#install)).
 
 Install options, update behavior, and the exact rules are in [agent-kit/](agent-kit/).
 

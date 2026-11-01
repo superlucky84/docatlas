@@ -216,6 +216,21 @@ repo/
 Keeping documents close to code makes them easy to find while editing, but hard to see as
 a whole.
 
+### Private documents
+
+Some documents are for you alone, such as notes on an idea you are exploring or a plan you are
+not ready to share. Those go in one folder at the project root, `.docatlas/private/<feature>/`,
+instead of beside the code. The same documents and writing rules apply, and the `Refs:` and
+`Files:` records point to the code with repository-root paths.
+
+- `docatlas private init` creates the folder and hides it from git through `.git/info/exclude`,
+  which applies only to your clone, so teammates see no trace.
+- Deleting the clone deletes the folder. `docatlas private backup` keeps copies in
+  `~/.docatlas/private-backups/`, and `docatlas private restore` brings them back in a new clone
+  of the same repository. It never overwrites a file that differs unless you ask.
+- The `doc-driven-private-v1` skill follows the designer with these rules added. It is not
+  installed by default; install it with `docatlas agents install --all`.
+
 ## Keep the documents healthy
 
 Documents grow with the project, and not all of them keep paying off. A document for every
@@ -300,11 +315,12 @@ A few prompts that fit the flow:
 - "Before we start coding, check whether any decisions or documents are missing."
 - "Use doc-driven-implementer-v1 to implement Phase 1."
 - "Review this phase with doc-driven-reviewer-v1."
+- "Use doc-driven-private-v1. Write private documents for *X*; they stay out of git."
 
 ## Tools in this repository
 
 - **Agent kit:** `npx docatlas agents install` installs the designer, implementer, and reviewer
-  skills and rules for Claude Code and Codex.
+  skills and rules for Claude Code and Codex. `--all` adds the private documents skill.
 - **Document map:** `npx docatlas` opens a local map of every document in a project.
 
 Neither is required. The method is Markdown plus the habits above.

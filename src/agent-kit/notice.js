@@ -16,6 +16,7 @@ export async function agentKitNotice({ home, root, kitDir = KIT_DIRECTORY } = {}
       return null;
     }
     const known = new Set(manifest.items.map(item => item?.name));
+    const current = new Map(manifest.items.map(item => [item?.name, item?.version]));
     const defaults = new Set(manifest.items.filter(item => item?.default === true).map(item => item.name));
     const scopes = [['global', home]];
     if (root && (!home || path.resolve(root) !== path.resolve(home))) {
@@ -33,6 +34,12 @@ export async function agentKitNotice({ home, root, kitDir = KIT_DIRECTORY } = {}
         const name = key.split('/')[2];
         const version = entry?.kitVersion;
         if (!known.has(name) || !SEMVER.test(String(version)) || compareVersions(version, available) >= 0) {
+          continue;
+        }
+        // A newer kit that does not change this item, such as one that only adds items, is not an update for it.
+        const installed = String(entry?.version);
+        const latest = String(current.get(name));
+        if (SEMVER.test(installed) && SEMVER.test(latest) && compareVersions(installed, latest) >= 0) {
           continue;
         }
         names.add(name);

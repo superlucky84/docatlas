@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "kitVersion": "1.2.0",
+  "kitVersion": "1.3.0",
   "items": [
     {
       "name": "doc-driven-designer-v1",
@@ -172,6 +172,23 @@
           "source": "ctxbin 2026-10-12"
         }
       ]
+    },
+    {
+      "name": "doc-driven-private-v1",
+      "version": "1.0.0",
+      "default": false,
+      "requires": [
+        "doc-driven-designer-v1"
+      ],
+      "skill": {
+        "path": "skills/doc-driven-private-v1/SKILL.md",
+        "sha256": "cdd7d5e510df9b36b4fb28e733ada362113d94272b08c7a906aad2cee5230422"
+      },
+      "agent": {
+        "path": "agents/doc-driven-private-v1.md",
+        "sha256": "c63aed380993d4ebb565cdf44fc28e3b300d71ac918a7012d712efcd54d7d5eb"
+      },
+      "previous": []
     }
   ]
 }

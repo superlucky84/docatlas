@@ -14,7 +14,7 @@ const SHA256 = /^[0-9a-f]{64}$/;
 const NAME_LIMIT = 64;
 const DESCRIPTION_LIMIT = 1024;
 const MANIFEST_KEYS = ['schema', 'kitVersion', 'items'];
-const ITEM_KEYS = ['name', 'version', 'default', 'skill', 'agent', 'previous'];
+const ITEM_KEYS = ['name', 'version', 'default', 'requires', 'skill', 'agent', 'previous'];
 const PREVIOUS_KEYS = ['version', 'kind', 'part', 'sha256', 'source'];
 const SKILL_KEYS = ['name', 'description', 'metadata'];
 const SKILL_METADATA_KEYS = ['short-description', 'version'];
@@ -221,6 +221,22 @@ export async function checkAgentKit(kitDir) {
   }
   if (items.length && !items.some(item => item?.default === true)) {
     fail('manifest.json: at least one item must be installed by default');
+  }
+  // requires names other items this one needs. It is shown in agents help and does not change installs.
+  for (const item of items) {
+    if (!isRecord(item) || item.requires === undefined || !names.has(item.name)) continue;
+    if (!Array.isArray(item.requires) || item.requires.length === 0) {
+      fail(item.name + ': requires must be a non-empty list of item names');
+      continue;
+    }
+    if (new Set(item.requires).size !== item.requires.length) {
+      fail(item.name + ': requires lists a name twice');
+    }
+    for (const name of item.requires) {
+      if (name === item.name || !names.has(name)) {
+        fail(item.name + ': requires ' + name + ', which is not another item in manifest.json');
+      }
+    }
   }
   for (const { relative, regular } of await listFiles(kitDir)) {
     if (!regular) {

@@ -39,14 +39,26 @@ function hasError(errors, pattern) {
   assert.ok(errors.some(error => pattern.test(error)), 'expected ' + pattern + ' in ' + JSON.stringify(errors));
 }
 
-test('the repository kit lists three valid pairs, all installed by default', async () => {
+test('the repository kit lists four valid pairs; the private pair is not default and needs the designer', async () => {
   const { errors, manifest } = await checkAgentKit(repositoryKit);
   assert.deepEqual(errors, []);
-  assert.deepEqual(manifest.items.map(item => [item.name, item.default]), [
-    ['doc-driven-designer-v1', true],
-    ['doc-driven-implementer-v1', true],
-    ['doc-driven-reviewer-v1', true]
+  assert.deepEqual(manifest.items.map(item => [item.name, item.default, item.requires]), [
+    ['doc-driven-designer-v1', true, undefined],
+    ['doc-driven-implementer-v1', true, undefined],
+    ['doc-driven-reviewer-v1', true, undefined],
+    ['doc-driven-private-v1', false, ['doc-driven-designer-v1']]
   ]);
+});
+
+test('requires must name other items in the manifest', async t => {
+  for (const [requires, pattern] of [
+    [[], /^sample-skill: requires must be a non-empty list of item names$/],
+    ['sample-skill', /^sample-skill: requires must be a non-empty list of item names$/],
+    [['sample-skill'], /^sample-skill: requires sample-skill, which is not another item in manifest\.json$/],
+    [['missing', 'missing'], /^sample-skill: requires lists a name twice$/]
+  ]) {
+    hasError((await checkAgentKit(await createKit(t, { item: { requires } }))).errors, pattern);
+  }
 });
 
 test('a valid kit passes and hashes ignore line endings, a BOM and trailing blank lines', async t => {

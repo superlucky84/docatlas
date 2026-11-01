@@ -360,6 +360,8 @@ Codex 룰은 name·description·developer_instructions를 가진 TOML이다. 원
 - frontmatter는 최상위 key: value와 두 칸 들여쓴 한 단계 map만 쓴다. 값은 따옴표 없는 문자열이나 큰따옴표 문자열이다.
   ": "·" #"·true·숫자처럼 YAML이 문자열로 읽지 않을 값은 큰따옴표로 감싼다.
 - agent-kit/manifest.json(schema 1)은 kitVersion과 items를 가진다. 항목은 name·version·default·skill/agent의 path·sha256·previous다.
+  선택 key `requires`(RQ-22 4단계)는 이 항목이 기대는 다른 항목 이름의 목록이다. 이름은 manifest에 있어야 하고 자기 자신이나 중복은 안 된다.
+  설치 동작은 바꾸지 않고, agents help의 항목 줄에 `needs <이름>`으로 보여 준다.
   previous 항목은 version·kind(skill/agent/codex-agent)·part(file/body)·sha256·source이며 현재보다 낮은 버전이어야 한다.
 - 해시는 BOM을 지우고 CRLF/CR을 LF로 바꾸고 끝 공백을 지운 뒤 개행 하나를 붙인 UTF-8의 SHA-256이다.
   본문 해시는 frontmatter 뒤 본문(앞 빈 줄 제외)에 같은 규칙을 쓴다. Confluence 팀 페이지는 룰을 frontmatter 없이 싣기 때문에
@@ -376,7 +378,7 @@ docatlas agents help
 ```
 
 - 기본은 전역·manifest에서 default가 true인 항목이다. DC-28부터 세 항목 모두 default다(이전: designer 한 쌍).
-  --all은 default 여부와 관계없이 모든 항목이며 지금은 기본과 같다.
+  --all은 default 여부와 관계없이 모든 항목이다. DC-28 뒤에는 기본과 같았고, kit 1.3.0부터는 default false인 doc-driven-private-v1까지 네 쌍이다.
   --project는 --root(기본 cwd) 프로젝트에 설치한다. --only는 반복할 수 있고 --all과 함께 쓸 수 없다.
 - --target의 기본값은 설치된 클라이언트 감지다. ~/.claude가 있으면 Claude, ~/.codex나 ~/.agents가 있으면 Codex다.
   아무것도 없으면 --target을 요구한다. 한쪽 폴더만 있는 사용자는 그 클라이언트에만 설치된다.
@@ -450,6 +452,8 @@ src/agent-kit/plan.js가 파일을 쓰지 않고 대상마다 아래 순서로 �
 
 - 문서 지도 시작 시 패키지 manifest의 kitVersion과 전역·문서 지도 루트(기본 cwd, --root)의 설치 기록만 읽는다.
   기록 항목 중 패키지보다 낮은 kitVersion이 있으면 문서 수 안내 뒤에 한 줄을 출력한다.
+  kit 1.3.0(RQ-22 4단계)부터는 그 기록의 항목 version도 manifest 항목보다 낮아야 한다. 새 항목만 더한 kit은 설치된 항목의
+  갱신이 아니므로 안내하지 않는다. 기록에 항목 version이 없거나 형식이 틀리면 전처럼 kitVersion만 본다.
   예: Agent skills: kit 1.1.0 is available (installed 1.0.0). Preview the update with: docatlas agents install --dry-run
 - 미리보기 명령은 범위마다 만든다. 프로젝트 기록이면 --project를 붙이고, 낡은 항목에 기본 대상이 아닌 것이 있으면
   --only로 낡은 항목을 모두 지정해 같은 항목이 갱신되게 한다. kit에 없는 이름은 무시한다.
@@ -865,9 +869,19 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
   검색 결과에 `isPrivate`를 싣고, 화면은 Private 그룹 줄에 "Only on this computer", 개인 문서 줄에 옅은 표시, 문서 머리·검색 결과에 Private 배지를 둔다.
   지도는 열린 루트의 개인 폴더만 읽는다(git 최상위가 아니라 지도 루트).
 
-### 개인 문서 스킬(DC-33)
+### 개인 문서 스킬(DC-33) — 4단계 구현
 
 - 이름: `doc-driven-private-v1`(스킬과 룰 한 쌍). 사용자가 개인·비공개 문서를 명시적으로 요청할 때만 쓴다는 설명을 둔다.
+- 4단계 구현: 항목 version 1.0.0, kit 1.3.0, manifest `default: false`, `requires: ["doc-driven-designer-v1"]`.
+  agents help의 항목 줄은 `with --all or --only; needs doc-driven-designer-v1`이고, 에이전트 순서 1번에
+  "다른 항목이 필요한 항목은 그 항목도 설치돼 있어야 동작하므로 --only로 함께 고른다"를 더한다.
+- 스킬 구성(얇게): 범위(명시 요청에만, 나머지는 designer), 위치(루트의 한 폴더, 기능별, 짧은 소문자-하이픈 이름, 코드 옆 배치 규칙 미적용),
+  쓰기 전(init → 파일이 없으면 list로 백업 확인 → 있으면 복구 여부를 묻기 → 미리보기 → 동의 뒤 복구, `--force`는 사용자가 요청할 때만, 종료 3이면 멈춤),
+  작성 규칙(stage·commit 금지, 추적 파일·커밋 메시지·PR에 경로나 링크 금지, 개인 → 공개 상대 링크 허용, Refs·Files는 designer와 같고
+  git이 개인 파일을 보지 않으므로 Files에는 저장소 파일만 나옴, 인계는 기능의 개인 IMPLEMENT.md, implementer·reviewer에게 개인 문서 경로 전달),
+  백업(고친 뒤와 요청 때 backup, no-origin 경고면 새 clone에서 `--key`가 필요함을 알림), 찾기(공개 문서와 개인 폴더 모두 검색).
+  명령이 설치돼 있지 않으면 `npx docatlas private …`를 쓴다.
+- implementer·reviewer 스킬은 바꾸지 않는다. 사용자가 개인 문서 경로를 알려 주면 그 문서로 일한다.
 - 내용: 문서 작성은 doc-driven-designer-v1을 따른다. 위치(`.docatlas/private/<기능>/`), 숨김 확인(init), 개인 문서를 stage·commit하거나
   추적 파일에서 링크하지 않기, Refs·Files는 저장소 루트 기준, 고친 뒤 백업, 관련 문서를 찾을 때 공개·개인 문서를 함께 보기를 담는다.
 - 설치(2026-11-01 사용자 변경): manifest에서 default false다. `agents install`의 기본 대상(세 쌍)에는 들어가지 않고,

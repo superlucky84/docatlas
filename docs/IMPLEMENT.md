@@ -1434,7 +1434,7 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 개인 문서와 백업 — 3단계 완료
+## 개인 문서와 백업 — 4단계 완료
 
 Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
 진입: 2026-11-01 사용자 요청과 DC-32 선택. 기준 커밋 df7748f(main·작업 브랜치).
@@ -1688,7 +1688,11 @@ Files:
 conflict 보존과 --force 전 백업·기본 대상·`--from` 되돌리기, 손상·잘못된 manifest·없는 백업에서 쓰기 없음, 링크 복사 안 함·링크 부모 blocked·링크 저장소 막기,
 숨김 실패·추적 파일에서 멈춤, origin 없는 local 키와 `--key`, status 비교, 옵션 검사, 지도 안내 함수와 실제 지도 실행의 안내 줄).
 npm run check 통과(문법 84개), npm test 201개 중 196개 통과·5개 건너뜀·실패 0, npm pack --dry-run 53개 파일·73.7 kB.
-화면 변경이 없어 브라우저 테스트는 실행하지 않았다. 새 테스트의 Windows 결과는 Platform checks로 확인한다.
+화면 변경이 없어 브라우저 테스트는 실행하지 않았다.
+Windows 확인(Platform checks): 첫 실행(run 41303485971, 3024f63)은 Windows에서 멈췄다. 지도 안내 테스트가 Windows에서 지도를 끄지 않고
+끝나 정리 단계가 실행 중인 폴더를 지우지 못했다(addfa4d로 테스트가 항상 지도를 끄게 고침). 다음 실행(run 41304255360)은
+안내의 `--root` 경로를 JSON 방식으로 감싸 Windows 경로의 `\`를 두 번 쓰는 제품 문제를 찾았다(9134817로 필요할 때만, Windows는 큰따옴표,
+macOS·Linux는 작은따옴표로 감싸게 고침). run 41304393601(9134817)이 macOS·Windows × Node 22·24에서 모두 통과했다.
 종료 기준: 작업 폴더를 지운 뒤에도 새 clone에서 문서와 숨김 규칙이 돌아오고, 기존 파일은 말없이 덮어쓰이지 않는다. 충족했다.
 
 Files:
@@ -1709,18 +1713,52 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### 4단계 — 개인 문서 스킬·룰
+### 4단계 — 개인 문서 스킬·룰: 완료
 
-진입: 1·3단계 완료(스킬이 안내할 명령이 있어야 한다).
+Refs: RQ-22, DC-33, M-21, M-22, PR-10
+진입: 1·3단계 완료(9134817, Platform checks run 41304393601 통과). 사용자가 4단계 진행을 요청했다(2026-11-01).
+기준 검증(9134817, Linux / Node 22.23.4): npm run check(문법 84개·kit 1.2.0 세 쌍) 통과, npm test 201개 중 196개 통과·5개 건너뜀·실패 0.
 
-- [ ] agent-kit에 개인 문서 스킬·룰 한 쌍(DC-33). designer를 따르고 위치·숨김·백업(고친 뒤 실행)·링크 금지 규칙과
-  빈 폴더에 백업이 있으면 복구를 먼저 묻는 규칙만 담는다. manifest에서 default false(기본 설치 아님, `--all`·`--only`로 설치).
-- [ ] 설치 안내: agent-kit/README·README·agents help에서 기본 세 쌍과 `--all` 네 쌍의 차이, private만 고를 때 designer도 필요함을 알린다.
-  agents help의 "default" 표시와 테스트(기본 대상·--all·--only)를 확인한다.
-- [ ] manifest·kit 버전·agent-kit/README·METHOD 두 언어판·README 요약·CHANGELOG.
+- [x] 계약: DESIGN의 manifest 계약에 선택 key `requires`, 설치 명령의 `--all`(네 쌍), "개인 문서 스킬(DC-33) — 4단계 구현"의 구성,
+  업데이트 안내(PR-10)의 항목 version 비교를 먼저 적었다.
+- [x] agent-kit에 doc-driven-private-v1 스킬(3.7 kB)·룰(2.0 kB). designer를 따르고 범위·위치·쓰기 전(init, 빈 폴더면 list로 백업 확인 후 복구 여부 묻기,
+  미리보기 → 동의 → 복구, `--force`는 요청 때만, 종료 3이면 멈춤)·작성 규칙(stage·commit·추적 파일 경로 금지, Refs·Files, 인계 위치,
+  implementer·reviewer에게 경로 전달)·백업(고친 뒤, no-origin이면 `--key` 안내)·찾기(공개·개인 함께)만 담았다. designer 스킬(7.9 kB)의 절반 이하다.
+- [x] manifest: kit 1.3.0, 항목 1.0.0, `default: false`, `requires: ["doc-driven-designer-v1"]`. 검사 스크립트가 requires를 확인하고(빈 목록·자기 자신·없는 이름·중복),
+  loadKit이 넘기며, agents help 항목 줄이 `with --all or --only; needs doc-driven-designer-v1`을, 에이전트 순서 1번이 함께 고르기를 알린다.
+  설치 동작은 바꾸지 않았다.
+- [x] 업데이트 안내(PR-10): 새 항목만 더한 kit 1.3.0이 기존 세 항목 사용자에게 갱신 안내를 띄우지 않도록, 기록의 항목 version이 manifest 항목보다
+  낮을 때만 안내한다(항목 version이 없으면 전처럼 kitVersion만 본다).
+- [x] 문서: agent-kit/README(표·설치·새 항목 절차), README(저장소 구성·역할 표), METHOD 두 언어판(개인 문서 소절·요청 예시·도구 설명, 제목 20·목록 66으로 같은 구조),
+  CHANGELOG Unreleased(개인 문서 명령·지도·kit 1.3.0).
 
 기준 테스트: npm run check, npm test(kit 고정 테스트), agents help.
-종료 기준: 스킬·룰만 읽고 개인 문서를 만들고 숨기고 백업하는 순서를 따를 수 있다.
+결과: npm run check(문법 84개·kit 1.3.0 네 쌍) 통과, npm test 203개 중 198개 통과·5개 건너뜀·실패 0(새 테스트: requires 검사, 새 항목만 더한 kit의 안내 없음),
+npm pack --dry-run 55개 파일·76.6 kB. 임시 HOME에서 기본 설치 미리보기 12줄(세 쌍 × Claude·Codex), `--all` 16줄,
+`--only doc-driven-private-v1` 설치와 Codex 변환(toml) 확인.
+종료 기준: 스킬·룰만 읽고 개인 문서를 만들고 숨기고 백업하는 순서를 따를 수 있다. 문서상 충족했고, 실제 에이전트 세션 확인은 M-21·M-22 사람 확인으로 남긴다.
+
+Files:
+- `agent-kit/skills/doc-driven-private-v1/SKILL.md` (added)
+- `agent-kit/agents/doc-driven-private-v1.md` (added)
+- `agent-kit/manifest.json` (modified)
+- `agent-kit/README.md` (modified)
+- `scripts/agent-kit.js` (modified)
+- `src/agent-kit/kit.js` (modified)
+- `src/agent-kit/command.js` (modified)
+- `src/agent-kit/notice.js` (modified)
+- `test/agent-kit.test.js` (modified)
+- `test/agent-kit-plan.test.js` (modified)
+- `test/agent-kit-install.test.js` (modified)
+- `test/agent-kit-notice.test.js` (modified)
+- `README.md` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ### Test Hardening
 
@@ -1998,8 +2036,12 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): 2단계 변경의 Platform checks(run 41302543992, 6b903f2)가 macOS·Windows × Node 22·24에서 통과했다.
 - 완료(2026-11-01, RQ-23 3단계): `docatlas private backup|list|restore`, status의 백업 비교, 문서 지도 시작 안내. 결과는 "개인 문서와 백업" 절 3단계에 있다.
   사용자가 컨텍스트를 비운 뒤 이어서 하라고 해 2단계 리뷰 없이 진행했다.
-- 다음(RQ-22·23): 4단계(doc-driven-private-v1 스킬·룰, manifest default false, 설치 안내). 원하면 그 전에 2·3단계 리뷰.
-  3단계 새 테스트의 Windows 결과(Platform checks)를 확인한다. 그 뒤 Test Hardening(동시 실행 잠금 등)과 Integration Test(F-10).
+- 완료(2026-11-01): 3단계 Windows 확인. 테스트 멈춤(지도를 끄기 전 정리)과 안내 경로 따옴표 문제를 고쳤고 run 41304393601(9134817)이 네 작업 모두 통과했다.
+- 완료(2026-11-01, RQ-22 4단계): doc-driven-private-v1 1.0.0(kit 1.3.0, default false, requires designer), agents help 표시,
+  새 항목만 더한 kit은 업데이트 안내를 띄우지 않음(PR-10 보완), 안내 문서와 CHANGELOG Unreleased. 결과는 "개인 문서와 백업" 절 4단계에 있다.
+  CHANGELOG의 개인 문서 항목은 main 반영 때가 아니라 4단계에서 미리 적었다(main에 가면 그대로 Unreleased).
+- 다음(RQ-22·23): 원하면 2~4단계 리뷰. 그 뒤 Test Hardening(동시 실행 잠금, 검사-쓰기 사이 재확인 등)과 Integration Test(F-10, production tarball).
+  4단계 변경의 Platform checks 결과를 확인한다. ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -2009,4 +2051,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 그리고 이 인계 커밋(3단계)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), 그리고 이 인계 커밋(4단계)이 있다. 0.4.1 게시본은 fcb4e68이다.

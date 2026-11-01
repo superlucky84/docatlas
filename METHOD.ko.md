@@ -196,6 +196,20 @@ repo/
 
 문서가 코드 가까이 있으면 편집할 때 찾기 쉽지만 전체를 한눈에 보기는 어렵습니다.
 
+### 개인 문서
+
+탐색 중인 아이디어의 메모나 아직 공유할 준비가 안 된 계획처럼 나만 보는 문서도 있습니다. 이런 문서는
+코드 옆이 아니라 프로젝트 루트의 폴더 하나, `.docatlas/private/<기능>/`에 둡니다. 문서와 작성 규칙은
+같고, `Refs:`와 `Files:` 기록은 저장소 루트 기준 경로로 코드를 가리킵니다.
+
+- `docatlas private init`이 폴더를 만들고 `.git/info/exclude`로 git에서 숨깁니다. 이 설정은 내 clone에만
+  적용되므로 팀원에게는 흔적이 남지 않습니다.
+- clone을 지우면 이 폴더도 사라집니다. `docatlas private backup`이 `~/.docatlas/private-backups/`에 사본을
+  남기고, `docatlas private restore`가 같은 저장소의 새 clone에 되돌립니다. 내용이 다른 파일은 요청하지
+  않는 한 덮어쓰지 않습니다.
+- `doc-driven-private-v1` 스킬은 designer를 따르면서 이 규칙들을 더합니다. 기본 설치에는 들어가지 않으므로
+  `docatlas agents install --all`로 설치합니다.
+
 ## 문서 관리하기
 
 문서는 프로젝트와 함께 늘어나고, 모두가 계속 쓸모 있지는 않습니다. 작은 변경마다 문서를 만들면 정말
@@ -273,11 +287,12 @@ Codex는 `AGENTS.md`를, Claude Code는 `CLAUDE.md`를 읽습니다. 둘 다 쓴
 - "코딩 시작 전에 빠진 결정이나 문서가 있는지 확인해 줘."
 - "doc-driven-implementer-v1로 Phase 1을 구현해 줘."
 - "이 phase를 doc-driven-reviewer-v1로 리뷰해 줘."
+- "doc-driven-private-v1을 써 줘. *X*에 대한 개인 문서를 써 줘. git에는 올리지 않을 거야."
 
 ## 이 저장소의 도구
 
 - **에이전트 킷:** `npx docatlas agents install`이 Claude Code와 Codex용 designer·implementer·reviewer
-  스킬과 룰을 설치합니다.
+  스킬과 룰을 설치합니다. `--all`을 주면 개인 문서 스킬도 설치합니다.
 - **문서 지도:** `npx docatlas`가 프로젝트의 모든 문서를 보여 주는 로컬 지도를 엽니다.
 
 둘 다 필수는 아닙니다. 방법론은 Markdown과 위의 습관이 전부입니다.

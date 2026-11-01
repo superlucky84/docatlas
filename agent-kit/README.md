@@ -9,8 +9,10 @@ docatlas installs them for Claude Code and Codex.
 | doc-driven-designer-v1 | 1.3.0 | [SKILL.md](skills/doc-driven-designer-v1/SKILL.md) | [rule](agents/doc-driven-designer-v1.md) | Yes |
 | doc-driven-implementer-v1 | 1.2.0 | [SKILL.md](skills/doc-driven-implementer-v1/SKILL.md) | [rule](agents/doc-driven-implementer-v1.md) | Yes |
 | doc-driven-reviewer-v1 | 1.5.0 | [SKILL.md](skills/doc-driven-reviewer-v1/SKILL.md) | [rule](agents/doc-driven-reviewer-v1.md) | Yes |
+| doc-driven-private-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-private-v1/SKILL.md) | [rule](agents/doc-driven-private-v1.md) | No; needs the designer |
 
-Kit version 1.2.0. [manifest.json](manifest.json) records each item's version and hashes.
+Kit version 1.3.0. [manifest.json](manifest.json) records each item's version and hashes, and
+`requires` names the items another item needs.
 
 ## Install
 
@@ -19,13 +21,20 @@ Claude Code and Codex read automatically.
 
 ```sh
 npx docatlas agents install --dry-run   # preview; writes nothing
-npx docatlas agents install             # all three skills and rules
+npx docatlas agents install             # designer, implementer, and reviewer
+npx docatlas agents install --all       # also the private documents skill
 npx docatlas agents install --only doc-driven-designer-v1   # only the designer
 ```
 
-All three are installed by default because a piece of work usually goes through all of them:
-design, then implementation, then review. Add `--only <name>` for each item you want if you need
-fewer. `docatlas agents help` tells an AI agent to preview, show you the result, and apply only
+The designer, implementer, and reviewer are installed by default because a piece of work usually
+goes through all of them: design, then implementation, then review. Add `--only <name>` for each
+item you want if you need fewer.
+
+`doc-driven-private-v1` is for documents you keep out of git, in `.docatlas/private/<feature>/` at
+the project root, with backups through `docatlas private backup`. It builds on the designer and is
+used only when you ask for private documents, so it is not installed by default. Install it with
+`--all`, or with `--only doc-driven-private-v1`; add `--only doc-driven-designer-v1` as well if the
+designer is not installed yet. `docatlas agents help` tells an AI agent to preview, show you the result, and apply only
 after you agree. The same help tells it to report any skipped files and to use `--force` only
 when you say so.
 
@@ -35,7 +44,7 @@ location in the installed package. An agent should ask you where its client keep
 and adapt the files there. docatlas does not track or update those copies, so repeat this after
 updating docatlas.
 
-- The default installs all three items into your home folder: `~/.claude/skills`,
+- The default installs the three default items into your home folder: `~/.claude/skills`,
   `~/.claude/agents`, `~/.agents/skills`, and `~/.codex/agents`, for the clients whose folders exist.
   Claude Code is found by `~/.claude`, and Codex by `~/.codex` or `~/.agents`, so if you use only one
   of them you get only its files. Add `--only <name>` to install fewer items, `--target` to choose
@@ -58,6 +67,7 @@ updating docatlas.
 
 1. Edit the file. Keep agent rule frontmatter to `name` and `description`.
 2. Raise the item `version` in `manifest.json` and the skill's `metadata.version`, then raise `kitVersion`.
+   A new item starts at 1.0.0 with an empty `previous` list and also raises `kitVersion`.
 3. Move the old hashes into the item's `previous` list.
 4. Record the new hashes printed by `node scripts/agent-kit.js hash <file>`.
 5. Update the versions in the table above.

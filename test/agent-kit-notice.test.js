@@ -5,11 +5,13 @@ import { agentKitNotice } from '../src/agent-kit/index.js';
 import { createWorkspace, snapshot, writeKit } from './helpers/agent-kit.js';
 import { startCli } from './helpers/cli.js';
 
+// entries: key -> kit version, or [kit version, item version]. The item version defaults to 1.0.0.
 function record(entries) {
   const files = {};
-  for (const [key, kitVersion] of Object.entries(entries)) {
+  for (const [key, value] of Object.entries(entries)) {
     const name = key.split('/')[2];
-    files[key] = { path: '.claude/skills/' + name + '/SKILL.md', kitVersion, version: '1.0.0', sha256: '0'.repeat(64) };
+    const [kitVersion, version = '1.0.0'] = [].concat(value);
+    files[key] = { path: '.claude/skills/' + name + '/SKILL.md', kitVersion, version, sha256: '0'.repeat(64) };
   }
   return JSON.stringify({ schema: 1, files });
 }
@@ -51,10 +53,21 @@ test('older project items are named so the same items are updated', async t => {
   const workspace = await setup(t);
   await workspace.write(workspace.home, '.docatlas/agents.json', record({ 'claude/skill/sample-designer': '1.1.0' }));
   await workspace.write(workspace.project, '.docatlas/agents.json', record({
-    'claude/skill/sample-designer': '0.9.0', 'claude/skill/sample-reviewer': '1.0.0', 'claude/skill/retired-skill': '0.1.0'
+    'claude/skill/sample-designer': '0.9.0', 'claude/skill/sample-reviewer': ['1.0.0', '0.9.0'], 'claude/skill/retired-skill': '0.1.0'
   }));
   assert.equal(await workspace.notice(), 'Agent skills: kit 1.1.0 is available (installed 0.9.0). Preview the update with: ' +
     'docatlas agents install --project --only sample-designer --only sample-reviewer --dry-run');
+});
+
+test('a newer kit that only adds items gives no notice for items that did not change', async t => {
+  const workspace = await setup(t);
+  // sample-designer is 1.1.0 and sample-reviewer 1.0.0 in kit 1.1.0; the record is from kit 1.0.0 with the same item versions.
+  await workspace.write(workspace.home, '.docatlas/agents.json', record({
+    'claude/skill/sample-designer': ['1.0.0', '1.1.0'], 'claude/skill/sample-reviewer': ['1.0.0', '1.0.0']
+  }));
+  assert.equal(await workspace.notice(), null);
+  await workspace.write(workspace.home, '.docatlas/agents.json', record({ 'claude/skill/sample-designer': ['1.0.0', 'unknown'] }));
+  assert.match(await workspace.notice(), /kit 1\.1\.0 is available \(installed 1\.0\.0\)/, 'a record without an item version falls back to the kit version');
 });
 
 test('current, newer, unreadable or missing data gives no notice', async t => {

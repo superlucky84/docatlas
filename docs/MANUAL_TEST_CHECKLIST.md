@@ -395,6 +395,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 대응: RQ-22 / DC-32·33·36. 예제: F-10. 아래 항목은 구현 후의 인수 기준이다.
 
 - [ ] `docatlas agents install`은 세 쌍만, `--all`은 private까지 네 쌍, `--only doc-driven-private-v1`은 private만 설치한다(미리보기로 확인).
+  자동 근거(4단계): agent-kit-plan 테스트(기본 세 항목·`--all` 네 항목), agents help의 `needs doc-driven-designer-v1` 표시, 임시 HOME 미리보기(기본 12줄·`--all` 16줄).
 - [ ] 개인 문서 스킬을 써서 기능 문서를 요청하면 `.docatlas/private/<기능>/`에 designer 형식의 문서가 생기고, 공개 docs/는 바뀌지 않는다.
 - [ ] `git status`에 개인 문서가 나타나지 않고, `.gitignore`는 바뀌지 않으며, `.git/info/exclude`에 `/.docatlas/private/` 한 줄이 있다.
 - [ ] 같은 폴더의 `.docatlas/agents.json`은 숨겨지지 않아 커밋할 수 있다.
@@ -426,7 +427,9 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 통과: 컴퓨터를 바꾸거나 다시 clone해도 개인 문서를 잃지 않는다.
 상태: 3단계 구현(backup·list·restore·지도 시작 안내). 자동 근거: test/private-backup.test.js가 같은 origin의 두 clone에서
 백업 → 작업 폴더 삭제 → 새 clone 미리보기(쓰기 없음) → 복구(문서와 exclude 줄)를 확인하고, 같은 내용 건너뜀·conflict 보존·--force 전 백업·
-손상 백업·심볼릭 링크·숨김 실패·지도 안내(복구 뒤 사라짐, 파일 쓰기 없음)를 확인한다. 에이전트·스킬 항목은 4단계 뒤, 사람 확인은 미실행이다.
+손상 백업·심볼릭 링크·숨김 실패·지도 안내(복구 뒤 사라짐, 파일 쓰기 없음)를 확인한다.
+Platform checks run 41304393601(9134817)이 macOS·Windows × Node 22·24에서 통과했다. 스킬은 4단계에서 더했고(doc-driven-private-v1 1.0.0),
+에이전트·스킬 항목(help만 읽고 미리보기 → 확인 → 복구, 빈 폴더에서 복구 여부 묻기, 고친 뒤 백업)과 사람 확인은 미실행이다.
 
 ## Phase 1 자동 검증 대응
 

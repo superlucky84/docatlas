@@ -67,6 +67,7 @@ export async function loadKit(kitDir = KIT_DIRECTORY) {
       name: item.name,
       version: item.version,
       default: item.default === true,
+      requires: Array.isArray(item.requires) ? item.requires.filter(name => typeof name === 'string') : [],
       files: {
         skill: { text: skill, sha256: hashText(skill) },
         agent: { text: agent, sha256: hashText(agent) },

@@ -33,9 +33,12 @@ async function trySymlink(t, target, link) {
 
 test('the packaged kit loads verified sources and renders Codex agents', async t => {
   const kit = await loadKit();
-  assert.equal(kit.kitVersion, '1.2.0');
+  assert.equal(kit.kitVersion, '1.3.0');
   assert.deepEqual(selectItems(kit).map(item => item.name),
     ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1']);
+  assert.deepEqual(selectItems(kit, { all: true }).map(item => item.name),
+    ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1', 'doc-driven-private-v1']);
+  assert.deepEqual(kit.items.map(item => item.requires), [[], [], [], ['doc-driven-designer-v1']]);
   const toml = kit.items[0].files.codexAgent.text;
   assert.ok(toml.startsWith('name = "doc-driven-designer-v1"\ndescription = "Documentation-first design partner.'));
   assert.match(toml, /\ndeveloper_instructions = '''\n# Doc-Driven Designer \(Agent Rule\)\n/);

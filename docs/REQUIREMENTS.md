@@ -33,7 +33,7 @@
 | ../src/server/ | loopback·서식/참조·검색·SSE·감지기 | Phase 5 종료·오류 보강 |
 | ../src/web/ | 지도·읽기·검색·실시간 갱신·탐색 상태 | Phase 5 포커스·재시도 보강 |
 | ../test/ | 기능·경계·브라우저·설치 통합과 가상 예제 | Phase 5 및 Phase 6 자동 검증 구현 |
-| ../agent-kit/ | doc-driven 스킬·에이전트 룰 원본 | RQ-16 1단계 완료. 세 쌍·manifest·개발 검사 |
+| ../agent-kit/ | doc-driven 스킬·에이전트 룰 원본 | RQ-16 1단계 완료. 기본 세 쌍과 개인 문서 한 쌍(RQ-22 4단계, kit 1.3.0)·manifest·개발 검사 |
 | ../src/agent-kit/ | 스킬·룰 설치 판정·쓰기·업데이트 안내·에이전트용 도움말 | RQ-17·18 설치 명령·도움말과 업데이트 안내 구현 |
 | ../README.md | 저장소 소개·DDD 요약·빠른 시작·사용법 레퍼런스 | RQ-19 재구성 완료 |
 | ../METHOD.md | Doc-Driven Development 방법론 전문(영문) | RQ-19 작성 완료 |

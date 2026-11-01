@@ -5,6 +5,26 @@ changes on main that are not published yet.
 Agent skill and rule versions are tracked separately in
 [agent-kit/manifest.json](agent-kit/manifest.json).
 
+## Unreleased
+
+- Private documents: `docatlas private init|status|backup|list|restore|help` keeps documents that
+  only you see in `.docatlas/private/<feature>/` at the project root (the repository top folder in
+  git). `init` hides the folder from git through `.git/info/exclude`, for your clone only, and
+  checks that git no longer sees it. `backup` copies the folder to
+  `~/.docatlas/private-backups/<origin>/<time>/` and makes no copy when nothing changed. `restore`
+  brings the documents and the hiding rule back in a new clone of the same repository, previews with
+  `--dry-run`, and keeps files that differ unless you add `--force`, which saves them first. The
+  commands never ask questions and print tab-separated lines, so an agent can run them.
+- The document map shows private documents in a Private group marked "Only on this computer", with
+  a Private badge in the reader and search results. Settings, `.gitignore`, `--docs-dir`, and
+  `--all-md` do not change that group. When the private folder is empty and a backup exists, the
+  map prints a one-line restore reminder; it never restores on its own.
+- Agent kit 1.3.0 adds `doc-driven-private-v1` 1.0.0, a thin skill and rule on top of the designer
+  for private documents. It is not installed by default: `docatlas agents install --all` installs
+  all four pairs, or choose it with `--only` together with the designer. `docatlas agents help`
+  shows which items need another one. The other three items did not change, so the document map
+  does not ask you to update them.
+
 ## 0.4.2 — 2026-11-01
 
 - Agent kit 1.2.0 with `doc-driven-designer-v1` 1.3.0, `doc-driven-implementer-v1` 1.2.0, and
