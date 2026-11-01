@@ -1882,7 +1882,8 @@ Integration Test 뒤의 변경이라 문서 순서상 그 앞에 둔다.
 결과: 새 테스트 1개(바뀌지 않은 이미지는 링크 수 2로 공유, 바뀐 문서는 새 사본, `--keep 1`로 앞 백업을 지워도 공유 데이터 유지,
 손상된 저장 파일은 공유하지 않고 새로 복사, 복구 바이트 일치). npm run check(kit 1.3.0 네 쌍) 통과, npm test 211개 중 205개 통과·6개 건너뜀·실패 0,
 npm run test:integration 6개 통과. 수동 확인: 2 MB 이미지가 든 백업 5개는 공유로 2.1 MB였고, zip으로 묶어 다른 홈에 풀면 10 MB(공유가 풀림)가 되며
-그 백업으로 새 clone 복구가 바이트 단위로 일치했다.
+그 백업으로 새 clone 복구가 바이트 단위로 일치했다. Platform checks run 41309468776(27c02c8)이 macOS·Windows × Node 22·24에서 통과했다
+(Windows에서도 하드 링크 공유, 링크 수 확인 포함).
 종료 기준: 에이전트의 자동 백업은 구현 phase마다 한 번뿐이고, 10개를 남겨도 바뀌지 않은 파일은 한 벌만 차지한다. 충족했다.
 
 Files:
@@ -2207,7 +2208,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01, 사용자 변경): 자동 백업은 구현 phase마다 한 번(에이전트 몫을 마쳤을 때), 나머지는 요청 때만. 백업끼리 바뀌지 않은 파일은 하드 링크로 공유.
   doc-driven-implementer-v1 1.3.0. 결과는 "개인 문서와 백업" 절 "백업 시점과 파일 공유"에 있다.
 - 다음(RQ-22·23): 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등). main 반영과 배포(0.5.0 제안)는 사용자가 정한다.
-  이번 변경의 Platform checks 결과(Windows 하드 링크 공유)를 확인한다.
+  백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
   Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470, 10개·키 보강 run 41306747792.
   Integration Test 커밋은 통합 테스트와 문서만 바꿨고 test:integration은 Platform checks에 없어 CI를 다시 돌리지 않았다.
   원하면 main 반영 전에 2단계~Integration Test 리뷰.
