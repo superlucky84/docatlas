@@ -154,3 +154,38 @@ Release notes go in [CHANGELOG.md](CHANGELOG.md).
 
 Keep the README to the essentials and links. Usage details live in [guide/](guide/), and agent install
 details in [agent-kit/README.md](agent-kit/README.md). Explain each thing in one place and link to it.
+
+## Releasing
+
+[.github/workflows/publish.yml](.github/workflows/publish.yml) publishes to npm with npm trusted
+publishing, so the repository stores no npm token.
+
+1. On a branch, raise the version with `npm version <x.y.z> --no-git-tag-version --ignore-scripts`,
+   move the Unreleased notes in [CHANGELOG.md](CHANGELOG.md) to that version with the planned
+   publish date (UTC), and merge to `main`.
+2. Wait until Platform checks pass on that `main` commit.
+3. Tag the commit and push the tag:
+
+   ~~~sh
+   git tag v<x.y.z>
+   git push origin v<x.y.z>
+   ~~~
+
+   The workflow checks that the tagged commit is on `main` and that the tag matches `package.json`,
+   runs `npm run check`, `npm test`, and `npm pack --dry-run`, and then runs `npm publish`. npm adds
+   provenance automatically.
+
+Run the workflow by hand from the Actions tab to rehearse a release. It runs the same checks and
+`npm publish --dry-run`, and publishes nothing.
+
+A package owner sets up trusted publishing once. On npmjs.com, open the docatlas package settings
+and add a trusted publisher for GitHub Actions with repository `superlucky84/docatlas`, workflow
+`publish.yml`, and no environment. If the form does not respond, run this with npm 11.15.0 or later
+and two-factor authentication enabled:
+
+~~~sh
+npm trust github docatlas --file publish.yml --repo superlucky84/docatlas --allow-publish
+~~~
+
+If a tag is pushed before trusted publishing is set up, only the publish step fails. Set it up and
+re-run the failed run. Never move a tag after its version is published.

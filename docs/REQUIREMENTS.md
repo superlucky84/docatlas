@@ -43,6 +43,7 @@
 | ../examples/sample-shop/ | 4종 문서와 부분 문서를 보여 주는 영문 합성 예제 프로젝트 | DC-21 작성 완료 |
 | ../docatlas.config.json | 이 저장소 문서 지도의 수집 범위를 docs/로 한정 | DC-21 적용 완료 |
 | ../guide/ | 사용 가이드: 문서 지도·설정·지원 환경 | DC-25 작성 완료 |
+| ../.github/workflows/publish.yml | 버전 태그로 npm 게시(Trusted Publishing), 수동 실행은 dry-run 리허설 | RQ-21 작성 |
 
 설치되는 프로젝트는 입력 데이터의 소유자다. 도구의 설치 위치와 문서를 읽을
 프로젝트 위치를 구분한다.
@@ -78,6 +79,7 @@
 | RQ-18 | 에이전트가 설치를 대신 실행할 수 있도록 에이전트용 도움말을 제공한다. 미리보기 → 사용자 확인 → 적용 순서와 --force 조건을 안내하고, 대화형 입력 없이 파싱 가능한 결과를 출력한다. | 에이전트가 도움말만 읽고 미리보기·보고·승인 후 적용을 수행하고, 도움말의 옵션 목록이 실제 옵션과 같다. M-16. |
 | RQ-19 | 이 저장소를 Doc-Driven Development 워크플로우의 본거지로 소개한다. README 첫 화면에서 DDD의 의미와 이 저장소의 구성·시작 방법을 설명하고, 방법론 전문을 별도 문서로 제공한다. | README 첫 화면에서 DDD 정의(Domain-Driven Design과 구분)·4종 문서·세 구성·시작 명령을 찾는다. 방법론 문서가 agent-kit 스킬과 모순되지 않고 기존 사용법 정보가 빠짐없이 새 위치에 있다. M-18. |
 | RQ-20 | 구현 계획의 각 단계에 그 단계가 다루는 요구사항·결정·수동 확인 ID(Refs)와 실제로 바꾼 파일 목록(Files)을 정해진 형식으로 남긴다. 나중에 문서를 파싱해 검색하거나 2차 문서를 만들 수 있게 한다. designer 스킬·룰만으로 동작하고, implementer·reviewer는 있을 때 이를 강화한다. | METHOD 두 언어판과 세 스킬·룰이 같은 형식을 말한다. designer만 설치한 환경에서도 마친 단계에 Refs·Files가 남는다. 새 단계의 Refs·Files를 줄 단위 규칙만으로 추출할 수 있고, Files가 실제 git 변경과 맞는다. 기록이 전체 색인이 아니라는 안내가 스킬·METHOD·AGENTS.md 예시에 있다. M-19. |
+| RQ-21 | npm 게시를 GitHub Actions로 자동화한다. 버전 태그를 푸시하면 검사 뒤 npm Trusted Publishing(OIDC)으로 게시하고, 저장소에 npm 토큰을 두지 않는다. | 태그와 package.json 버전이 다르거나 main에 없는 커밋이면 게시하지 않는다. 수동 실행은 dry-run만 한다. 0.4.2가 이 workflow로 게시되고 npm에 출처 표시(provenance)가 붙는다. M-20. |
 
 카드의 정확한 크기, 색상과 문서 뷰어의 배치는 설계 제안이다.
 사용자가 제시한 화면 아이디어는 실제 문서로 검토하며 개선할 수 있다.
@@ -267,6 +269,23 @@ README에 이 프로젝트가 말하는 DDD의 기반 설명이 없고 첫 화�
   Confluence·ctxbin 사본 갱신은 사용자가 요청할 때 한다.
 - 확인됨(2026-11-01): 0.4.2로 main에 반영하고 배포를 준비한다. CLI 동작은 그대로이고 함께 배포되는 스킬·룰만 바뀌므로 패치 버전이다
   (0.4.1 전례, 제안한 버전을 사용자가 수용). main 반영은 사용자 요청으로 PR 없이 fast-forward로 하고, 실제 npm publish와 태그는 사용자가 한다.
+  후속 결정(RQ-21): 0.4.2는 직접 publish 대신 `v0.4.2` 태그 푸시로 GitHub Actions가 게시한다.
+
+## npm 게시 자동화 — 2026-11-01 사용자 결정
+
+사용자 질문: npm 배포를 GitHub Actions로 자동화할 수 있나. 지금까지는 사용자가 main에서 npm publish를 직접 실행했다.
+
+- 확인됨: npm Trusted Publishing(OIDC) 방식을 쓴다. GitHub Actions가 npm에 직접 인증하므로 npm 토큰을 저장소 비밀값으로 두지 않는다.
+- 확인됨: 버전 태그(`v0.4.2` 같은)를 푸시하면 검사 뒤 게시한다. 제안한 흐름을 사용자가 "지금 바로 워크플로 작업 시작해줘"로 수용했다.
+- 확인됨: 0.4.2도 이 workflow로 게시한다. 0.4.2 준비 커밋(337200b)에는 workflow가 없으므로, workflow를 더한 main 커밋에 `v0.4.2` 태그를 건다.
+  패키지 내용(45개 파일)은 같고 workflow·문서만 더해진다.
+- 사용자 단계: npmjs.com의 docatlas 패키지 설정에서 Trusted Publisher(GitHub Actions, 저장소 superlucky84/docatlas, workflow `publish.yml`,
+  environment 없음)를 등록한다. 계정 권한이 필요해 에이전트가 대신할 수 없다. 2026-11-01 사용자 보고: 휴대폰에서 웹의 GitHub Actions 버튼이
+  반응하지 않았다. PC 브라우저나 `npm trust github` 명령(npm 11.15.0 이상, 계정 2FA)으로 등록하도록 안내했다.
+- 확인됨: 태그 푸시는 실제 게시라 되돌릴 수 없으므로, 사용자가 Trusted Publisher 등록을 알린 뒤에 한다. 사용자가 직접 하거나 요청하면 에이전트가 한다.
+- 설계 제안: 수동 실행(workflow_dispatch)은 실제 게시 없이 같은 검사와 npm publish --dry-run만 하는 리허설이다. 태그 커밋은 main에 있어야 한다.
+  GitHub 릴리스 자동 생성과 GitHub environment 승인 절차는 이번 범위가 아니다.
+- 범위 밖: 제품 코드와 패키지 내용, 기존 Platform checks workflow는 바꾸지 않는다.
 
 ## 오류와 규모
 
@@ -300,7 +319,8 @@ Phase 4에서 PR-02·05·08의 검색·변경 감지·명시적인 문서 이동
 에이전트 스킬 관리와 설치의 DC-16~19를 모두 해소했다. Codex 룰 규칙은 Codex CLI 0.165.0 관찰 결과다.
 저장소 소개(RQ-19)의 METHOD 한국어판과 examples/ 합성 예제는 2026-10-28 사용자 요청으로 추가했다(DC-21 해소).
 구현 계획의 Refs·Files 표기(RQ-20)의 DC-30은 2026-11-01 사용자 선택으로 해소했다. 라벨은 영어 고정, 새 작업부터 적용하고 예제 checkout만 새 형식,
-docatlas의 수집·검색 기능은 별도 후속이다. 2026-11-01 사용자 결정: RQ-20을 0.4.2 패치로 배포한다. 실제 게시는 사용자가 한다.
+docatlas의 수집·검색 기능은 별도 후속이다. 2026-11-01 사용자 결정: RQ-20을 0.4.2 패치로 배포한다.
+같은 날 사용자 결정(RQ-21): npm 게시를 버전 태그의 GitHub Actions(Trusted Publishing)로 자동화하고 0.4.2부터 이 방식으로 게시한다.
 
 최신 인계 상태는 [구현 계획의 현재 인계](./IMPLEMENT.md#현재-인계)를 따른다.
 

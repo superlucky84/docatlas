@@ -371,6 +371,19 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 통과: 사람과 도구가 구현 계획만 읽고 단계별 관련 ID와 바뀐 파일을 정확히 찾는다.
 상태: 구현됨(kit 1.2.0, 배포 전). 아래 자동 확인 외에 사람의 실제 세션 확인은 미실행이다.
 
+### M-20 — npm 자동 게시
+
+대응: RQ-21 / DC-31.
+
+- [ ] npmjs.com의 docatlas 패키지에 Trusted Publisher(GitHub Actions, superlucky84/docatlas, publish.yml, environment 없음)가 등록돼 있다.
+- [ ] main에서 Publish to npm을 수동 실행하면 검사와 npm publish --dry-run만 하고 실제 게시는 없다.
+- [ ] package.json과 다른 버전의 태그, 또는 main에 없는 커밋의 태그는 게시 전에 실패한다.
+- [ ] `v0.4.2` 태그 푸시로 0.4.2가 게시되고, npm 패키지 페이지에 GitHub Actions 출처 표시(provenance)가 보인다.
+- [ ] 저장소 비밀값에 npm 토큰이 없다.
+
+통과: 사람이 npm publish를 직접 실행하지 않고 태그 푸시만으로 검사된 버전이 게시된다.
+상태: 계획. 구현과 실행 전이다.
+
 ## Phase 1 자동 검증 대응
 
 아래는 수집기 수준의 자동 검증이며 브라우저 인수 전체를 pass로 변경하지 않는다.

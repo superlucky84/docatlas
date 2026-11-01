@@ -1359,22 +1359,68 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### 사용자가 실행할 0.4.2 배포 절차
+### 0.4.2 게시 절차 — 태그 푸시(RQ-21)
 
-package.json은 이미 0.4.2이므로 npm version을 다시 실행하지 않는다. main CI가 통과한 뒤 main에서 게시한다.
+2026-11-01 사용자 결정으로 0.4.2는 직접 npm publish 대신 GitHub Actions(Publish to npm)가 게시한다. package.json은 이미 0.4.2다.
+Trusted Publisher 등록(사용자 단계)이 끝난 뒤, publish.yml이 들어간 main 커밋에 태그를 건다.
 
 ```sh
 git checkout main
 git pull --ff-only origin main
-npm whoami --registry=https://registry.npmjs.org/
-npm publish --dry-run --access public --registry=https://registry.npmjs.org/
-npm publish --access public --registry=https://registry.npmjs.org/
+git tag v0.4.2
+git push origin v0.4.2
 npm view docatlas version --registry=https://registry.npmjs.org/
 npx --yes docatlas@0.4.2 agents help
-npx --yes docatlas@0.4.2 agents install --dry-run
 ```
 
-선택: git tag v0.4.2, git push origin v0.4.2. 2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
+이전 방식(사용자가 main에서 npm publish)은 Trusted Publisher 등록이 끝내 안 될 때의 대안으로만 남긴다.
+2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
+
+## npm 게시 자동화 — 진행 중
+
+Refs: RQ-21, DC-31, M-20
+진입: 2026-11-01 사용자 결정(Trusted Publishing, 태그 푸시로 게시, 0.4.2부터). 기준 커밋 1eb7c39(작업 브랜치), main은 337200b.
+기준 검증(1eb7c39, Linux / Node 22.23.4): 문법 72개·agent kit 1.2.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀·실패 0.
+
+### 구현
+
+- [x] `.github/workflows/publish.yml`: 태그 `v*` 푸시는 게시, 수동 실행은 dry-run. ubuntu-latest·Node 24·registry-url, 워크플로 기본 contents: read와
+  게시 작업의 id-token: write, concurrency, 전체 이력 checkout, main 포함·태그 버전 확인, npm 11.5.1 미만일 때만 npm@11 설치,
+  npm ci·check·test·pack dry-run 뒤 게시(또는 리허설). actions 버전은 Platform checks와 같은 checkout@v7·setup-node@v7.
+- [x] CONTRIBUTING.md에 "Releasing" 절(버전 올리기, CI 통과 뒤 태그 푸시, 수동 리허설, Trusted Publisher 등록과 npm trust 대안, 실패 처리)을 뒀다.
+- [x] 0.4.2 배포 절의 사용자 절차를 태그 푸시 방식으로 바꿨다. 직접 publish는 등록이 끝내 안 될 때의 대안으로만 남겼다.
+
+기준 테스트: YAML 구문 확인, npm run check.
+결과: pyyaml로 구문과 트리거(push tags·workflow_dispatch)·권한·단계 순서를 확인했다. npm run check(kit 1.2.0 세 쌍),
+npm pack --dry-run 45개 파일·58.3 kB, .github는 패키지에 없다. CONTRIBUTING·기준 문서 링크 문제 0, git diff --check 통과.
+종료 기준: workflow와 안내가 설계 계약과 같고 패키지 구성(45개 파일)이 그대로다. 충족했다.
+
+Files:
+- `.github/workflows/publish.yml` (added)
+- `CONTRIBUTING.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### Test Hardening
+
+- [x] 게시 대상 확인 단계를 workflow에서 그대로 뽑아 bash -e로 재현했다(이 저장소, origin/main 337200b).
+  337200b + 태그 v0.4.2는 통과, 337200b + 태그 v0.4.1은 "does not match" 실패, main에 없는 1eb7c39 + v0.4.2는 "is not on main" 실패,
+  수동 실행(브랜치 main, 337200b)은 통과.
+- [x] npm 버전 판정: 10.9.4·11.4.2·11.5.0은 낮음(npm@11 설치), 11.5.1·11.15.0·12.0.0은 충분.
+
+종료 기준: 잘못된 태그나 커밋에서 게시 단계까지 가지 않는다. 충족했다.
+
+Files: none
+
+### Integration Test
+
+- [ ] 작업 브랜치를 main에 fast-forward로 반영하고 Platform checks가 통과한다.
+- [ ] main에서 수동 실행(dry-run 리허설)이 검사와 npm publish --dry-run까지 통과한다.
+- [ ] 사용자가 Trusted Publisher를 등록한 뒤 `v0.4.2` 태그 푸시로 0.4.2가 게시되고, npm에 출처 표시가 붙는다(M-20).
+
+종료 기준: 0.4.2가 이 workflow로 게시되고 레지스트리의 latest가 0.4.2다.
 
 ## 검증 예제와 기록
 

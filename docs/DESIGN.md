@@ -516,6 +516,7 @@ CHANGELOG의 Unreleased를 0.4.0으로 옮긴다.
 같은 설치 명령을 다시 실행하면 designer 스킬만 바뀌고 나머지는 unchanged로 기록이 갱신되어 안내가 사라진다.
 설치 기록이 없는 손 복사본에는 안내가 없고, 손으로 고친 사본은 skip-modified로 남는다. CHANGELOG의 Unreleased를 0.4.1로 옮긴다.
 0.4.2(2026-11-01 사용자 결정): kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0)을 담는(RQ-20·DC-30) 패치 배포다. CLI 동작은 바뀌지 않는다.
+0.4.2부터 게시는 `v` 태그 푸시로 GitHub Actions가 한다(RQ-21·DC-31).
 docatlas로 설치한 사용자는 문서 지도 시작 시 업데이트 안내 한 줄을 보고, 같은 설치 명령을 다시 실행하면 세 스킬·룰이 바뀌고 안내가 사라진다.
 설치 기록이 없는 Codex 사본도 0.3.0~0.4.1 변환본이면 이전 버전으로 인식해 교체한다. CHANGELOG의 Unreleased를 0.4.2로 옮긴다.
 
@@ -705,6 +706,35 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
   별도 요구사항으로 다룬다(DC-30 c). 그때도 원본 문서는 읽기만 한다.
   설계 제안(후속 요구사항에서 확정): 기록이 없는 문서를 관련 없음으로 숨기지 않고 본문 검색 결과와 함께 보여 준다.
 
+## npm 게시 자동화 — RQ-21 계약
+
+2026-11-01 사용자 결정: 버전 태그를 푸시하면 GitHub Actions가 npm Trusted Publishing(OIDC)으로 게시한다. 0.4.2부터 쓴다.
+파일은 `.github/workflows/publish.yml` 하나이며 npm 패키지에는 들어가지 않는다(files는 agent-kit/·bin/·src/).
+
+| 실행 | 하는 일 |
+| --- | --- |
+| 태그 `v*` 푸시 | 아래 검사를 모두 통과하면 `npm publish`로 실제 게시한다 |
+| 수동 실행(workflow_dispatch) | 같은 검사 뒤 `npm publish --dry-run`만 한다. 등록·설정 확인용 리허설이며 게시하지 않는다 |
+
+단계와 규칙:
+
+- 실행기는 GitHub 제공 `ubuntu-latest`다(Trusted Publishing은 자체 실행기를 지원하지 않는다). Node 24를 쓰고 setup-node에
+  registry-url `https://registry.npmjs.org`를 준다. 저장소 비밀값의 npm 토큰은 쓰지 않는다.
+- 권한: 워크플로 기본은 `contents: read`, 게시 작업만 `id-token: write`를 더한다. 같은 게시가 겹치지 않게 concurrency 그룹 하나를 둔다.
+- checkout은 전체 이력(fetch-depth 0)과 persist-credentials false로 한다.
+- 게시 대상 확인: 실행 커밋이 origin/main에 포함돼야 한다. 태그 실행이면 태그 이름이 `v` + package.json version과 같아야 한다.
+  둘 중 하나라도 어긋나면 게시 전에 실패한다.
+- npm 버전: Trusted Publishing은 npm 11.5.1 이상이 필요하다. Node 24에 들어 있는 npm이 그보다 낮을 때만 npm@11을 설치한다.
+- 검사: `npm ci --ignore-scripts --no-audit --no-fund`, `npm run check`, `npm test`, `npm pack --dry-run`. 플랫폼·브라우저 검사는
+  main에 푸시할 때 도는 Platform checks가 맡으므로, 태그는 그 CI가 통과한 main 커밋에 건다.
+- 게시: `npm publish`. package.json publishConfig(public, npm registry)를 따른다. 공개 저장소의 공개 패키지라 출처 표시(provenance)는
+  npm이 자동으로 만든다. `--provenance`는 쓰지 않는다.
+- 사용자 등록: npmjs.com 패키지 설정의 Trusted Publisher(GitHub Actions, superlucky84/docatlas, `publish.yml`, environment 없음),
+  또는 `npm trust github docatlas --file publish.yml --repo superlucky84/docatlas --allow-publish`. 이름은 대소문자까지 같아야 하며
+  npm은 저장할 때 검증하지 않으므로 잘못된 값은 게시할 때 실패로 드러난다.
+- 실패 처리: 등록 전에 태그를 푸시해 게시 단계만 실패하면, 등록한 뒤 같은 실행을 다시 실행(re-run)한다. 이미 게시한 버전의 태그는 옮기지 않는다.
+- 0.4.2: 337200b에는 workflow가 없으므로 workflow를 더한 main 커밋에 `v0.4.2`를 건다. package.json·lockfile·패키지 내용은 337200b와 같다.
+
 ## 결정 체크리스트
 
 ### Phase 1 구현 계약
@@ -815,6 +845,8 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - [x] DC-29: 2026-10-30 사용자 선택. 블로그 글의 문서 위치 원칙 중 저장소에 없던 것(코드가 보여 주는 묶음 따르기, 모듈마다 docs/ 두지 않기,
   여러 모듈 기능은 위치 하나, 구조가 불분명하면 에이전트가 제안하고 사람이 결정)을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영한다.
   0.4.1로 배포한다(2026-10-30 사용자 결정). M-18.
+- [x] DC-31: 2026-11-01 사용자 결정. npm 게시를 버전 태그의 GitHub Actions(Trusted Publishing, OIDC)로 자동화하고 0.4.2부터 쓴다.
+  수동 실행은 dry-run 리허설, 태그 커밋은 main에 있어야 하며 태그와 버전이 같아야 한다. Trusted Publisher 등록과 태그 푸시 시점은 사용자 단계다. M-20.
 - [x] DC-30: 2026-11-01 사용자 결정. 구현 계획의 단계마다 Refs와 Files를 둘 다 남기고, 세 스킬·룰에 규칙을 넣으며, 문서부터 갱신한다.
   후속 결정: designer만으로 Refs·Files가 모두 동작하고 implementer·reviewer는 강화 개념이다(위 역할 표).
   후속 결정: Refs·Files는 참고 기록이며 전체 색인이 아니다. 관련 문서를 찾을 때 본문도 검색한다(위 규칙의 성격).
