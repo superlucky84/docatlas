@@ -15,7 +15,8 @@ Agent skill and rule versions are tracked separately in
   newest ten backups of the project (`--keep <n>` to keep more in that run). Files that did not change
   are shared between backups with hard links, so ten backups take little more space than one; a zip or
   a plain copy keeps every file, only without the sharing. The origin can be on any host, such as
-  GitHub or GitLab; without one, the folder name and a code from its path are used. `restore`
+  GitHub or GitLab; without one, the folder name and a code from its path are used. A file whose name
+  contains a backslash is left out with a warning, since Windows could not restore it. `restore`
   brings the documents and the hiding rule back in a new clone of the same repository, previews with
   `--dry-run`, and keeps files that differ unless you add `--force`, which saves them first. The
   commands never ask questions and print tab-separated lines, so an agent can run them.

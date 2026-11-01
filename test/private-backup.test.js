@@ -1,10 +1,11 @@
 import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { localKey, normalizeRemote, parseKey, privateBackupNotice, privateHelp, runPrivate } from '../src/private/index.js';
+import { localKey, normalizeRemote, parseKey, privateBackupNotice, privateHelp, runPrivate, writeBackup } from '../src/private/index.js';
 import { quotePath } from '../src/private/notice.js';
 import { startCli } from './helpers/cli.js';
 
@@ -277,6 +278,38 @@ test('unchanged files are shared between backups, survive pruning, and a damaged
   assert.deepEqual(await fs.readFile(path.join(target, '.docatlas', 'private', 'a', 'diagram.png')), image);
 });
 
+test('a file name with a backslash is left out with a warning, so the backup stays restorable', { skip: process.platform === 'win32' && 'Windows names cannot contain a backslash' }, async t => {
+  const home = await folder(t);
+  const root = await clone(t);
+  await write(root, '.docatlas/private/a/DESIGN.md', '# A\n');
+  await fs.writeFile(path.join(root, '.docatlas', 'private', 'a', 'notes\\draft.md'), '# Draft\n');
+  const first = await privateCommand(root, home, ['backup']);
+  assert.equal(first.code, 3);
+  assert.deepEqual(field(first.lines, 'warning'), ['warning', 'unsupported-name', '.docatlas/private/a/notes\\draft.md']);
+  assert.deepEqual(field(first.lines, 'summary'), ['summary', 'backup=create', 'files=1', 'removed=0']);
+  assert.match(first.stderr, /backslash/);
+  const list = await privateCommand(root, home, ['list']);
+  assert.deepEqual(list.lines.filter(line => line[0] === 'warning'), []);
+  assert.deepEqual(field(list.lines, 'summary'), ['summary', 'backups=1']);
+  const again = await privateCommand(root, home, ['backup']);
+  assert.equal(again.code, 3);
+  assert.deepEqual(field(again.lines, 'summary'), ['summary', 'backup=unchanged', 'files=1', 'removed=0']);
+  const target = await clone(t);
+  const restored = await privateCommand(target, home, ['restore']);
+  assert.equal(restored.code, 0, restored.stderr);
+  assert.equal(await read(target, '.docatlas/private/a/DESIGN.md'), '# A\n');
+});
+
+test('a backup that list or restore would reject is never saved', async t => {
+  const home = await folder(t);
+  const data = Buffer.from('x');
+  await assert.rejects(writeBackup({
+    home, key: KEY, reason: 'backup', root: home, commit: null,
+    entries: [{ path: 'a\\b.md', size: 1, sha256: createHash('sha256').update(data).digest('hex'), data }]
+  }), /would not be readable/);
+  assert.deepEqual(await fs.readdir(store(home)), []);
+});
+
 test('restore keeps files that differ, and --force backs them up before overwriting', async t => {
   const home = await folder(t);
   const root = await withDocuments(t);
@@ -496,6 +529,7 @@ test('options belong to their commands, and invalid keys or backup names exit 2 
   assert.equal(await exists(path.join(root, '.docatlas')), false);
   const help = privateHelp();
   for (const word of ['backup', 'list', 'restore', '--force', '--from', '--key', '--keep', 'newest 10', 'remove backup', 'removed=',
+    'once per implementation phase', 'Do not back up just because documents changed', 'unsupported-name',
     'private-backups', 'conflict', 'before-restore',
     'missing backup', 'blocked damaged', 'same|changed|none|unknown']) {
     assert.ok(help.includes(word), word);

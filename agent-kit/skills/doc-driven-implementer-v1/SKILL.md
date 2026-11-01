@@ -50,7 +50,7 @@ If sources conflict, stop and resolve the conflict explicitly with the user.
 - Keep the phase's `Refs:` line to full IDs. If `IMPLEMENT*.md` is outside your scope, return the `Files:` block in your report.
 - Record unresolved items clearly (do not silently skip).
 - If behavior changed materially, sync corresponding `DESIGN*.md` and `README.md` sections.
-- If the phase documents are private (under `.docatlas/private/`), run `docatlas private backup` once after syncing them, when only the user's manual checks are left. Do not back up at other times unless asked.
+- If you updated phase documents under `.docatlas/private/`, run `docatlas private backup` once after syncing them, when only the user's manual checks are left. Do not back up at other times unless asked.
 
 ### 5) Handoff Update
 - Replace the current handoff block instead of appending a new one:

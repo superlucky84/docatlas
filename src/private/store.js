@@ -225,6 +225,8 @@ export async function writeBackup({ home, key, entries, reason, root, commit, no
       format: 1, createdAt: now.toISOString(), key, reason, root, commit: commit ?? null,
       files: entries.map(({ path: relative, size, sha256: hash }) => ({ path: relative, size, sha256: hash }))
     };
+    // Never report a backup that list and restore would reject.
+    if (!parseManifest(manifest, 'new')) throw new Error('The backup would not be readable, so it was not saved.');
     await fs.writeFile(path.join(partial, MANIFEST), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
     const base = stamp(now);
     for (let suffix = 1; suffix <= 100; suffix++) {

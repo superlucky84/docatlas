@@ -7,8 +7,8 @@ import { headCommit, isIgnored, locateRepository, trackedFiles } from './git.js'
 import { parseKey, projectKey } from './key.js';
 import { applyRestore, planRestore } from './restore.js';
 import {
-  DEFAULT_KEEP, inspectStore, isBackupName, latestRegular, listBackups, pruneBackups, readBackup, readEntries, sameFiles,
-  writeBackup
+  DEFAULT_KEEP, inspectStore, isBackupName, isSafeRelative, latestRegular, listBackups, pruneBackups, readBackup, readEntries,
+  sameFiles, writeBackup
 } from './store.js';
 
 export const PRIVATE_OPTIONS = {
@@ -43,6 +43,8 @@ const MESSAGES = {
   'no-origin': 'This project has no origin remote, so its backups use a local key from the folder path. ' +
     'Restoring in a new clone or a moved folder needs --key with this key.',
   'no-files': 'There are no private files to back up.\n',
+  'unsupported-name': 'Files with a backslash in their name were not backed up (unsupported-name lines), because not every\n' +
+    'system can restore them. Show these lines to the user; renaming the files lets the next backup include them.\n',
   missing: 'No backup was found. Run docatlas private list, or ask the user for --key or --from.\n',
   damaged: 'The backup is damaged or incomplete, so nothing was written. Show this to the user;\n' +
     'an older backup can be chosen with --from.\n',
@@ -70,7 +72,8 @@ export function privateHelp() {
     '  1. Before writing private documents, run: docatlas private init',
     '     It creates the folder, adds it to .git/info/exclude when that line is missing, and checks',
     '     that git no longer sees the folder.',
-    '  2. After changing private documents, or when the user asks for a backup, run: docatlas private backup',
+    '  2. Run docatlas private backup once per implementation phase, when only the user\'s manual checks are left,',
+    '     and otherwise only when the user asks. Do not back up just because documents changed.',
     '  3. To restore, for example in a new clone: run docatlas private restore --dry-run, show the lines to',
     '     the user, and run docatlas private restore after they agree. Restore never overwrites a file that',
     '     differs (conflict). Use --force only when the user asks for it; it backs up the current files first.',
@@ -118,7 +121,8 @@ export function privateHelp() {
     '           key <key> <origin|local|option>',
     '           store <backup folder for the key>',
     '           warning no-origin - <message>',
-    '  backup   warning <symbolic-link|wrong-type> <path>   not copied',
+    '  backup   warning <symbolic-link|wrong-type|unsupported-name> <path>   not copied; unsupported-name is a',
+    '           name with a backslash, which not every system can restore (exit 3 after the backup)',
     '           <create|unchanged|skip> backup <backup folder or ->   unchanged: the newest backup has the same files',
     '           remove backup <backup folder>          older than the newest --keep backups; skip removes nothing',
     '           summary backup=<action> files=<count> removed=<count>',
@@ -130,7 +134,8 @@ export function privateHelp() {
     '           blocked invalid-backup <folder>        the backup has no readable manifest; nothing was written',
     '           from <name> <created> <files> <backup|before-restore>',
     '           init lines for the folder and the exclude file, then:',
-    '           create backup <folder>                 --force: the current files, saved before overwriting',
+    '           create backup <folder>                 --force: the current files, saved before overwriting,',
+    '                                                  with the same warning lines as backup',
     '           <create|unchanged|conflict|overwrite> file <path>',
     '           blocked <symbolic-link|wrong-type> <path>',
     '           summary create=<n> unchanged=<n> conflict=<n> overwrite=<n> blocked=<n>',
@@ -140,7 +145,8 @@ export function privateHelp() {
     '  3  Needs the user. init, backup or restore stopped before writing (the home folder, tracked files, a',
     '     symbolic link or wrong type, git could not be read, or no usable backup), or git still sees the',
     '     folder after the exclude line. restore also exits 3 after restoring the other files when conflict',
-    '     or blocked files remain. With --dry-run, 3 means that the real run would exit 3. status found',
+    '     or blocked files remain, and backup after backing up the other files when a name has a backslash.',
+    '     With --dry-run, 3 means that the real run would exit 3. status found',
     '     private files that git can see or tracks, or a blocked path.',
     '  1  Failed.',
     '  2  Invalid arguments.', ''
@@ -345,13 +351,18 @@ async function status(start, { stdout, stderr, git, home }) {
 }
 
 // Reads every regular file in the private folder. Links and other types are reported and left out.
+// A name with a backslash cannot be restored on Windows and is not a valid backup path, so it is left out with a warning.
 async function readPrivateFiles(folder, stdout) {
-  if (folder.state !== 'present') return [];
+  if (folder.state !== 'present') return { entries: [], unsupported: 0 };
   const { files, skipped } = await collectFiles(folder.path);
   for (const entry of skipped) {
     stdout.write('warning\t' + entry.reason + '\t' + rootRelative(entry.path) + '\n');
   }
-  return readEntries(folder.path, files);
+  const supported = files.filter(isSafeRelative);
+  for (const name of files.filter(name => !isSafeRelative(name))) {
+    stdout.write('warning\tunsupported-name\t' + rootRelative(name) + '\n');
+  }
+  return { entries: await readEntries(folder.path, supported), unsupported: files.length - supported.length };
 }
 
 function writeRemoved(stdout, removed) {
@@ -372,7 +383,12 @@ async function backup(start, { stdout, stderr, git, home, key, keep, now }) {
     stderr.write(MESSAGES.blocked);
     return EXIT.NEEDS_DECISION;
   }
-  const entries = await readPrivateFiles(folder, stdout);
+  const { entries, unsupported } = await readPrivateFiles(folder, stdout);
+  const finish = () => {
+    if (!unsupported) return EXIT.OK;
+    stderr.write(MESSAGES['unsupported-name']);
+    return EXIT.NEEDS_DECISION;
+  };
   // Files read through a folder that became a link while reading are not this project's files.
   const again = await inspectFolder(root);
   if (again.state === 'blocked') {
@@ -384,7 +400,7 @@ async function backup(start, { stdout, stderr, git, home, key, keep, now }) {
     stdout.write('skip\tbackup\t-\n');
     stdout.write('summary\tbackup=skip\tfiles=0\tremoved=0\n');
     stderr.write(MESSAGES['no-files']);
-    return EXIT.OK;
+    return finish();
   }
   const latest = latestRegular((await listBackups(store.path)).backups);
   if (sameFiles(latest, entries)) {
@@ -392,7 +408,7 @@ async function backup(start, { stdout, stderr, git, home, key, keep, now }) {
     stdout.write('unchanged\tbackup\t' + latest.path + '\n');
     writeRemoved(stdout, removed);
     stdout.write('summary\tbackup=unchanged\tfiles=' + entries.length + '\tremoved=' + removed.length + '\n');
-    return EXIT.OK;
+    return finish();
   }
   const commit = location.repo ? await headCommit(root, { git }) : null;
   const written = await writeBackup({ home, key: store.key, entries, reason: 'backup', root, commit, now });
@@ -405,7 +421,7 @@ async function backup(start, { stdout, stderr, git, home, key, keep, now }) {
   stdout.write('create\tbackup\t' + written.path + '\n');
   writeRemoved(stdout, removed);
   stdout.write('summary\tbackup=create\tfiles=' + entries.length + '\tremoved=' + removed.length + '\n');
-  return EXIT.OK;
+  return finish();
 }
 
 async function list(start, { stdout, stderr, git, home, key }) {
@@ -498,7 +514,7 @@ async function restore(start, { stdout, stderr, git, home, key, from, force, dry
     if (dryRun) {
       stdout.write('dry-run\tcreate\tbackup\t-\n');
     } else {
-      const entries = await readPrivateFiles(await inspectFolder(root), stdout);
+      const { entries } = await readPrivateFiles(await inspectFolder(root), stdout);
       const commit = location.repo ? await headCommit(root, { git }) : null;
       const saved = await writeBackup({ home, key: store.key, entries, reason: 'before-restore', root, commit, now });
       if (saved.blocked) {

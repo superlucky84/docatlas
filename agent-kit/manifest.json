@@ -79,11 +79,11 @@
       "default": true,
       "skill": {
         "path": "skills/doc-driven-implementer-v1/SKILL.md",
-        "sha256": "1a2cc1a357dd79efc7ce347641e89efad0864d8260415eeb4cb14dbef8c54e31"
+        "sha256": "7ed64b2e34812379b5ddb133423c317e9207f54193f5d532457b299927ef15a0"
       },
       "agent": {
         "path": "agents/doc-driven-implementer-v1.md",
-        "sha256": "9591e67a795f81d53fc5013073771d1b6389b946119e99001b86d8bd568688f0"
+        "sha256": "3b38acafd4d244db808af94e791aae6f6841b32f3bc39798c04de40652b691af"
       },
       "previous": [
         {

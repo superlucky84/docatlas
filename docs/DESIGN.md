@@ -801,15 +801,16 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - 결과 줄: 두 명령 모두 첫 줄에 `root <폴더>`. init은 `<action> folder`, `<action> exclude <파일> <패턴>`, `warning not-git`, `blocked <이유> <경로>`,
   `summary`. status는 folder·documents·files·git·exclude·ignored·tracked·backup·summary(ok|empty|exposed|tracked|blocked|not-git).
 - 결과 줄(3단계): backup·list·restore는 `root` 다음에 `key <키> <origin|local|option>`과 `store <키 폴더>`를 낸다.
-  - backup: `warning no-origin`, `warning <symbolic-link|wrong-type> <개인 폴더 기준 경로>`(복사하지 않은 항목),
+  - backup: `warning no-origin`, `warning <symbolic-link|wrong-type|unsupported-name> <루트 기준 경로(.docatlas/private/…)>`(복사하지 않은 항목),
     `<create|unchanged|skip> backup <백업 폴더 또는 ->`, `remove backup <지운 백업 폴더>`, `summary backup=<action> files=<n> removed=<n>`.
   - list: `backup <이름> <createdAt> <파일 수> <backup|before-restore> <commit 또는 ->`(최신순), `warning invalid-backup <폴더>`, `summary backups=<n>`.
   - restore: `from <이름> <createdAt> <파일 수> <reason>`, init과 같은 folder·exclude 줄, `--force`면 `<create> backup <복구 전 백업 폴더>`,
     `<create|unchanged|conflict|overwrite> file <경로>`, `blocked <symbolic-link|wrong-type> <경로>`,
     `summary create=<n> unchanged=<n> conflict=<n> overwrite=<n> blocked=<n>`. `--dry-run`이면 동작 줄과 summary가 `dry-run`으로 시작한다.
     백업이 없으면 `missing backup <폴더>`, 백업이 손상됐으면 `blocked damaged <경로>` 또는 `blocked invalid-backup <폴더>`로 아무것도 쓰지 않는다.
+    `--force`의 복구 전 백업은 현재 파일을 읽으므로 backup과 같은 `warning` 줄을 낼 수 있다.
 - 종료 3의 뜻: agents는 "완료했지만 결정 필요"이고, private init은 "쓰기 전에 멈춤" 또는 "줄은 썼지만 git이 아직 폴더를 봄", status는 "사용자가 봐야 할 상태"다.
-  backup은 "쓰기 전에 멈춤"(막힌 경로), restore는 "쓰기 전에 멈춤"(백업 없음·손상·막힌 경로·숨기지 못함) 또는
+  backup은 "쓰기 전에 멈춤"(막힌 경로) 또는 "나머지는 백업했지만 이름에 `\`가 있는 파일을 뺐음"(리뷰 반영), restore는 "쓰기 전에 멈춤"(백업 없음·손상·막힌 경로·숨기지 못함) 또는
   "나머지는 복구했지만 conflict나 blocked 파일이 남음"이다. list는 백업이 없어도 0이다.
 - 쓰기는 `.docatlas/private/`, `.git/info/exclude`, 백업 위치로 한정한다. 심볼릭 링크는 따라가지 않는다.
 
@@ -837,6 +838,9 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
   (`/`로 이은 부분이 모두 위 규칙을 이미 지키는 값. 소문자로 바꾸며, 아니면 종료 2). 그래서 출력된 키는 그대로 `--key`에 쓸 수 있다.
 - backup: 루트의 `.docatlas/private/` 아래 모든 일반 파일(이미지 포함)을 복사한다. 심볼릭 링크와 다른 종류는 복사하지 않고 경고한다.
   파일이 하나도 없으면 백업하지 않는다(skip). 빈 백업이 최신이 되어 복구할 백업을 가리지 않게 하기 위해서다.
+  이름(경로)에 `\`가 있는 파일은 macOS·Linux에서는 만들 수 있지만 Windows에서 복구할 수 없고 manifest 경로로도 쓸 수 없어,
+  `warning unsupported-name`으로 알리고 빼며 나머지를 백업한 뒤 종료 3이다(2026-11-01 리뷰 반영, 사용자 선택). 이름을 바꾸면 다음 백업에 들어간다.
+  백업은 manifest를 쓰기 전에 list·restore와 같은 검사로 확인해, 읽을 수 없는 백업을 성공으로 보고하지 않는다.
   최신 일반 백업(reason backup)과 경로·해시가 모두 같으면 새로 만들지 않는다(unchanged).
 - 보관 개수(2026-11-01 사용자 변경, 처음에는 모두 보관): backup이 create나 unchanged로 끝나면 그 키의 백업을 최신 N개만 남기고 나머지를 지운다.
   N은 기본 10이고(같은 날 3에서 변경, 사용자 선택) `--keep <n>`(1~1000의 정수, backup에만)으로 그 실행에서만 바꾼다.
@@ -871,7 +875,8 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - 백업 위치를 클라우드 동기화 폴더로 바꾸는 옵션(`--to` 또는 설정)은 TBD.
 - 동시 실행(Test Hardening 결정, 설계 제안): 잠금 파일을 두지 않는다. 모든 쓰기가 원자적이거나 배타적이라 동시에 실행해도 파일이 깨지거나 사라지지 않는다.
   백업 폴더와 exclude는 임시 파일·폴더를 쓴 뒤 이름 바꾸기, 새 개인 파일은 임시 파일 뒤 hard link(없으면 `wx`), 덮어쓰기는 임시 파일 뒤 이름 바꾸기다.
-  남는 영향은 같은 내용의 백업이 여러 개 생길 수 있다는 것뿐이다(같은 초면 `-2`·`-3` 이름). 잠금은 중단된 실행이 남긴 잠금을 풀 규칙이 필요해
+  남는 영향은 같은 내용의 백업이 여러 개 생길 수 있다는 것(같은 초면 `-2`·`-3` 이름)과, 보관 개수 정리가 겹치면 동시에 끝난
+  다른 실행이 방금 만든 백업을 지울 수 있다는 것이다. 최신 백업은 항상 남고 기본 10개라 사실상 영향이 없다. 잠금은 중단된 실행이 남긴 잠금을 풀 규칙이 필요해
   얻는 것보다 복잡하다. 복구가 만들려던 파일을 다른 실행이 먼저 만들었으면 내용을 비교해 같으면 unchanged, 다르면 conflict로 본다.
 - 검사와 쓰기 사이 재확인: restore는 숨김 줄을 넣은 뒤 파일을 쓰기 전에 개인 폴더를 다시 확인하고(링크로 바뀌었으면 쓰지 않고 종료 3),
   폴더를 하나씩 만들며 각 부모가 실제 폴더인지 본다. backup은 파일을 읽은 뒤 개인 폴더를 다시 확인해, 읽는 사이 링크로 바뀌었으면 백업하지 않는다.
@@ -1033,7 +1038,8 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - [x] DC-33: 2026-11-01 사용자 선택(제안대로). `doc-driven-private-v1`, 명시적 요청에만 사용, 빈 폴더와 백업이 있으면 복구를 먼저 묻는다. M-21.
   같은 날 사용자 변경: 기본 설치가 아니다(default false). `--all`이나 `--only`로 설치하므로 기본 설치와 `--all`이 다시 달라진다.
 - [x] DC-34: 2026-11-01 사용자 선택(제안대로). `~/.docatlas/private-backups/<origin 키>/<시각>/`,
-  같은 내용은 건너뜀, 모두 보관(2026-11-01 사용자 변경: 최근 3개, 같은 날 다시 10개, `--keep <n>`), 명령으로 백업하고 스킬이 고친 뒤 실행,
+  같은 내용은 건너뜀, 모두 보관(2026-11-01 사용자 변경: 최근 3개, 같은 날 다시 10개, `--keep <n>`), 명령으로 백업하고 처음에는 스킬이 고친 뒤 실행
+  (같은 날 사용자 변경: 구현 phase마다 에이전트 몫을 마쳤을 때 한 번과 요청 때만), 바뀌지 않은 파일은 하드 링크로 공유(같은 날 사용자 선택),
   origin 없는 키에 경로 구분값(같은 날 사용자 선택), 클라우드 폴더 지정은 후속. M-22.
 - [x] DC-35: 2026-11-01 사용자 선택(제안대로). `docatlas private init|status|backup|list|restore|help`, 대화형 입력 없음, restore는 미리보기와 --force. M-22.
 - [x] DC-36: 2026-11-01 사용자 선택(제안대로). Private 그룹은 include/exclude 설정과 저장소 .gitignore의 영향을 받지 않는 고정 출처,

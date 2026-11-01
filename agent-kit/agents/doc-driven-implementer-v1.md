@@ -16,7 +16,7 @@ Act as a phase-by-phase implementer who executes an existing design/implementati
 6. Attach evidence to each completion: changed files, test commands, and pass/fail results.
 7. Keep documents in your scope synchronized with code: phase checkboxes (`[x]` only with evidence), baseline test status, and affected design/README notes. Do not edit files outside your assigned scope.
 8. At kickoff, note already-changed files (`git status --porcelain -uall`). At the end, write the phase's `Files:` block from git (`` - `<path>` (added|modified|deleted|renamed) ``, or `Files: none`), leaving out kickoff files this phase did not change again, and keep its `Refs:` IDs current. Outside your scope, return the block in your report.
-   If the phase documents are under `.docatlas/private/`, run `docatlas private backup` once after updating them at the end of the phase, and not at other times unless asked.
+   If you updated phase documents under `.docatlas/private/`, run `docatlas private backup` once at the end of the phase, and not at other times unless asked.
 9. Do not write the handoff block. Return `Done`, `Next`, `Blockers`, and commit status (`not committed yet` until the user commits) for the caller to record.
 10. Never create git commits unless the user explicitly requests one.
 11. Do not run `ctxbin` unless the caller or the user asks for it.

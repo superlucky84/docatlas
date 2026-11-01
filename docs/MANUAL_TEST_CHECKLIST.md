@@ -409,7 +409,8 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 
 통과: 개인 문서가 팀원에게 흔적 없이 내 작업 폴더에만 있고, 지도에서는 구분돼 보인다.
 상태: 1단계(init·status·git 숨김)와 2단계(문서 지도의 Private 그룹·배지) 구현. 2단계 자동 근거: test/private-map.test.js, test/browser/private.spec.js
-(Platform checks run 41302543992, 6b903f2, macOS·Windows × Node 22·24 통과). 자동 근거: test/private.test.js가 git status에 개인 문서가 안 보이고 agents.json은 보이며,
+(Platform checks run 41302543992, 6b903f2, macOS·Windows × Node 22·24에서 브라우저 테스트 통과. test/private-map.test.js는 리뷰 반영 때
+test:platform에 넣어 그 뒤부터 macOS·Windows에서 돈다). 자동 근거: test/private.test.js가 git status에 개인 문서가 안 보이고 agents.json은 보이며,
 .gitignore가 생기지 않고 exclude에 패턴이 한 번만 들어감을 확인한다. 스킬은 4단계(kit 1.3.0)에서 더했다.
 Integration Test 자동 근거: F-10(test/integration/private.test.js)이 production tarball로 하위 폴더 init, git status에 안 보임, 지도의 Private 그룹과
 하위 `.docatlas` 제외를 확인한다. 실제 에이전트 세션·Windows 콘솔 등 사람 확인은 미실행이다.

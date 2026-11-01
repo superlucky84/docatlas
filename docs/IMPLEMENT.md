@@ -1902,6 +1902,44 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+### 2단계~파일 공유 리뷰 반영 — 완료
+
+Refs: RQ-22, RQ-23, DC-33, DC-34, DC-35, DC-36, M-21, M-22
+진입: 사용자 요청으로 doc-driven-reviewer-v1(별도 에이전트, 읽기 전용)이 58c71f5..5e015e0(2단계~백업 시점과 파일 공유, 커밋 11개)을 리뷰했다.
+결과 REQUEST_CHANGES: critical 2·warning 4·suggestion 3. 리뷰어가 npm run check, npm test(211개 중 205개 통과·6개 건너뜀), test:integration 6개를 다시 돌렸고,
+implementer 1.2.0의 previous 해시가 58c71f5와 맞음을 확인했다. 9개 Files 블록은 커밋과 맞았다.
+기준 검증(5e015e0): npm run check 통과, npm test 211개 중 205개 통과·6개 건너뜀·실패 0.
+
+- [x] critical: `docatlas private help`의 에이전트 순서 2번이 아직 "고친 뒤 백업"이었다. "구현 phase마다 한 번(수동 확인만 남았을 때), 그 밖에는 요청 때만,
+  문서가 바뀌었다는 이유로 백업하지 않음"으로 고치고 help 테스트에 넣었다.
+- [x] critical: 이름에 `\`가 있는 개인 파일(macOS·Linux에서 가능)이 있으면 백업이 성공으로 보고되지만 manifest가 거부돼 그 백업 전체를 복구할 수 없고,
+  unchanged가 맞지 않아 백업이 계속 쌓였다. 사용자가 "경고 후 건너뛰기"를 골랐다: `warning unsupported-name <경로>`로 알리고 빼며 나머지를 백업한 뒤 종료 3.
+  writeBackup은 manifest를 list·restore와 같은 검사로 확인한 뒤에만 저장한다. 회귀 테스트 2개(Windows는 그런 이름을 만들 수 없어 첫 테스트는 건너뜀).
+- [x] warning: DESIGN DC-34 결정 줄에 백업 시점 변경과 하드 링크 공유를 적었다. 인계의 커밋 목록을 명시했다(아래).
+  test/private-map.test.js를 test:platform에 넣었다(2단계 수집기·서버 로직이 macOS·Windows에서 돈 적이 없었다). M-21 문구를 바로잡았다.
+  guide/configuration.md에서 기존 문단 가운데 끼어 있던 개인 폴더 문단을 문단 뒤로 옮겼다.
+- [x] suggestion: DESIGN 동시 실행 설명에 정리가 겹칠 때 다른 실행의 새 백업이 지워질 수 있음을 적었다(최신은 항상 남음). backup 경고 경로를 루트 기준으로,
+  restore `--force`의 경고 줄을 DESIGN·help에 적었다. implementer 스킬·룰 문장을 "phase 문서를 갱신했다면"으로 바꿔(줄 수 그대로) 문서를 맡지 않은
+  서브에이전트가 백업하지 않게 했다. implementer 1.3.0은 배포 전이라 버전 그대로 해시만 갱신했다.
+
+결과: npm run check 통과, npm test 213개 중 207개 통과·6개 건너뜀·실패 0, npm run test:platform 58개 중 55개 통과·3개 건너뜀(root),
+npm run test:integration 6개 통과.
+종료 기준: critical을 모두 고치고 warning·suggestion을 반영한다. 충족했다.
+
+Files:
+- `src/private/command.js` (modified)
+- `src/private/store.js` (modified)
+- `test/private-backup.test.js` (modified)
+- `agent-kit/skills/doc-driven-implementer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-implementer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `package.json` (modified)
+- `guide/configuration.md` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ### Integration Test: 자동 검증 완료
 
 Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
@@ -2209,6 +2247,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   doc-driven-implementer-v1 1.3.0. 결과는 "개인 문서와 백업" 절 "백업 시점과 파일 공유"에 있다.
 - 다음(RQ-22·23): 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등). main 반영과 배포(0.5.0 제안)는 사용자가 정한다.
   백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
+- 완료(2026-11-01): 사용자 요청으로 2단계~파일 공유를 리뷰했다(REQUEST_CHANGES, critical 2). 모두 반영했다. 결과는 "2단계~파일 공유 리뷰 반영"에 있다.
+  리뷰 반영 커밋의 Platform checks(새로 넣은 test/private-map.test.js 포함) 결과를 확인한다.
   Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470, 10개·키 보강 run 41306747792.
   Integration Test 커밋은 통합 테스트와 문서만 바꿨고 test:integration은 Platform checks에 없어 CI를 다시 돌리지 않았다.
   원하면 main 반영 전에 2단계~Integration Test 리뷰.
@@ -2222,4 +2262,5 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 그리고 이 인계 커밋(백업 시점과 파일 공유)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 27c02c8(백업 시점과 파일 공유), 5e015e0(Windows 기록),
+  그리고 이 인계 커밋(2단계~파일 공유 리뷰 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.
