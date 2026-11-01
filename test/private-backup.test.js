@@ -244,6 +244,39 @@ test('each backup run keeps the newest ten backups, or --keep of them, and never
   assert.deepEqual(await names(), before);
 });
 
+test('unchanged files are shared between backups, survive pruning, and a damaged copy is never shared', async t => {
+  const home = await folder(t);
+  const root = await clone(t);
+  const image = Buffer.alloc(512 * 1024, 7);
+  await write(root, '.docatlas/private/a/diagram.png', image);
+  await write(root, '.docatlas/private/a/DESIGN.md', 'one\n');
+  const at = minute => ({ now: new Date(Date.UTC(2026, 10, 1, 1, minute)) });
+  const stored = (name, relative) => path.join(store(home), name, 'files', ...relative.split('/'));
+  const links = async filename => (await fs.stat(filename)).nlink;
+  await privateCommand(root, home, ['backup'], at(0));
+  await write(root, '.docatlas/private/a/DESIGN.md', 'two\n');
+  await privateCommand(root, home, ['backup'], at(1));
+  assert.equal(await links(stored('20261101T010100Z', 'a/diagram.png')), 2, 'the unchanged image is shared');
+  assert.equal(await links(stored('20261101T010100Z', 'a/DESIGN.md')), 1, 'the changed document is a new copy');
+
+  await write(root, '.docatlas/private/a/DESIGN.md', 'three\n');
+  const pruned = await privateCommand(root, home, ['backup', '--keep', '1'], at(2));
+  assert.deepEqual(field(pruned.lines, 'summary'), ['summary', 'backup=create', 'files=2', 'removed=2']);
+  assert.deepEqual(await fs.readFile(stored('20261101T010200Z', 'a/diagram.png')), image, 'shared data outlives the removed backups');
+  assert.equal(await links(stored('20261101T010200Z', 'a/diagram.png')), 1);
+
+  // A stored file that no longer matches its hash is copied around, not shared.
+  await fs.writeFile(stored('20261101T010200Z', 'a/diagram.png'), 'damaged');
+  await write(root, '.docatlas/private/a/DESIGN.md', 'four\n');
+  await privateCommand(root, home, ['backup', '--keep', '5'], at(3));
+  assert.deepEqual(await fs.readFile(stored('20261101T010300Z', 'a/diagram.png')), image);
+  assert.equal(await links(stored('20261101T010300Z', 'a/diagram.png')), 1);
+  const target = await clone(t);
+  const restored = await privateCommand(target, home, ['restore']);
+  assert.equal(restored.code, 0, restored.stderr);
+  assert.deepEqual(await fs.readFile(path.join(target, '.docatlas', 'private', 'a', 'diagram.png')), image);
+});
+
 test('restore keeps files that differ, and --force backs them up before overwriting', async t => {
   const home = await folder(t);
   const root = await withDocuments(t);

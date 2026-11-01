@@ -109,6 +109,7 @@ the folder at the root it was opened with, so open the map from the project root
 The folder disappears with the clone, so keep copies outside it. `docatlas private backup`
 saves the files to `~/.docatlas/private-backups/<origin>/<time>/`, skips the copy when
 nothing changed, and keeps the newest ten backups (`--keep <n>` keeps more in that run).
+Unchanged files are shared between backups with hard links, so they take little extra space.
 `<origin>` comes from the origin remote on any host, such as `gitlab.com/group/project`; without
 one it is `local/<folder name>-<code from the folder path>`.
 In a new clone of the same repository, `docatlas private restore --dry-run` previews the

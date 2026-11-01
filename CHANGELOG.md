@@ -12,8 +12,10 @@ Agent skill and rule versions are tracked separately in
   git). `init` hides the folder from git through `.git/info/exclude`, for your clone only, and
   checks that git no longer sees it. `backup` copies the folder to
   `~/.docatlas/private-backups/<origin>/<time>/`, makes no copy when nothing changed, and keeps the
-  newest ten backups of the project (`--keep <n>` to keep more in that run). The origin can be on any
-  host, such as GitHub or GitLab; without one, the folder name and a code from its path are used. `restore`
+  newest ten backups of the project (`--keep <n>` to keep more in that run). Files that did not change
+  are shared between backups with hard links, so ten backups take little more space than one; a zip or
+  a plain copy keeps every file, only without the sharing. The origin can be on any host, such as
+  GitHub or GitLab; without one, the folder name and a code from its path are used. `restore`
   brings the documents and the hiding rule back in a new clone of the same repository, previews with
   `--dry-run`, and keeps files that differ unless you add `--force`, which saves them first. The
   commands never ask questions and print tab-separated lines, so an agent can run them.
@@ -24,8 +26,10 @@ Agent skill and rule versions are tracked separately in
 - Agent kit 1.3.0 adds `doc-driven-private-v1` 1.0.0, a thin skill and rule on top of the designer
   for private documents. It is not installed by default: `docatlas agents install --all` installs
   all four pairs, or choose it with `--only` together with the designer. `docatlas agents help`
-  shows which items need another one. The other three items did not change, so the document map
-  does not ask you to update them.
+  shows which items need another one. Agents back up private documents on their own only once per
+  implementation phase, when everything but your manual checks is done; otherwise only when you ask.
+  `doc-driven-implementer-v1` 1.3.0 does the same when its phase documents are private, so the
+  document map suggests updating it. The designer and reviewer did not change.
 
 ## 0.4.2 — 2026-11-01
 

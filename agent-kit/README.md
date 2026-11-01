@@ -7,7 +7,7 @@ docatlas installs them for Claude Code and Codex.
 | Name | Version | Skill | Agent rule | Installed by default |
 | --- | --- | --- | --- | --- |
 | doc-driven-designer-v1 | 1.3.0 | [SKILL.md](skills/doc-driven-designer-v1/SKILL.md) | [rule](agents/doc-driven-designer-v1.md) | Yes |
-| doc-driven-implementer-v1 | 1.2.0 | [SKILL.md](skills/doc-driven-implementer-v1/SKILL.md) | [rule](agents/doc-driven-implementer-v1.md) | Yes |
+| doc-driven-implementer-v1 | 1.3.0 | [SKILL.md](skills/doc-driven-implementer-v1/SKILL.md) | [rule](agents/doc-driven-implementer-v1.md) | Yes |
 | doc-driven-reviewer-v1 | 1.5.0 | [SKILL.md](skills/doc-driven-reviewer-v1/SKILL.md) | [rule](agents/doc-driven-reviewer-v1.md) | Yes |
 | doc-driven-private-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-private-v1/SKILL.md) | [rule](agents/doc-driven-private-v1.md) | No; needs the designer |
 

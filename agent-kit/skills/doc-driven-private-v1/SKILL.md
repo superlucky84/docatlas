@@ -35,7 +35,9 @@ Keep documents that only this user sees in one hidden folder of the project, wri
 - When an implementer or reviewer works from private documents, give it the private document path.
 
 ## Backup
-- After changing private documents, and whenever the user asks, run `docatlas private backup`. It copies the folder to `~/.docatlas/private-backups/` and makes no copy when nothing changed.
+- Run `docatlas private backup` once per implementation phase: when all the implementation and automated tests you can do are finished and only the user's manual checks are left.
+- Otherwise run it only when the user asks. Writing or editing documents alone is not a reason to back up.
+- The command copies the folder to `~/.docatlas/private-backups/`, makes no copy when nothing changed, and keeps the newest backups.
 - If the output has a `no-origin` warning, tell the user that a new clone needs `--key` with the printed key to find this backup.
 
 ## Finding Documents

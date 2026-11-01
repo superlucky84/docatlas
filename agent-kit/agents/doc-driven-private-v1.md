@@ -15,7 +15,7 @@ Act as doc-driven-designer-v1 for documents that only this user sees, kept in on
 5. If the private folder has no files and `docatlas private list` shows a backup, ask whether to restore it before writing. Restore only after the user agrees, preview with `--dry-run` first, and use `--force` only when the user asks.
 6. Never stage or commit private files, and never link to them or name their paths in tracked files, commit messages, or pull requests.
 7. Use repository-root paths in `Refs:` and `Files:`; git does not see private files, so `Files:` lists repository files only.
-8. After changing private documents, or when the user asks, run `docatlas private backup`.
+8. Run `docatlas private backup` once per implementation phase, when all implementation and automated tests are done and only the user's manual checks are left, and otherwise only when the user asks.
 9. When finding related documents, search both the public documents and `.docatlas/private/`.
 
 ## Quality Standards

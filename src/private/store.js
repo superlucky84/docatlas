@@ -177,17 +177,49 @@ function stamp(date) {
 }
 
 // Writes a new backup and returns { name, path }, or { blocked } when a store folder is a link or a file.
+// Files of the existing backups by content hash, so a new backup can share identical files instead of copying them.
+async function sharedFiles(folder) {
+  const byHash = new Map();
+  for (const backup of (await listBackups(folder)).backups) {
+    for (const file of backup.files) {
+      if (!byHash.has(file.sha256)) byHash.set(file.sha256, path.join(backup.path, FILES, ...file.path.split('/')));
+    }
+  }
+  return byHash;
+}
+
+// Hard-links target to an existing backup file with the same content. The source is read and checked first, so a
+// damaged backup file is never shared. Returns false when the file must be copied instead: no matching file, a
+// file system without hard links, too many links, or a source removed in the meantime.
+async function linkShared(source, entry, target) {
+  if (!source) return false;
+  try {
+    const data = await readRegularFile(source);
+    if (data.length !== entry.size || sha256(data) !== entry.sha256) return false;
+    await fs.link(source, target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function writeBackup({ home, key, entries, reason, root, commit, now = new Date() }) {
   const blocked = await prepareStore(home, key);
   if (blocked) return { blocked };
   const folder = storeFolder(home, key);
+  const shared = await sharedFiles(folder);
   const partial = path.join(folder, '.partial-' + process.pid + '-' + crypto.randomBytes(4).toString('hex'));
   await fs.mkdir(partial, { mode: 0o700 });
+  let linked = 0;
   try {
     for (const entry of entries) {
       const target = path.join(partial, FILES, ...entry.path.split('/'));
       await fs.mkdir(path.dirname(target), { recursive: true, mode: 0o700 });
-      await fs.writeFile(target, entry.data, { flag: 'wx', mode: 0o600 });
+      if (await linkShared(shared.get(entry.sha256), entry, target)) {
+        linked++;
+      } else {
+        await fs.writeFile(target, entry.data, { flag: 'wx', mode: 0o600 });
+      }
     }
     const manifest = {
       format: 1, createdAt: now.toISOString(), key, reason, root, commit: commit ?? null,
@@ -201,7 +233,7 @@ export async function writeBackup({ home, key, entries, reason, root, commit, no
       if (await kind(target) !== 'missing') continue;
       try {
         await fs.rename(partial, target);
-        return { name, path: target };
+        return { name, path: target, linked };
       } catch (error) {
         if (!['EEXIST', 'ENOTEMPTY', 'EPERM'].includes(error.code)) throw error;
       }

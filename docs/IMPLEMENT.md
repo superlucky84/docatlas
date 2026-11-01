@@ -1861,6 +1861,46 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+### 백업 시점과 파일 공유 — 완료
+
+Refs: RQ-23, DC-33, DC-34, M-22
+진입: 2026-11-01 사용자 변경. 백업이 커질지, zip으로 옮겨도 되는지, phase마다 저장되는지 묻고 수동 백업만 두는 안을 비교한 뒤,
+"자동 백업은 구현 phase에서 에이전트 몫을 마쳤을 때 한 번, 나머지는 명시적 요청 때만, 하드 링크는 넣고 10개 유지"로 정했다.
+Integration Test 뒤의 변경이라 문서 순서상 그 앞에 둔다.
+기준 검증(6b2a1d4, Linux / Node 22.23.4): npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0, npm run test:integration 6개 통과.
+
+- [x] 문서: REQUIREMENTS에 사용자 변경과 배경, DESIGN의 백업 시점·파일 공유·스킬 구성·implementer 한 줄을 먼저 고쳤다.
+- [x] 백업 파일 공유(store.js): 같은 키의 기존 백업에 해시가 같은 파일이 있으면 읽어서 크기·해시를 확인한 뒤 하드 링크를 건다.
+  링크를 못 하거나 확인에 실패하면 복사한다. 보관 개수 10과 지우기 규칙은 그대로다.
+- [x] doc-driven-private-v1(배포 전 1.0.0, 버전 그대로 해시만 갱신): 구현 phase에서 구현·자동 테스트를 마치고 수동 확인만 남았을 때 한 번,
+  그 밖에는 요청할 때만 백업한다. 문서를 쓰거나 고친 것만으로는 백업하지 않는다.
+- [x] doc-driven-implementer-v1 1.3.0(스킬·룰): phase 문서가 `.docatlas/private/` 아래면 phase 끝에 문서를 맞춘 뒤 한 번 백업한다.
+  1.2.0의 스킬·룰·Codex 변환 해시를 previous로 옮겼다(kit 1.2.0, docatlas 0.4.2). kit은 배포 전 1.3.0 그대로다.
+- [x] CHANGELOG Unreleased(공유·zip, phase 끝 백업, implementer 1.3.0이라 지도가 갱신을 안내함), 사용 가이드, agent-kit/README 표, M-22 항목.
+
+기준 테스트: npm test(백업 테스트), npm run test:integration.
+결과: 새 테스트 1개(바뀌지 않은 이미지는 링크 수 2로 공유, 바뀐 문서는 새 사본, `--keep 1`로 앞 백업을 지워도 공유 데이터 유지,
+손상된 저장 파일은 공유하지 않고 새로 복사, 복구 바이트 일치). npm run check(kit 1.3.0 네 쌍) 통과, npm test 211개 중 205개 통과·6개 건너뜀·실패 0,
+npm run test:integration 6개 통과. 수동 확인: 2 MB 이미지가 든 백업 5개는 공유로 2.1 MB였고, zip으로 묶어 다른 홈에 풀면 10 MB(공유가 풀림)가 되며
+그 백업으로 새 clone 복구가 바이트 단위로 일치했다.
+종료 기준: 에이전트의 자동 백업은 구현 phase마다 한 번뿐이고, 10개를 남겨도 바뀌지 않은 파일은 한 벌만 차지한다. 충족했다.
+
+Files:
+- `src/private/store.js` (modified)
+- `test/private-backup.test.js` (modified)
+- `agent-kit/skills/doc-driven-private-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-private-v1.md` (modified)
+- `agent-kit/skills/doc-driven-implementer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-implementer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `agent-kit/README.md` (modified)
+- `guide/document-map.md` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ### Integration Test: 자동 검증 완료
 
 Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
@@ -2164,7 +2204,10 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   origin이 없으면 키에 경로 구분값을 붙인다. 결과는 "백업 개수 제한"과 "기본 10개와 origin 없는 키 보강"에 있다.
 - 완료(2026-11-01, RQ-22·23 Integration Test): F-10 통합 테스트(production tarball로 백업 → 삭제 → 새 clone 복구 → 지도)와 4단계 회귀였던 F-09 수정.
   결과는 "개인 문서와 백업" 절 Integration Test에 있다. 개인 문서 기능의 계획 단계는 모두 끝났다.
+- 완료(2026-11-01, 사용자 변경): 자동 백업은 구현 phase마다 한 번(에이전트 몫을 마쳤을 때), 나머지는 요청 때만. 백업끼리 바뀌지 않은 파일은 하드 링크로 공유.
+  doc-driven-implementer-v1 1.3.0. 결과는 "개인 문서와 백업" 절 "백업 시점과 파일 공유"에 있다.
 - 다음(RQ-22·23): 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등). main 반영과 배포(0.5.0 제안)는 사용자가 정한다.
+  이번 변경의 Platform checks 결과(Windows 하드 링크 공유)를 확인한다.
   Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470, 10개·키 보강 run 41306747792.
   Integration Test 커밋은 통합 테스트와 문서만 바꿨고 test:integration은 Platform checks에 없어 CI를 다시 돌리지 않았다.
   원하면 main 반영 전에 2단계~Integration Test 리뷰.
@@ -2178,4 +2221,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 그리고 이 인계 커밋(Integration Test)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 그리고 이 인계 커밋(백업 시점과 파일 공유)이 있다. 0.4.1 게시본은 fcb4e68이다.
