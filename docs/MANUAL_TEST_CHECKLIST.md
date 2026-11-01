@@ -498,7 +498,8 @@ test/integration/package.test.js의 부모 1개·하위 3개, 총 4개가 Node 2
 - [x] 문법·Node·플랫폼·통합 테스트와 pack/publish dry-run이 통과하고 파일 수가 45개다.
   2026-11-01 Linux / Node 22.23.4: Node 159개 중 156개 통과·3개 건너뜀, 플랫폼 6개, 통합 5개(F-07은 브라우저 경로를 임시로 맞춤),
   docatlas@0.4.2 45개 파일·58.3 kB. agents help가 Kit 1.2.0과 세 항목 새 버전 default를 출력했다.
-- [ ] main CI가 macOS·Windows × Node 22·24 네 작업 모두 통과한다.
+- [x] main CI가 macOS·Windows × Node 22·24 네 작업 모두 통과한다.
+  2026-11-01 run 41265141901(337200b): 네 작업 모두 check·test:platform·test:browser·pack 단계 성공.
 - [ ] 사용자가 게시 후 npm view docatlas@0.4.2 version과 npx --yes docatlas@0.4.2 agents help(designer 1.3.0)를 확인한다.
 - [ ] docatlas로 kit 1.1.0을 설치한 실제 환경에서 0.4.2 문서 지도가 업데이트 안내를 한 줄 보이고, 같은 설치 명령 뒤 사라진다(M-17·M-19).
 
