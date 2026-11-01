@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { normalizeRemote, parseKey, privateBackupNotice, privateHelp, runPrivate } from '../src/private/index.js';
+import { localKey, normalizeRemote, parseKey, privateBackupNotice, privateHelp, runPrivate } from '../src/private/index.js';
 import { quotePath } from '../src/private/notice.js';
 import { startCli } from './helpers/cli.js';
 
@@ -199,31 +199,32 @@ test('a backup is made only when the files changed, and never for an empty folde
   }
 });
 
-test('each backup run keeps the newest three backups, or --keep of them, and never prunes on its own', async t => {
+test('each backup run keeps the newest ten backups, or --keep of them, and never prunes on its own', async t => {
   const home = await folder(t);
   const root = await clone(t);
   const at = minute => ({ now: new Date(Date.UTC(2026, 10, 1, 1, minute)) });
+  const stamp = minute => '20261101T01' + String(minute).padStart(2, '0') + '00Z';
   const names = async () => (await fs.readdir(store(home))).filter(name => /^\d/.test(name)).sort();
-  for (let minute = 0; minute < 3; minute++) {
+  for (let minute = 0; minute < 10; minute++) {
     await write(root, '.docatlas/private/notes/DESIGN.md', 'version ' + minute + '\n');
     const result = await privateCommand(root, home, ['backup'], at(minute));
     assert.deepEqual(field(result.lines, 'summary').at(-1), 'removed=0');
   }
-  await write(root, '.docatlas/private/notes/DESIGN.md', 'version 3\n');
-  const fourth = await privateCommand(root, home, ['backup'], at(3));
-  assert.equal(fourth.code, 0);
-  assert.deepEqual(fourth.lines.filter(line => line[0] === 'remove'), [['remove', 'backup', path.join(store(home), '20261101T010000Z')]]);
-  assert.deepEqual(field(fourth.lines, 'summary'), ['summary', 'backup=create', 'files=1', 'removed=1']);
-  assert.deepEqual(await names(), ['20261101T010100Z', '20261101T010200Z', '20261101T010300Z']);
+  await write(root, '.docatlas/private/notes/DESIGN.md', 'version 10\n');
+  const eleventh = await privateCommand(root, home, ['backup'], at(10));
+  assert.equal(eleventh.code, 0);
+  assert.deepEqual(eleventh.lines.filter(line => line[0] === 'remove'), [['remove', 'backup', path.join(store(home), stamp(0))]]);
+  assert.deepEqual(field(eleventh.lines, 'summary'), ['summary', 'backup=create', 'files=1', 'removed=1']);
+  assert.deepEqual(await names(), Array.from({ length: 10 }, (_, index) => stamp(index + 1)));
 
   // Folders that are not whole backups are never removed.
   await fs.mkdir(path.join(store(home), '20200101T000000Z'));
   await fs.mkdir(path.join(store(home), '.partial-1-abcd'));
-  const more = await privateCommand(root, home, ['backup', '--keep', '5'], at(4));
-  assert.deepEqual(field(more.lines, 'summary'), ['summary', 'backup=unchanged', 'files=1', 'removed=0']);
-  const one = await privateCommand(root, home, ['backup', '--keep', '1'], at(5));
+  const three = await privateCommand(root, home, ['backup', '--keep', '3'], at(11));
+  assert.deepEqual(field(three.lines, 'summary'), ['summary', 'backup=unchanged', 'files=1', 'removed=7']);
+  const one = await privateCommand(root, home, ['backup', '--keep', '1'], at(12));
   assert.deepEqual(field(one.lines, 'summary'), ['summary', 'backup=unchanged', 'files=1', 'removed=2']);
-  assert.deepEqual(await names(), ['20200101T000000Z', '20261101T010300Z']);
+  assert.deepEqual(await names(), ['20200101T000000Z', stamp(10)]);
   assert.ok(await exists(path.join(store(home), '.partial-1-abcd')));
 
   // A clock set back still keeps the backup it just wrote, even when its name looks oldest.
@@ -396,17 +397,33 @@ test('restore stops before writing files when git would still see the folder or 
   assert.deepEqual(await snapshot(tracked), before);
 });
 
-test('without an origin the key is local and --key moves backups between folders', async t => {
+test('without an origin the key is the folder name and a path code, and --key moves backups between folders', async t => {
   const home = await folder(t);
   const outsideGit = await folder(t, 'docatlas-My Notes-');
   await write(outsideGit, '.docatlas/private/a/DESIGN.md', '# A\n');
   const local = await privateCommand(outsideGit, home, ['backup']);
   assert.equal(local.code, 0);
-  const key = 'local/' + path.basename(outsideGit).toLowerCase().replace(/\s+/g, '-');
+  const key = field(local.lines, 'key')[1];
+  assert.equal(key, localKey(outsideGit));
+  assert.match(key, new RegExp('^local/' + path.basename(outsideGit).toLowerCase().replace(/\s+/g, '-') + '-[0-9a-f]{8}$'));
   assert.deepEqual(field(local.lines, 'key'), ['key', key, 'local']);
   assert.equal(field(local.lines, 'warning')[1], 'no-origin');
+  assert.equal(parseKey(key), key, 'the printed key can be passed to --key');
   const noOrigin = await clone(t, null);
-  assert.equal(field((await privateCommand(noOrigin, home, ['list'])).lines, 'key')[1], 'local/' + path.basename(noOrigin).toLowerCase());
+  assert.equal(field((await privateCommand(noOrigin, home, ['list'])).lines, 'key')[1], localKey(noOrigin));
+
+  // Folders with the same name in different places keep separate backups.
+  const parents = [await folder(t), await folder(t)];
+  const twins = [];
+  for (const [index, parent] of parents.entries()) {
+    const twin = path.join(parent, 'app');
+    await write(twin, '.docatlas/private/a/DESIGN.md', '# Twin ' + index + '\n');
+    twins.push(field((await privateCommand(twin, home, ['backup'])).lines, 'key')[1]);
+  }
+  assert.notEqual(twins[0], twins[1]);
+  assert.ok(twins.every(twin => twin.startsWith('local/app-')));
+  assert.equal(localKey('C:\\Work\\App', 'win32'), localKey('c:\\work\\app', 'win32'), 'Windows paths ignore case');
+  assert.notEqual(localKey('/work/App', 'linux'), localKey('/work/app', 'linux'));
 
   const target = await clone(t);
   const restored = await privateCommand(target, home, ['restore', '--key', key.toUpperCase()]);
@@ -445,7 +462,7 @@ test('options belong to their commands, and invalid keys or backup names exit 2 
   assert.equal(await exists(path.join(home, '.docatlas')), false);
   assert.equal(await exists(path.join(root, '.docatlas')), false);
   const help = privateHelp();
-  for (const word of ['backup', 'list', 'restore', '--force', '--from', '--key', '--keep', 'newest 3', 'remove backup', 'removed=',
+  for (const word of ['backup', 'list', 'restore', '--force', '--from', '--key', '--keep', 'newest 10', 'remove backup', 'removed=',
     'private-backups', 'conflict', 'before-restore',
     'missing backup', 'blocked damaged', 'same|changed|none|unknown']) {
     assert.ok(help.includes(word), word);

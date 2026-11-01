@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { originUrl } from './git.js';
 
@@ -61,11 +62,19 @@ export function parseKey(value) {
   return key.split('/').every(segment => segment !== '' && folderName(segment) === segment) ? key : null;
 }
 
+// local/<folder name>-<8 hex digits of the folder's full path>, so same-named folders in different places keep
+// separate backups. Windows and macOS ignore case in paths, so the path is compared in lower case there.
+export function localKey(root, platform = process.platform) {
+  const full = platform === 'win32' || platform === 'darwin' ? root.toLowerCase() : root;
+  const code = crypto.createHash('sha256').update(full).digest('hex').slice(0, 8);
+  return 'local/' + (folderName(path.basename(root)) || 'project') + '-' + code;
+}
+
 // source: option (--key), origin, or local (no origin, or outside git).
 export async function projectKey(root, location, { git = 'git', key } = {}) {
   if (key) return { key, source: 'option' };
   const url = location.repo ? await originUrl(root, { git }) : null;
   const normalized = url ? normalizeRemote(url) : '';
   if (normalized) return { key: normalized, source: 'origin' };
-  return { key: 'local/' + (folderName(path.basename(root)) || 'project'), source: 'local' };
+  return { key: localKey(root), source: 'local' };
 }

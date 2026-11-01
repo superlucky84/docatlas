@@ -112,7 +112,7 @@ export async function listBackups(folder) {
 
 export const latestRegular = backups => backups.find(backup => backup.reason === 'backup') ?? null;
 
-export const DEFAULT_KEEP = 3;
+export const DEFAULT_KEEP = 10;
 
 // Removes all but the newest keep backups of a key and returns the removed folders. Only folders listBackups
 // accepted are removed, never a symbolic link, and never the backup named by protect (the one just written).

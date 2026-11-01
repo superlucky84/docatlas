@@ -40,7 +40,8 @@ const MESSAGES = {
   tracked: 'git already tracks files in .docatlas/private/. Show these lines to the user; nothing was written.\n',
   'not-ignored': 'Another ignore rule, such as a ! line in .gitignore, still shows the folder to git. Show this to the user.\n',
   exposed: 'Private files are not hidden from git. Run docatlas private init.\n',
-  'no-origin': 'This project has no origin remote, so its backups use a local key. A new clone will need --key.',
+  'no-origin': 'This project has no origin remote, so its backups use a local key from the folder path. ' +
+    'Restoring in a new clone or a moved folder needs --key with this key.',
   'no-files': 'There are no private files to back up.\n',
   missing: 'No backup was found. Run docatlas private list, or ask the user for --key or --from.\n',
   damaged: 'The backup is damaged or incomplete, so nothing was written. Show this to the user;\n' +
@@ -62,8 +63,9 @@ export function privateHelp() {
     '<root>/.docatlas/agents.json, the project install record, stays visible and can be committed.', '',
     'Backups are copies outside the project, in ~/.docatlas/private-backups/<key>/<UTC time>/. The key comes',
     'from the origin remote (for example github.com/owner/repo), so a new clone of the same repository finds',
-    'them. Without an origin the key is local/<folder name>; use --key to choose one. Each backup run keeps the',
-    'newest ' + DEFAULT_KEEP + ' backups of the key and removes older ones (--keep <n> to keep more in that run).', '',
+    'them. Without an origin the key is local/<folder name>-<code from the folder path>; use --key to choose one,',
+    'for example after moving the folder. Each backup run keeps the newest ' + DEFAULT_KEEP + ' backups of the key and',
+    'removes older ones (--keep <n> to keep more in that run).', '',
     'For AI agents running this for a user:',
     '  1. Before writing private documents, run: docatlas private init',
     '     It creates the folder, adds it to .git/info/exclude when that line is missing, and checks',

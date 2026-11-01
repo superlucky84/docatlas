@@ -5,7 +5,7 @@ export {
   readExclude
 } from './folder.js';
 export { PATTERN, headCommit, isIgnored, locateRepository, originUrl, trackedFiles } from './git.js';
-export { normalizeRemote, parseKey, projectKey } from './key.js';
+export { localKey, normalizeRemote, parseKey, projectKey } from './key.js';
 export { privateBackupNotice } from './notice.js';
 export { applyRestore, planRestore } from './restore.js';
 export {

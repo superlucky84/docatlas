@@ -1785,6 +1785,7 @@ Refs: RQ-22, RQ-23, DC-34, DC-35, M-21, M-22
 
 결과: npm run check 통과, npm test 209개 중 203개 통과·6개 건너뜀(root 실행으로 권한 테스트 1개 추가 건너뜀)·실패 0.
 root가 아닌 사용자(nobody)로 사본에서 개인 문서 테스트 3개 파일 42개를 돌려 권한 테스트까지 모두 통과했다.
+Platform checks run 41305526082(c744624)가 macOS·Windows × Node 22·24에서 통과했다(Windows에서도 hard link로 복구).
 종료 기준: 동시 실행·실패·권한·링크에서 파일이 깨지거나 사라지지 않고, 잘못된 conflict를 내지 않는다. 충족했다.
 
 Files:
@@ -1811,11 +1812,44 @@ Refs: RQ-23, DC-34, M-22
 기준 테스트: npm test(개인 문서 백업 테스트).
 결과: 새 테스트 1개(네 번째 백업에서 가장 오래된 것 삭제, `--keep 5`·`--keep 1`, 잘못된 백업·`.partial` 보존, 시계가 뒤로 간 새 백업 보존,
 빈 폴더 skip·restore·list·status는 지우지 않음)와 `--keep` 옵션 검사(0·1001·all·2.5, 다른 명령) 통과.
-npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0.
-종료 기준: 기본 실행은 최신 3개만 남기고, 복구할 백업을 지우는 경우가 없다. 충족했다.
+npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0. Platform checks run 41306271470(6571597) 통과.
+종료 기준: 기본 실행은 최신 3개만 남기고, 복구할 백업을 지우는 경우가 없다. 충족했다. 기본 개수는 아래에서 10개로 바꿨다.
 
 Files:
 - `src/private/store.js` (modified)
+- `src/private/command.js` (modified)
+- `src/private/index.js` (modified)
+- `test/private-backup.test.js` (modified)
+- `guide/document-map.md` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 기본 10개와 origin 없는 키 보강 — 완료
+
+Refs: RQ-23, DC-34, M-22
+진입: 2026-11-01 사용자 질문과 선택. GitLab에서도 키가 되는지, git이 아니면 폴더 이름인지 묻고, 기본 개수를 다시 추천해 달라고 했다.
+에이전트가 기본 10개와 origin 없는 키의 경로 구분값을 추천했고 사용자가 "추천대로" 정했다.
+기준 검증(6571597, Linux / Node 22.23.4): 직전 단계 종료 검증과 같은 커밋이다. npm test 210개 중 204개 통과·6개 건너뜀·실패 0.
+
+- [x] 확인: 키는 호스트를 가리지 않는다. GitLab(하위 그룹 포함)·사내 호스트(포트 제거)·Bitbucket 주소가 `호스트/경로` 키가 된다. 원격 이름은 origin이어야 한다.
+- [x] 문서: REQUIREMENTS에 질문·추천·선택, DESIGN 키 규칙과 보관 개수, DC-34 결정 줄을 먼저 고쳤다.
+- [x] 기본 보관 개수 10(`DEFAULT_KEEP`). help는 이 값을 그대로 보여 준다.
+- [x] origin이 없거나 git 밖이면 `local/<폴더 이름>-<경로 SHA-256 앞 8자>`(Windows·macOS는 경로 소문자). 다른 위치의 같은 이름 폴더가 백업을 섞거나
+  서로 지우지 않는다. 폴더를 옮기면 `--key`로 이전 키를 쓴다고 no-origin 경고와 help에 적었다. 출력된 키는 그대로 `--key`에 쓸 수 있다.
+- [x] 사용 가이드·CHANGELOG Unreleased(10개, 모든 호스트, origin 없는 키)·M-22 항목. 개인 문서 스킬 문장은 그대로 맞아 스킬은 바꾸지 않았다.
+
+기준 테스트: npm test(개인 문서 백업 테스트).
+결과: 보관 테스트를 10개 기준으로 바꿨다(11번째 백업에서 가장 오래된 것 삭제, `--keep 3`·`--keep 1`). origin 없는 키 테스트에 형식·`--key` 재사용,
+다른 위치의 같은 이름 폴더 두 개가 다른 키, Windows 경로 대소문자 무시·Linux 구분을 더했다.
+npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0.
+종료 기준: 기본 실행은 최신 10개를 남기고, origin 없는 같은 이름 폴더의 백업이 섞이지 않는다. 충족했다.
+
+Files:
+- `src/private/store.js` (modified)
+- `src/private/key.js` (modified)
 - `src/private/command.js` (modified)
 - `src/private/index.js` (modified)
 - `test/private-backup.test.js` (modified)
@@ -2103,9 +2137,11 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   CHANGELOG의 개인 문서 항목은 main 반영 때가 아니라 4단계에서 미리 적었다(main에 가면 그대로 Unreleased).
 - 완료(2026-11-01, RQ-22·23 Test Hardening): 잠금 없이 동시 실행 안전(설계 제안), 복구의 새 파일은 hard link로 온전히 놓기, 검사-쓰기 사이 재확인,
   경계 테스트 6개. 결과는 "개인 문서와 백업" 절 Test Hardening에 있다.
-- 완료(2026-11-01, 사용자 변경): 백업은 최신 3개만 남긴다(`--keep <n>`은 그 실행만). 결과는 "개인 문서와 백업" 절 "백업 개수 제한"에 있다.
+- 완료(2026-11-01, 사용자 변경): 백업은 최신 N개만 남긴다(`--keep <n>`은 그 실행만). 처음 3개로 했다가 사용자 선택으로 기본 10개로 바꿨다.
+  origin이 없으면 키에 경로 구분값을 붙인다. 결과는 "백업 개수 제한"과 "기본 10개와 origin 없는 키 보강"에 있다.
 - 다음(RQ-22·23): Integration Test(F-10, production tarball: init → 작성 → backup → 작업 폴더 삭제 → 새 clone → restore → 지도의 Private 그룹).
-  4단계 Platform checks는 run 41304909846으로 통과했다. Test Hardening 변경의 Platform checks 결과를 확인한다. 원하면 2단계~Test Hardening 리뷰.
+  Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470. 이번 변경의 결과를 확인한다.
+  원하면 2단계~이번 변경 리뷰.
   ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
@@ -2116,4 +2152,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 그리고 이 인계 커밋(백업 개수 제한)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 그리고 이 인계 커밋(기본 10개와 origin 없는 키)이 있다. 0.4.1 게시본은 fcb4e68이다.
