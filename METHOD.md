@@ -180,6 +180,9 @@ Files:
   changed unless this phase changed them again. Planned files stay in the checklist text.
 - Keep `Refs:`, `Files:`, the kinds, and `none` in English whatever language the documents
   use. Tools skip code blocks, so examples like the one above are not records.
+- The records are a search aid, not a complete index. Older phases and work done without them
+  have none, so when you or an agent look for documents about a file or ID, search the document
+  text as well and never read a missing record as "unrelated".
 
 ## Where documents live
 
@@ -279,6 +282,8 @@ A starting point for the middle level. Copy it, then change it to fit your proje
 - When behavior or a contract changes, update those documents in the same change.
   Leave undecided points as TBD.
 - Small fixes and features without documents need no new documents unless I ask.
+- `Refs:` and `Files:` lines in IMPLEMENT.md are search hints, not a full index. Older
+  phases may not have them, so also search the document text when finding related documents.
 ```
 
 Codex reads `AGENTS.md` and Claude Code reads `CLAUDE.md`. If you use both, keep the text in

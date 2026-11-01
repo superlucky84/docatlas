@@ -359,6 +359,8 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 같은 designer 단독 환경에서 한 단계를 구현하고 마치면 implementer·reviewer 없이도 그 단계에 실제 git 변경
   (added·modified·deleted·renamed)과 같은 Files 블록이 남고, 검증만 한 단계는 `Files: none`이다.
   커밋하지 않고 두 단계를 이어 구현해도 앞 단계 파일은 이 단계가 다시 바꾸지 않았다면 빠지고, 새 폴더의 파일은 파일 단위로 적힌다.
+- [ ] Files 기록이 없는 예전 단계 본문에만 나오는 파일로 "이 파일과 관련된 문서를 찾아 달라"고 하면, designer만 설치한 에이전트와
+  AGENTS.md 안내만 있는 에이전트가 모두 그 단계를 빠뜨리지 않고 찾는다. 기록이 있는 단계와 섞인 구현 계획에서 확인한다.
 - [ ] implementer 1.2.0을 함께 쓰면 완료 보고의 변경 파일이 Files와 같다(강화).
 - [ ] reviewer 1.5.0이 Files에 빠진 파일이나 바뀌지 않은 파일이 있으면 doc sync warning으로 보고한다(강화).
 - [ ] 설계의 파싱 계약 규칙만으로 새 단계의 Refs·Files를 뽑을 수 있고, 코드 펜스 안의 형식 예시는 잡히지 않는다.

@@ -9,3 +9,5 @@
 - When behavior or a contract changes, update those documents in the same change.
   Leave undecided points as TBD.
 - Small fixes and features without documents need no new documents unless I ask.
+- `Refs:` and `Files:` lines in IMPLEMENT.md are search hints, not a full index. Older
+  phases may not have them, so also search the document text when finding related documents.

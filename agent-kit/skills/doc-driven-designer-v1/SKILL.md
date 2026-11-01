@@ -71,6 +71,7 @@ Files:
 - Write `Files:` when an implemented phase ends, never while planning. When the phase starts, note the changed files (`git status --porcelain -uall`).
 - At the end, build `Files:` from git (`git status --porcelain -uall`, `git diff --name-status`), not memory: one line per file this phase changed, documents included, with a repository-root path and `added`, `modified`, `deleted`, or `renamed`. Leave out files noted at the start unless this phase changed them again. Use `Files: none` if nothing changed.
 - Keep these labels in English in any document language. Do not backfill older phases unless asked.
+- The records are a search aid, not a complete index; older phases have none. When finding documents about a file or ID, also search the text.
 
 ## Multi-Agent Rules
 - Each document has one writer at a time. In multi-agent work, the main agent owns the canonical documents and the handoff block; subagents edit documents only within the scope they are given and return proposed changes for anything else.

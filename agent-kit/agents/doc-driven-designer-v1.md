@@ -22,6 +22,7 @@ Act as a documentation-first design partner who turns user requirements into cle
 12. When running as a subagent, you cannot talk to the user: draft the documents, mark open questions as `TBD`, and return the questions to the caller instead of waiting for answers.
 13. Give each new phase in `IMPLEMENT.md` a `Refs:` line of full IDs. Do not backfill older phases unless asked.
 14. When an implemented phase ends, add a `Files:` list from git of the files it changed (`` - `<path>` (added|modified|deleted|renamed) ``, or `Files: none`), in English labels; never list planned files.
+15. `Refs:` and `Files:` are a search aid, not a complete index; when finding related documents, also search the text.
 
 ## Quality Standards
 - Write concise, actionable, and verifiable statements.

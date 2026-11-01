@@ -22,6 +22,9 @@ Track unresolved decisions explicitly as TBD. Distinguish proposed behavior from
 implemented behavior, and preserve a clear handoff with completed work, next steps,
 blockers, and the latest known commit.
 
+Phases from RQ-20 on carry `Refs:` and `Files:` records; earlier sections do not. Treat the
+records as search hints, and also search the document text when finding related documents.
+
 ## Source and checks
 
 - bin/ contains the executable entry point; src/ contains implementation modules.

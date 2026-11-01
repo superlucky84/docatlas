@@ -1262,6 +1262,33 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+### 참고 기록임을 알리기 — 완료
+
+진입: 사용자 우려(2026-11-01) — 예전에 완성된 문서에는 Files 기록이 없다. 새 방식이 자리 잡기 전에는 두 종류가 섞여 있어,
+특정 파일과 관련된 문서를 찾아 달라고 하면 에이전트가 모든 단계에 기록이 있다고 오해해 관련 문서를 빠뜨릴 수 있다.
+결정: Refs·Files는 참고 기록일 뿐 전체 색인이 아니라고 알린다. 기준 문서(요구사항·설계 성격 규칙·DC-30·M-19)를 먼저 고쳤다.
+
+- [x] designer 스킬 Phase Records에 한 줄: 기록은 검색 보조이며 전체 색인이 아니다, 예전 단계에는 없다, 파일·ID로 문서를 찾을 때 본문도 검색한다.
+  designer 룰 15번에 같은 뜻. implementer·reviewer는 관련 문서 찾기를 맡지 않아 바꾸지 않았다.
+- [x] 스킬 없이 문서 검색을 부탁받은 에이전트도 알 수 있게 METHOD 두 언어판의 Phase 기록 절과 AGENTS.md 예시, 예제 AGENTS.md,
+  이 저장소 AGENTS.md(RQ-20 이전 절에는 기록이 없다는 안내)에 한 줄씩 넣었다. CHANGELOG Unreleased에도 적고 문단을 정리했다.
+- [x] 분량(0373bbc 대비 단어 수): designer 스킬 +27.1%(1,185), designer 룰 +27.3%(336). 배포 전이라 버전은 그대로, 해시만 다시 기록했다.
+- [x] npm run check, npm test, METHOD 두 언어판 구조 대조, 바뀐 문서 링크, 파싱 확인, git diff --check. 결과는 아래 인계와 같다.
+
+Files:
+- `AGENTS.md` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `CHANGELOG.md` (modified)
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `examples/sample-shop/AGENTS.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -1501,7 +1528,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   METHOD 두 언어판, kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0), 예제 checkout, CHANGELOG Unreleased를 고쳤다.
   검증 결과는 위 "구현 계획의 Refs·Files 표기" 절에 있다. 사용자 우려에 따라 새 스킬·룰 문장을 줄였다(designer 스킬 +36%→+21%).
   사용자 요청으로 리뷰했다(REQUEST_CHANGES, critical 0·warning 5). warning 5개를 모두 고쳐 designer 스킬은 +24%다.
-  커밋: 956fc14·7a630af(기준 문서), e1087a8(구현), a824c9b(분량 정리), 이 인계 커밋(리뷰 반영).
+  커밋: 956fc14·7a630af(기준 문서), e1087a8(구현), a824c9b(분량 정리), ade4291(리뷰 반영), 이 인계 커밋(참고 기록임을 알리기).
+  사용자 우려에 따라 Refs·Files가 참고 기록일 뿐 전체 색인이 아니라는 안내를 designer 스킬·룰, METHOD, AGENTS.md 예시와 이 저장소 AGENTS.md에 넣었다.
 - 다음(RQ-20): 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점도 사용자가 정한다.
   M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
@@ -1511,4 +1539,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: a824c9b(작업 브랜치, main은 0373bbc). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
+- 최신 확인 커밋: ade4291(작업 브랜치, main은 0373bbc). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
