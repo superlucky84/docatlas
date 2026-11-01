@@ -19,6 +19,10 @@ Object.assign(process.env, {
 });
 for (const name of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_COMMON_DIR']) delete process.env[name];
 after(() => fs.rm(gitHome, { recursive: true, force: true }));
+// Unless a test passes its own home, runs use an empty home outside every workspace, so the real home folder
+// never changes where the root is.
+const NEUTRAL_HOME = path.join(gitHome, 'home');
+await fs.mkdir(NEUTRAL_HOME);
 
 const posixPermissions = process.platform !== 'win32' && process.getuid?.() !== 0;
 
@@ -55,9 +59,14 @@ async function privateCommand(cwd, args, options = {}) {
   const code = await runPrivate(args, {
     stdout: { write: chunk => { stdout += chunk; } },
     stderr: { write: chunk => { stderr += chunk; } },
-    cwd, ...options
+    cwd, home: NEUTRAL_HOME, ...options
   });
-  return { code, stdout, stderr, lines: stdout.trimEnd().split('\n').map(line => line.split('\t')) };
+  const lines = stdout.trimEnd().split('\n').map(line => line.split('\t'));
+  if (args[0] === 'status' && (code === 0 || code === 3)) {
+    const summary = lines.find(line => line[0] === 'summary');
+    assert.ok(summary && STATUS_SUMMARIES.includes(summary[1]), 'status summary is documented: ' + summary);
+  }
+  return { code, stdout, stderr, lines };
 }
 
 const exists = filename => fs.lstat(filename).then(() => true, () => false);
@@ -191,7 +200,7 @@ test('outside git the folder is created with a warning; missing git outside git 
   assert.deepEqual(field(missing.lines, 'warning').slice(0, 2), ['warning', 'not-git']);
 });
 
-test('outside git the nearest folder above with .docatlas/private is the root, but never the home folder', async t => {
+test('outside git, inside home, the nearest folder with .docatlas is the root and the search stops there', async t => {
   const base = await workspace(t);
   const home = path.join(base, 'home');
   const project = path.join(home, 'project');
@@ -206,10 +215,112 @@ test('outside git the nearest folder above with .docatlas/private is the root, b
   assert.equal(await exists(path.join(nested, '.docatlas')), false);
   assert.deepEqual((await privateCommand(project, ['status', '--root', nested], { home })).lines[0], ['root', project]);
 
-  const other = path.join(home, 'other', 'deep');
-  await fs.mkdir(other, { recursive: true });
-  await fs.mkdir(privateFolder(home), { recursive: true });
-  assert.deepEqual((await privateCommand(other, ['status'], { home })).lines[0], ['root', other]);
+  // A project inside it with only agents.json is its own root: the outer private folder is not used.
+  const inner = path.join(project, 'tools', 'inner');
+  await write(inner, '.docatlas/agents.json', '{}\n');
+  const deep = path.join(inner, 'lib');
+  await fs.mkdir(deep, { recursive: true });
+  const own = await privateCommand(deep, ['init'], { home });
+  assert.equal(own.code, 0, own.stderr);
+  assert.deepEqual(own.lines.slice(0, 2), [['root', inner], ['create', 'folder', privateFolder(inner)]]);
+
+  // A linked .docatlas above also ends the search; that folder is reported as blocked.
+  const linked = path.join(home, 'linked');
+  const target = await workspace(t);
+  await fs.mkdir(path.join(linked, 'sub'), { recursive: true });
+  let canLink = true;
+  await fs.symlink(target, path.join(linked, '.docatlas'), 'dir').catch(() => { canLink = false; });
+  if (canLink) {
+    const result = await privateCommand(path.join(linked, 'sub'), ['init'], { home });
+    assert.equal(result.code, 3);
+    assert.deepEqual(result.lines[0], ['root', linked]);
+    assert.deepEqual(field(result.lines, 'blocked'), ['blocked', 'symbolic-link', path.join(linked, '.docatlas')]);
+    assert.deepEqual(await fs.readdir(target), []);
+  }
+});
+
+test('outside git, a start folder outside home does not search upward', async t => {
+  const base = await workspace(t);
+  await fs.mkdir(privateFolder(base), { recursive: true });
+  const shared = path.join(base, 'shared', 'me', 'project');
+  await fs.mkdir(shared, { recursive: true });
+  const result = await privateCommand(shared, ['init'], { home: path.join(base, 'elsewhere', 'home') });
+  assert.equal(result.code, 0, result.stderr);
+  assert.deepEqual(result.lines.slice(0, 2), [['root', shared], ['create', 'folder', privateFolder(shared)]]);
+});
+
+test('the home folder and the folders above it are never the root, in or out of git', async t => {
+  const base = await workspace(t);
+  const home = path.join(base, 'home');
+  await fs.mkdir(home);
+  for (const start of [home, base]) {
+    const result = await privateCommand(start, ['init'], { home });
+    assert.equal(result.code, 3, start);
+    assert.deepEqual(field(result.lines, 'blocked').slice(0, 3), ['blocked', 'home', start]);
+    assert.match(result.stderr, /project folder/);
+    const status = await privateCommand(start, ['status'], { home });
+    assert.equal(status.code, 3);
+    assert.deepEqual(field(status.lines, 'summary'), ['summary', 'blocked']);
+  }
+  assert.equal(await exists(path.join(home, '.docatlas')), false);
+  assert.equal(await exists(path.join(base, '.docatlas')), false);
+
+  const dotfiles = await repository(t);
+  const sub = path.join(dotfiles, '.config');
+  await fs.mkdir(sub);
+  const before = await fs.readFile(excludeFile(dotfiles), 'utf8');
+  const result = await privateCommand(sub, ['init'], { home: dotfiles });
+  assert.equal(result.code, 3);
+  assert.deepEqual(result.lines[0], ['root', dotfiles]);
+  assert.deepEqual(field(result.lines, 'blocked').slice(0, 2), ['blocked', 'home']);
+  assert.equal(await fs.readFile(excludeFile(dotfiles), 'utf8'), before);
+  assert.equal(await exists(privateFolder(dotfiles)), false);
+});
+
+test('an unreadable .docatlas above is still the root, and the commands fail without writing', { skip: !posixPermissions && 'needs POSIX permissions without root' }, async t => {
+  const base = await workspace(t);
+  const home = path.join(base, 'home');
+  const locked = path.join(home, 'locked');
+  const start = path.join(locked, 'docs', 'deep');
+  await fs.mkdir(start, { recursive: true });
+  await fs.mkdir(path.join(locked, '.docatlas'));
+  await fs.chmod(path.join(locked, '.docatlas'), 0o000);
+  const results = [];
+  try {
+    for (const command of ['status', 'init']) results.push(await privateCommand(start, [command], { home }));
+  } finally {
+    await fs.chmod(path.join(locked, '.docatlas'), 0o755);
+  }
+  for (const result of results) {
+    assert.equal(result.code, 1);
+    assert.deepEqual(result.lines[0], ['root', locked]);
+    assert.match(result.stderr, /EACCES/);
+  }
+  assert.equal(await exists(path.join(start, '.docatlas')), false);
+});
+
+test('a bare repository, its subfolders and the .git folder are not work trees', async t => {
+  const base = await workspace(t);
+  git(base, 'init', '-q', '--bare', 'shared.git');
+  const bare = path.join(base, 'shared.git');
+  const normal = await repository(t);
+  for (const start of [bare, path.join(bare, 'hooks'), path.join(normal, '.git')]) {
+    const result = await privateCommand(start, ['init']);
+    assert.equal(result.code, 3, start);
+    assert.deepEqual(field(result.lines, 'blocked').slice(0, 3), ['blocked', 'not-work-tree', start]);
+    assert.equal(await exists(path.join(start, '.docatlas')), false);
+    assert.equal((await privateCommand(start, ['status'])).code, 3);
+  }
+});
+
+test('an empty .git folder above is not a repository marker', async t => {
+  const base = await workspace(t);
+  await fs.mkdir(path.join(base, '.git'));
+  const start = path.join(base, 'notes');
+  await fs.mkdir(start);
+  const result = await privateCommand(start, ['init']);
+  assert.equal(result.code, 0, result.stderr);
+  assert.deepEqual(field(result.lines, 'warning').slice(0, 2), ['warning', 'not-git']);
 });
 
 test('in a repository, missing git or a git error stops before any write', async t => {
@@ -291,6 +402,35 @@ test('existing exclude bytes, CRLF, a missing final newline and the file mode ar
   assert.equal(await fs.readFile(excludeFile(fresh), 'utf8'), EXCLUDE_COMMENT + '\n' + PATTERN + '\n');
 });
 
+test('exclude lines match the way git reads them: trailing spaces ignored, leading spaces kept', async t => {
+  const trailing = await repository(t);
+  await fs.writeFile(excludeFile(trailing), PATTERN + '   \n');
+  const kept = await privateCommand(trailing, ['init']);
+  assert.equal(kept.code, 0, kept.stderr);
+  assert.deepEqual(kept.lines[2].slice(0, 2), ['unchanged', 'exclude']);
+  const leading = await repository(t);
+  await fs.writeFile(excludeFile(leading), '  ' + PATTERN + '\n');
+  const added = await privateCommand(leading, ['init']);
+  assert.equal(added.code, 0, added.stderr);
+  assert.deepEqual(added.lines[2].slice(0, 2), ['add', 'exclude']);
+  assert.deepEqual(field((await privateCommand(leading, ['status'])).lines, 'ignored'), ['ignored', 'yes']);
+});
+
+test('a dry run predicts a folder that would stay visible when the pattern is already there', async t => {
+  const root = await repository(t);
+  await write(root, '.gitignore', '!/.docatlas/private/\n');
+  assert.equal((await privateCommand(root, ['init'])).code, 3);
+  const preview = await privateCommand(root, ['init', '--dry-run']);
+  assert.equal(preview.code, 3);
+  assert.deepEqual(field(preview.lines, 'blocked'), ['blocked', 'not-ignored', privateFolder(root)]);
+});
+
+test('a new private folder is readable only by its owner', { skip: process.platform === 'win32' && 'POSIX modes only' }, async t => {
+  const root = await repository(t);
+  assert.equal((await privateCommand(root, ['init'])).code, 0);
+  assert.equal((await fs.stat(privateFolder(root))).mode & 0o777, 0o700);
+});
+
 test('symbolic links and wrong types on the private path or the exclude file block init', async t => {
   const outside = await workspace(t);
   const link = async (target, filename) => {
@@ -348,8 +488,8 @@ test('help documents exactly the options and status summaries, and invalid use e
   const help = privateHelp();
   const documented = new Set([...help.split('Options:')[1].split('Output lines')[0].matchAll(/--([a-z-]+)/g)].map(match => match[1]));
   assert.deepEqual([...documented].sort(), Object.keys(PRIVATE_OPTIONS).sort());
-  for (const summary of STATUS_SUMMARIES) assert.ok(help.includes(summary), summary);
-  for (const word of ['init', 'status', '.git/info/exclude', 'agents.json', 'top folder', 'Exit codes', 'not-ignored', 'git-error']) {
+  for (const word of ['init', 'status', '.git/info/exclude', 'agents.json', 'top folder', 'home folder', 'Exit codes',
+    'not-ignored', 'git-error', 'not-work-tree', 'blocked tracked', 'ok|empty|exposed|tracked|blocked|not-git']) {
     assert.ok(help.includes(word), word);
   }
   const root = await workspace(t);

@@ -32,18 +32,41 @@ function runGit(cwd, args, git) {
   });
 }
 
-async function exists(filename) {
-  return fs.lstat(filename).then(() => true, () => false);
+async function kind(filename) {
+  return fs.lstat(filename).then(stat => (stat.isDirectory() ? 'directory' : stat.isFile() ? 'file' : 'other'), () => 'missing');
 }
 
-// The nearest folder at or above start that holds .git, stopping at GIT_CEILING_DIRECTORIES like git does.
+// A .git entry git would use: a folder with HEAD, or a file that starts with "gitdir:" (worktrees and submodules).
+async function validGitEntry(filename) {
+  const found = await kind(filename);
+  if (found === 'directory') return (await kind(path.join(filename, 'HEAD'))) === 'file';
+  if (found !== 'file') return false;
+  const handle = await fs.open(filename, 'r').catch(() => null);
+  if (!handle) return false;
+  try {
+    const { buffer, bytesRead } = await handle.read(Buffer.alloc(7), 0, 7, 0);
+    return buffer.subarray(0, bytesRead).toString('latin1') === 'gitdir:';
+  } finally {
+    await handle.close();
+  }
+}
+
+const truthy = value => ['1', 'true', 'yes', 'on'].includes(String(value ?? '').toLowerCase());
+
+// The nearest folder at or above start with a valid .git, searched the way git does: it stops before a
+// GIT_CEILING_DIRECTORIES entry (compared by real path) and at a file system boundary unless
+// GIT_DISCOVERY_ACROSS_FILESYSTEM is set.
 async function gitMarker(start) {
-  const ceilings = (process.env.GIT_CEILING_DIRECTORIES ?? '').split(path.delimiter).filter(Boolean).map(entry => path.resolve(entry));
+  const entries = (process.env.GIT_CEILING_DIRECTORIES ?? '').split(path.delimiter).filter(Boolean);
+  const ceilings = await Promise.all(entries.map(entry => fs.realpath(entry).catch(() => path.resolve(entry))));
+  const across = truthy(process.env.GIT_DISCOVERY_ACROSS_FILESYSTEM);
+  const device = (await fs.stat(start)).dev;
   let current = start;
   for (;;) {
-    if (await exists(path.join(current, '.git'))) return current;
+    if (await validGitEntry(path.join(current, '.git'))) return current;
     const parent = path.dirname(current);
     if (parent === current || ceilings.includes(parent)) return null;
+    if (!across && (await fs.stat(parent).catch(() => null))?.dev !== device) return null;
     current = parent;
   }
 }
@@ -52,11 +75,12 @@ async function gitMarker(start) {
 // Not a repository: { repo: false, reason: 'not-git' }. Cannot tell: { repo: false, blocked, message }.
 export async function locateRepository(start, { git = 'git' } = {}) {
   const result = await runGit(start, ['rev-parse', '--is-inside-work-tree', '--show-toplevel', '--git-path', 'info/exclude'], git);
+  const [inside, top, exclude] = result.stdout.split(/\r?\n/);
+  // Outside a work tree git prints false and then fails on --show-toplevel, so read the first line either way.
+  if (inside === 'false' || (result.ok && (inside !== 'true' || !top || !exclude))) {
+    return { repo: false, blocked: 'not-work-tree', message: 'This folder is inside .git or a bare repository, not a work tree.' };
+  }
   if (result.ok) {
-    const [inside, top, exclude] = result.stdout.split(/\r?\n/);
-    if (inside !== 'true' || !top || !exclude) {
-      return { repo: false, blocked: 'not-work-tree', message: 'This folder is inside .git or a bare repository, not a work tree.' };
-    }
     return { repo: true, root: await fs.realpath(top), excludePath: path.resolve(start, exclude), pattern: PATTERN };
   }
   if (!(await gitMarker(start))) {

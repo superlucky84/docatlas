@@ -1463,6 +1463,7 @@ Files:
   `git rev-parse --show-toplevel`·`--git-path info/exclude`로 숨김 파일과 패턴(루트가 하위 폴더면 그 경로 포함, `\ * ? [ ]` 이스케이프),
   `git check-ignore -q -- .docatlas/private/`로 숨김 여부, `git ls-files`로 추적 파일 감지. exclude는 주석 한 줄과 패턴을 덧붙이고
   기존 내용·줄바꿈(CRLF)·권한을 지키며 임시 파일 후 이름 변경으로 쓴다. git이 없거나 저장소가 아니면 경고만 한다.
+  (리뷰 반영에서 바뀜: 하위 폴더 패턴과 이스케이프는 없앴고 항상 저장소 최상위를 쓴다. git을 확인할 수 없으면 종료 3이다.)
 - [x] `docatlas private init|status|help`: 탭 구분 결과 줄, init `--dry-run`, 종료 코드 0·1·2·3(agents와 같음), 대화형 입력 없음.
   init은 추적된 개인 파일·심볼릭 링크가 있으면 아무것도 쓰지 않고 3. status는 tracked·exposed(숨기지 않은 문서)·blocked면 3.
   CLI 도움말에 두 줄을 더했다. 수집기·서버·화면·agent-kit은 바꾸지 않았다.
@@ -1496,13 +1497,15 @@ Files:
 - [x] 위치: git 안이면 실행 위치와 관계없이 저장소 최상위를 쓰고 패턴은 항상 `/.docatlas/private/`다. 결과 첫 줄에 `root <폴더>`를 낸다.
   하위 폴더 패턴과 그 이스케이프는 없앴다.
 - [x] git 질의에서 GIT_DIR 등 저장소 변수를 지운다(hook 안에서 다른 저장소의 exclude에 쓰던 문제). `--is-inside-work-tree`를 함께 확인한다.
+  (재리뷰에서 bare 저장소가 확인에 걸리지 않음을 찾아 고쳤다. 아래 "1단계 재리뷰 반영".)
 - [x] git 오류와 git 밖을 나눈다: `.git`이 위에 없으면 not-git 경고, 있으면 git-missing(실행 불가, ENOENT·EACCES 등)·git-error·not-work-tree로 종료 3.
   ls-files·check-ignore가 실패하면 성공으로 넘기지 않고 오류로 끝낸다(종료 1).
 - [x] init이 쓴 뒤 check-ignore로 확인하고, `.gitignore`의 `!` 규칙 등으로 여전히 보이면 not-ignored로 종료 3. status는 이때 init 반복 대신 사용자 확인을 안내한다.
 - [x] 노출 판정을 모든 파일로 하고 status에 files 줄을 더했다. 폴더가 막혔으면 git 확인을 건너뛰고 blocked 줄을 낸다(git이 링크 너머 경로를 거부한다).
 - [x] exclude를 바이트로 읽고 덧붙인다(UTF-8이 아닌 기존 줄 보존). 권한은 쓴 뒤 chmod로 맞춘다(umask 영향 제거). `info` 폴더가 링크면 멈춘다.
   폴더를 만들기 직전에 다시 확인한다. 경로 끝 공백을 지우던 trim을 없앴다. 잘못된 주석(exclude.js)을 고쳤다.
-- [x] 도움말: 최상위 규칙, 모든 blocked 이유, files·tracked `-`, 종료 3의 뜻. 테스트가 옵션 목록과 status 요약을 양방향으로 대조한다.
+- [x] 도움말: 최상위 규칙, 모든 blocked 이유, files·tracked `-`, 종료 3의 뜻. 테스트가 옵션 목록을 양방향으로 대조한다
+  (status 요약 대조는 순환 검사였다. 재리뷰 반영에서 모든 status 실행의 요약이 문서화된 값인지 확인하도록 바꿨다).
 - [x] 테스트 격리: 빈 전역 git 설정·시스템 설정 끄기·GIT_CEILING_DIRECTORIES·저장소 변수 제거·commit.gpgsign=false. 바깥 저장소를 건드리지 않는다.
   새 테스트: 하위 폴더→최상위, .md가 아닌 파일 노출, `!` 규칙, git 밖의 git 없음, 저장소 안의 git 없음·git 오류(가짜 git), GIT_DIR·GIT_WORK_TREE 무시,
   submodule, 바이트·CRLF·마지막 줄바꿈·0o664 권한, exclude 파일 없음, `.docatlas` 링크·private 파일·info 링크, 쓰기 실패 시 임시 파일 정리.
@@ -1532,6 +1535,7 @@ Files:
 
 - [x] git 밖이면 시작 폴더부터 위로 실제 폴더인 `.docatlas/private/`를 찾아 그 폴더를 루트로 쓴다. 홈 폴더와 그 위는 보지 않고,
   `.docatlas`·`private`이 링크인 폴더는 건너뛴다. 없으면 시작 폴더(folder.js의 findPrivateRoot, runPrivate의 home 옵션).
+  (재리뷰에서 홈 밖 시작 시 `/`까지 올라가는 문제를 찾아 규칙을 바꿨다. 아래 "1단계 재리뷰 반영".)
 - [x] 도움말의 루트 설명과 `--root` 설명, 설계·요구사항·M-21에 같은 규칙을 적었다.
 - [x] 테스트: 기록이 없을 때 시작 폴더, 위쪽 프로젝트의 개인 폴더를 찾아 하위 폴더에 새로 만들지 않음, `--root`도 같음, 홈 폴더의 `.docatlas/private`은 쓰지 않음.
 
@@ -1539,6 +1543,42 @@ Files:
 종료 기준: git 밖에서도 하위 폴더 실행이 개인 폴더를 흩뜨리지 않는다. 충족했다.
 
 Files:
+- `src/private/folder.js` (modified)
+- `src/private/command.js` (modified)
+- `src/private/index.js` (modified)
+- `test/private.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 1단계 재리뷰 반영 — 완료
+
+진입: 사용자 요청으로 doc-driven-reviewer-v1이 6aea538...a0ec443을 다시 리뷰했다(2026-11-01). REQUEST_CHANGES, critical 2·warning 4·suggestion 7.
+첫 리뷰의 W1~W10은 해결 또는 이유와 함께 미룸으로 확인됐다(W3·W7은 아래 C1·W3로 일부 남았다).
+사용자 선택: git 밖 위로 찾기는 홈 안에서만, 홈 폴더와 그 위는 막고 알린다.
+
+- [x] C1 bare 저장소·그 하위·`.git` 안이 git 밖으로 판정되던 문제: git이 `false`를 출력한 뒤 실패하므로 첫 줄을 성공·실패와 관계없이 읽어 not-work-tree로 막는다.
+- [x] C2 홈 밖에서 시작하면 `/`까지 올라가 다른 사용자의 폴더를 쓰거나 EACCES로 막히던 문제: 위로 찾기는 시작 폴더가 홈 안일 때만 하고,
+  `.docatlas` 항목이 있는 가장 가까운 폴더에서 멈춰 그 폴더를 루트로 쓴다(사용자 결정의 "다른 프로젝트의 .docatlas에서 멈춤"을 이렇게 구현했다).
+  홈 밖이면 시작 폴더를 쓴다.
+- [x] 홈 막기: 정해진 루트가 홈 자체나 그 위면(홈이 git 최상위인 dotfiles 포함) `blocked home`, 종료 3, 아무것도 쓰지 않는다.
+- [x] git 밖 판정을 git과 맞췄다: 유효한 `.git`만(HEAD가 있는 폴더, `gitdir:` 파일), GIT_CEILING_DIRECTORIES를 실제 경로로, 파일 시스템 경계에서 멈춤.
+- [x] 테스트 격리: 모든 실행에 테스트용 빈 home을 준다(실제 홈과 TMPDIR 위의 폴더가 결과를 바꾸지 않는다).
+- [x] 반영한 suggestion: exclude 줄 비교는 뒤 공백만 무시, 새 private 폴더 0700(sudo 실행 시 소유자 문제는 알려진 한계로 기록),
+  `--dry-run`도 패턴 줄이 있으면 숨김을 미리 확인, 도움말을 명령별 blocked 이유로 정리, 모든 status 실행의 요약이 문서화된 값인지 확인,
+  DC-32에 git 밖 규칙 추가, 1단계 항목에 바뀐 동작 표시.
+- [x] 새 테스트: 홈 안 찾기(가장 가까운 `.docatlas`가 루트, agents.json만 있는 안쪽 프로젝트는 자기 루트, 위쪽 링크는 막힘), 홈 밖 시작은 찾지 않음,
+  홈·홈 위·dotfiles 막기, 위쪽 `.docatlas`를 읽을 수 없으면 종료 1·쓰기 없음, bare·hooks·`.git` 안, 빈 `.git`은 저장소 아님,
+  exclude 앞·뒤 공백, dry-run의 not-ignored 예측, 0700 권한.
+- [ ] 반영하지 않음: 파일 시스템 경계와 심볼릭 링크 ceiling은 코드만 바꾸고 테스트는 없다(환경을 만들기 어렵다). Windows 실행과 동시 실행 잠금은 Test Hardening.
+
+결과: test/private.test.js 24개. root로는 22개 통과·2개 건너뜀(권한 테스트), nobody 사용자로는 24개 모두 통과.
+npm run check 문법 77개·kit 세 쌍, npm test 183개 중 178개 통과·5개 건너뜀·실패 0, npm pack --dry-run 49개 파일·64.5 kB.
+종료 기준: 재리뷰의 critical·warning이 해결되거나 이유와 함께 남고 검사가 통과한다. 충족했다.
+
+Files:
+- `src/private/git.js` (modified)
 - `src/private/folder.js` (modified)
 - `src/private/command.js` (modified)
 - `src/private/index.js` (modified)
@@ -1849,6 +1889,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01, RQ-22 1단계): `docatlas private init|status|help`와 git 숨김. 결과는 "개인 문서와 백업" 절 1단계에 있다.
 - 완료(2026-11-01): 1단계 리뷰(warning 10)를 반영했다. 사용자가 "항상 저장소 최상위"를 골랐다.
   git 밖에서는 위쪽의 기존 `.docatlas/private/`를 루트로 쓰도록 보완했다(사용자 선택).
+- 완료(2026-11-01): 1단계 재리뷰(critical 2·warning 4)를 반영했다. git 밖 찾기는 홈 안에서만, 홈과 그 위는 막기(사용자 선택).
 - 다음(RQ-22·23): 반영분을 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
@@ -1859,4 +1900,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), 그리고 이 인계 커밋(git 밖의 루트 찾기)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), 그리고 이 인계 커밋(1단계 재리뷰 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.

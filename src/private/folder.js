@@ -39,18 +39,32 @@ export async function inspectFolder(root) {
   return { path: privatePath(root), state: 'present' };
 }
 
-// Outside git: the nearest folder at or above start whose .docatlas/private is a real folder, looking only below
-// the home folder (whose .docatlas holds install records and backups). Null when there is none.
+const inside = (parent, child) => {
+  const relative = path.relative(parent, child);
+  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+};
+
+// True when root is the home folder or one of its parents. Private documents never live there: the home
+// .docatlas holds install records and backups.
+export function isHomeOrAbove(root, home) {
+  return root === home || inside(root, home);
+}
+
+// Outside git: the nearest folder at or above start, below the home folder, that has a .docatlas entry. That folder
+// is a project root, with or without private documents, so the search stops there. Searching only happens when
+// start is inside the home folder, and an unreadable folder stops it. Null when nothing is found.
 export async function findPrivateRoot(start, home) {
-  const stop = path.resolve(home);
+  if (!inside(home, start)) return null;
   let current = start;
-  for (;;) {
-    if (current === stop) return null;
-    if ((await inspectFolder(current)).state === 'present') return current;
-    const parent = path.dirname(current);
-    if (parent === current) return null;
-    current = parent;
+  while (current !== home) {
+    try {
+      if ((await kind(path.join(current, PRIVATE_PATH[0]))) !== 'missing') return current;
+    } catch {
+      return null;
+    }
+    current = path.dirname(current);
   }
+  return null;
 }
 
 // files counts every entry git could see (files and links); documents counts Markdown files.
@@ -80,7 +94,8 @@ export async function readExclude(excludePath, pattern) {
     return { path: excludePath, pattern, blocked: blockReason(found), blocker: excludePath };
   }
   const content = found === 'file' ? await fs.readFile(excludePath) : Buffer.alloc(0);
-  const present = content.toString('latin1').split(/\r?\n/).some(line => line.trim() === pattern);
+  // Like git, ignore trailing spaces only; leading spaces belong to the pattern.
+  const present = content.toString('latin1').split(/\r?\n/).some(line => line.replace(/ +$/, '') === pattern);
   return { path: excludePath, pattern, content, present, exists: found === 'file' };
 }
 

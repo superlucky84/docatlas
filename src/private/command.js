@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { addExcludeLine, countFiles, findPrivateRoot, inspectFolder, readExclude } from './folder.js';
+import { addExcludeLine, countFiles, findPrivateRoot, inspectFolder, isHomeOrAbove, readExclude } from './folder.js';
 import { isIgnored, locateRepository, trackedFiles } from './git.js';
 
 export const PRIVATE_OPTIONS = {
@@ -17,8 +17,11 @@ export const EXIT = { OK: 0, FAILED: 1, USAGE: 2, NEEDS_DECISION: 3 };
 export const STATUS_SUMMARIES = ['ok', 'empty', 'exposed', 'tracked', 'blocked', 'not-git'];
 
 const NOT_GIT = 'This folder is not in a git repository, so there is nothing to hide the documents from.';
+const HOME = 'This is the home folder or a folder above it. Run the command in a project folder.';
 const MESSAGES = {
-  blocked: 'A private path is a symbolic link or has the wrong type, or git could not be read. Show these lines to the user.\n',
+  blocked: 'A private path is a symbolic link or has the wrong type, or git could not read the repository\n' +
+    '(run git status in that folder to see why). Show these lines to the user; nothing was written.\n',
+  home: 'Private documents never go in the home folder or above it. Ask the user which project folder to use.\n',
   tracked: 'git already tracks files in .docatlas/private/. Show these lines to the user; nothing was written.\n',
   'not-ignored': 'Another ignore rule, such as a ! line in .gitignore, still shows the folder to git. Show this to the user.\n',
   exposed: 'Private files are not hidden from git. Run docatlas private init.\n'
@@ -28,10 +31,11 @@ export function privateHelp() {
   return [
     'docatlas private — documents only you see, in .docatlas/private/ at the project root', '',
     'Private documents live in <root>/.docatlas/private/<feature>/. Inside a git repository <root> is always',
-    'the top folder of the repository, wherever you run the command. Outside git, <root> is the nearest',
-    'folder at or above the current one that already has .docatlas/private (looking below the home folder',
-    'only), or else the current folder. The folder is hidden from git with',
-    '.git/info/exclude, which applies only to this clone and is never committed, so others see no trace.',
+    'the top folder of the repository, wherever you run the command. Outside git, when the current folder is',
+    'inside the home folder, <root> is the nearest folder at or above it, below the home folder, that has',
+    'a .docatlas entry; otherwise <root> is the current folder. <root> is never the home folder or above it.',
+    'The private folder is hidden from git with .git/info/exclude, which applies only to this clone and',
+    'is never committed, so others see no trace.',
     '<root>/.docatlas/agents.json, the project install record, stays visible and can be committed.', '',
     'For AI agents running this for a user:',
     '  1. Before writing private documents, run: docatlas private init',
@@ -46,15 +50,16 @@ export function privateHelp() {
     '  docatlas private status [--root <dir>]',
     '  docatlas private help', '',
     'Options:',
-    '  --root <dir>   Folder to start from (default: current folder). Inside git, its repository top folder is used;',
-    '                 outside git, the nearest folder above it with .docatlas/private, if any.',
+    '  --root <dir>   Folder to start from (default: current folder). <root> is found from it as described above.',
     '  --dry-run      init only: print what would happen without writing.',
     '  -h, --help     Show this help.', '',
     'Output lines (tab-separated):',
-    '  both    root <folder that holds .docatlas/private>',
-    '          blocked <reason> <path> [message]   reasons: symbolic-link, wrong-type, tracked, not-ignored,',
-    '                                              not-work-tree, git-missing, git-error',
-    '  init    <action> folder <path>',
+    '  both    root <root, or the start folder when git could not be read>',
+    '          blocked <reason> <path> [message]   reasons for both: home, not-work-tree, git-missing, git-error,',
+    '                                              symbolic-link, wrong-type',
+    '  init    blocked tracked <file>               git tracks this private file; nothing was written',
+    '          blocked not-ignored <folder>         another ignore rule keeps the folder visible',
+    '          <action> folder <path>',
     '          <action> exclude <exclude file> <pattern>',
     '          warning not-git - <message>',
     '          summary folder=<action> exclude=<action>',
@@ -69,9 +74,10 @@ export function privateHelp() {
     '          summary <' + STATUS_SUMMARIES.join('|') + '>', '',
     'Exit codes:',
     '  0  Done, or nothing to do.',
-    '  3  Needs the user. init stopped before writing (tracked files, a symbolic link or wrong type, or git',
-    '     could not be read), or it wrote the exclude line but git still sees the folder. status found',
-    '     private files that git can see or tracks, or a blocked path.',
+    '  3  Needs the user. init stopped before writing (the home folder, tracked files, a symbolic link or',
+    '     wrong type, or git could not be read), or git still sees the folder after the exclude line.',
+    '     With --dry-run, 3 also means that git would still see the folder. status found private files',
+    '     that git can see or tracks, or a blocked path.',
     '  1  Failed.',
     '  2  Invalid arguments.', ''
   ].join('\n');
@@ -97,14 +103,21 @@ async function locate(start, { stdout, git, home }) {
   stdout.write('root\t' + root + '\n');
   if (location.blocked) {
     writeBlocked(stdout, location.blocked, start, location.message);
+    return { location, root, blocked: location.blocked };
   }
-  return { location, root };
+  if (isHomeOrAbove(root, home)) {
+    writeBlocked(stdout, 'home', root, HOME);
+    return { location, root, blocked: 'home' };
+  }
+  return { location, root, blocked: null };
 }
 
+const blockedMessage = reason => (reason === 'home' ? MESSAGES.home : MESSAGES.blocked);
+
 async function init(start, { stdout, stderr, git, home, dryRun }) {
-  const { location, root } = await locate(start, { stdout, git, home });
-  if (location.blocked) {
-    stderr.write(MESSAGES.blocked);
+  const { location, root, blocked } = await locate(start, { stdout, git, home });
+  if (blocked) {
+    stderr.write(blockedMessage(blocked));
     return EXIT.NEEDS_DECISION;
   }
   const folder = await inspectFolder(root);
@@ -139,10 +152,17 @@ async function init(start, { stdout, stderr, git, home, dryRun }) {
         stderr.write(MESSAGES.blocked);
         return EXIT.NEEDS_DECISION;
       }
-      await fs.mkdir(folder.path, { recursive: true });
+      // Only this user can read new private documents on a shared computer.
+      await fs.mkdir(path.dirname(folder.path), { recursive: true });
+      await fs.mkdir(folder.path, { mode: 0o700 }).catch(error => {
+        if (error.code !== 'EEXIST') throw error;
+      });
     }
     if (excludeAction === 'add') await addExcludeLine(exclude);
     visible = location.repo && !(await isIgnored(root, { git }));
+  } else if (excludeAction === 'unchanged') {
+    // The pattern line is already there, so a dry run can tell whether git would still see the folder.
+    visible = !(await isIgnored(root, { git }));
   }
   const prefix = dryRun ? 'dry-run\t' : '';
   stdout.write(prefix + folderAction + '\tfolder\t' + folder.path + '\n');
@@ -162,10 +182,10 @@ async function init(start, { stdout, stderr, git, home, dryRun }) {
 }
 
 async function status(start, { stdout, stderr, git, home }) {
-  const { location, root } = await locate(start, { stdout, git, home });
-  if (location.blocked) {
+  const { location, root, blocked } = await locate(start, { stdout, git, home });
+  if (blocked) {
     stdout.write('summary\tblocked\n');
-    stderr.write(MESSAGES.blocked);
+    stderr.write(blockedMessage(blocked));
     return EXIT.NEEDS_DECISION;
   }
   const folder = await inspectFolder(root);
