@@ -1434,7 +1434,7 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 개인 문서와 백업 — Test Hardening 완료
+## 개인 문서와 백업 — Integration Test 자동 검증 완료
 
 Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
 진입: 2026-11-01 사용자 요청과 DC-32 선택. 기준 커밋 df7748f(main·작업 브랜치).
@@ -1845,6 +1845,7 @@ Refs: RQ-23, DC-34, M-22
 결과: 보관 테스트를 10개 기준으로 바꿨다(11번째 백업에서 가장 오래된 것 삭제, `--keep 3`·`--keep 1`). origin 없는 키 테스트에 형식·`--key` 재사용,
 다른 위치의 같은 이름 폴더 두 개가 다른 키, Windows 경로 대소문자 무시·Linux 구분을 더했다.
 npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0.
+Platform checks run 41306747792(205385d)가 macOS·Windows × Node 22·24에서 통과했다.
 종료 기준: 기본 실행은 최신 10개를 남기고, origin 없는 같은 이름 폴더의 백업이 섞이지 않는다. 충족했다.
 
 Files:
@@ -1860,11 +1861,33 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### Integration Test
+### Integration Test: 자동 검증 완료
 
-- [ ] production tarball로 F-10: init → 문서 작성 → backup → 작업 폴더 삭제 → 새 clone → restore → 지도의 Private 그룹 확인.
+Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
+진입: 4단계·Test Hardening·보관 개수 변경 완료(205385d, Platform checks run 41306747792 통과). 사용자가 다음 단계 진행을 요청했다(2026-11-01).
+기준 검증(205385d, Linux / Node 22.23.4): npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0.
+기준 통합 테스트(205385d): npm run test:integration 5개 중 4개 통과, F-09 실패. 4단계에서 통합 테스트를 돌리지 않아 놓친 회귀다.
 
-종료 기준: M-21·M-22의 자동 근거가 갖춰지고 사람 확인 항목이 정리된다.
+- [x] F-09 수정(4단계 회귀): `--all` 프로젝트 설치가 private까지 16개를 만들고 private에는 같은 이름 경고가 없음을 확인하게 했다.
+  업데이트 안내 확인은 기록의 kitVersion만 낮추던 것을 항목 version도 낮추게 했다(4단계 PR-10 보완의 의도대로 새 항목만 더한 kit은 안내하지 않음).
+  홈 폴더 비교에서 npm이 스스로 쓰는 `~/.npm` 로그를 뺐다. 실행마다 생기기도 하고 안 생기기도 해 docatlas와 무관하게 실패했다.
+- [x] F-10(test/integration/private.test.js): production tarball을 별도 폴더에 설치하고 그 실행 파일로 진행한다. 임시 HOME·git 설정을 쓴다.
+  origin(bare)에 공개 docs·커밋한 `.docatlas/agents.json`·하위 폴더 `.docatlas`를 올리고, 첫 clone(origin을 GitLab https로)에서
+  docs 하위 폴더로 init → 두 기능의 개인 문서(CRLF·이미지·한글 이름, 공개 문서 링크)와 링크 → git status 깨끗함 → status ok →
+  backup(키 `gitlab.com/team/web/shop`, 링크 경고) → 같은 내용 다시 백업은 unchanged → 지도의 Private 그룹(하위 `.docatlas` 제외, 안내 없음) →
+  작업 폴더 삭제 → 둘째 clone(origin을 GitLab ssh로) → 지도 시작 안내 → 미리보기(쓰기 없음) → 복구(4개 생성, 바이트 일치, exclude 줄, git status 깨끗함,
+  status의 backup same) → 지도의 Private 그룹과 개인 → 공개 링크, 안내 없음.
+
+결과: npm run test:integration 6개 통과(두 번 연속), npm run test:browser 42개 통과(설치 Chromium 1243을 1248 이름으로 임시 연결),
+npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0, npm pack --dry-run 55개 파일·77.8 kB.
+종료 기준: M-21·M-22의 자동 근거가 갖춰지고 사람 확인 항목이 정리된다. 자동 근거는 충족했다. 남은 사람 확인은 M-21·M-22의 미체크 항목이다
+(실제 에이전트 세션에서 스킬대로 동작하는지, Windows 콘솔·실제 GitLab 원격, 설치 미리보기의 사람 확인).
+
+Files:
+- `test/integration/private.test.js` (added)
+- `test/integration/agent-kit.test.js` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ## 검증 예제와 기록
 
@@ -2139,9 +2162,12 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   경계 테스트 6개. 결과는 "개인 문서와 백업" 절 Test Hardening에 있다.
 - 완료(2026-11-01, 사용자 변경): 백업은 최신 N개만 남긴다(`--keep <n>`은 그 실행만). 처음 3개로 했다가 사용자 선택으로 기본 10개로 바꿨다.
   origin이 없으면 키에 경로 구분값을 붙인다. 결과는 "백업 개수 제한"과 "기본 10개와 origin 없는 키 보강"에 있다.
-- 다음(RQ-22·23): Integration Test(F-10, production tarball: init → 작성 → backup → 작업 폴더 삭제 → 새 clone → restore → 지도의 Private 그룹).
-  Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470. 이번 변경의 결과를 확인한다.
-  원하면 2단계~이번 변경 리뷰.
+- 완료(2026-11-01, RQ-22·23 Integration Test): F-10 통합 테스트(production tarball로 백업 → 삭제 → 새 clone 복구 → 지도)와 4단계 회귀였던 F-09 수정.
+  결과는 "개인 문서와 백업" 절 Integration Test에 있다. 개인 문서 기능의 계획 단계는 모두 끝났다.
+- 다음(RQ-22·23): 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등). main 반영과 배포(0.5.0 제안)는 사용자가 정한다.
+  Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470, 10개·키 보강 run 41306747792.
+  Integration Test 커밋은 통합 테스트와 문서만 바꿨고 test:integration은 Platform checks에 없어 CI를 다시 돌리지 않았다.
+  원하면 main 반영 전에 2단계~Integration Test 리뷰.
   ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
@@ -2152,4 +2178,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 그리고 이 인계 커밋(기본 10개와 origin 없는 키)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 그리고 이 인계 커밋(Integration Test)이 있다. 0.4.1 게시본은 fcb4e68이다.

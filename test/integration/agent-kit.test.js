@@ -80,7 +80,9 @@ test('F-09: a packaged install manages agent skills globally and per project wit
 
   // An agent reads the help, previews, then applies.
   assert.match((await agents(['help'])).stdout, new RegExp(DESIGNER + ' +\\d+\\.\\d+\\.\\d+ +default'));
-  const homeBefore = await filesIn(home);
+  // npm itself may write logs under ~/.npm while running the command; only docatlas writes matter here.
+  const homeFiles = async () => Object.fromEntries(Object.entries(await filesIn(home)).filter(([name]) => !name.startsWith('.npm/')));
+  const homeBefore = await homeFiles();
   const preview = await agents(['install', '--dry-run']);
   const items = [DESIGNER, 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1'];
   assert.deepEqual(lines(preview.stdout).map(line => line.slice(0, 6)), [
@@ -90,20 +92,23 @@ test('F-09: a packaged install manages agent skills globally and per project wit
     ]),
     ['dry-run', 'summary', 'create=12', 'replace=0', 'unchanged=0', 'skipped=0']
   ]);
-  assert.deepEqual(await filesIn(home), homeBefore);
+  assert.deepEqual(await homeFiles(), homeBefore);
   await agents(['install']);
   const globalSkill = path.join(home, '.claude', 'skills', DESIGNER, 'SKILL.md');
   assert.equal(await fs.readFile(globalSkill, 'utf8'), kitSkill);
   assert.match(await fs.readFile(path.join(home, '.codex', 'agents', DESIGNER + '.toml'), 'utf8'), /^name = "doc-driven-designer-v1"\n/);
   assert.deepEqual(lines((await agents(['install'])).stdout).slice(0, 12).map(line => line[0]), Array(12).fill('unchanged'));
 
-  // A project install adds every item next to the documents and explains client rules.
+  // A project install with --all adds every item, including the private documents pair that the default leaves out,
+  // and explains client rules. Only the three items installed globally get same-name warnings.
   const local = await agents(['install', '--project', '--all']);
   const localLines = lines(local.stdout);
-  assert.equal(localLines.filter(line => line[0] === 'create').length, 12);
+  assert.equal(localLines.filter(line => line[0] === 'create').length, 16);
+  assert.equal(localLines.filter(line => line[0] === 'create' && line[4] === 'doc-driven-private-v1').length, 4);
   assert.deepEqual(localLines.filter(line => line[0] === 'warning').map(line => line[1]),
     [...Array(12).fill('same-name'), 'codex-trust']);
   await fs.access(path.join(project, '.claude', 'skills', 'doc-driven-reviewer-v1', 'SKILL.md'));
+  await fs.access(path.join(project, '.claude', 'skills', 'doc-driven-private-v1', 'SKILL.md'));
   await fs.access(path.join(project, '.docatlas', 'agents.json'));
   const documentsAfter = await filesIn(project);
   for (const name of Object.keys(documentsBefore)) {
@@ -113,7 +118,8 @@ test('F-09: a packaged install manages agent skills globally and per project wit
   // An older record makes the document map hint at the update; updating clears it.
   const recordPath = path.join(home, '.docatlas', 'agents.json');
   const record = JSON.parse(await fs.readFile(recordPath, 'utf8'));
-  for (const entry of Object.values(record.files)) entry.kitVersion = '0.0.1';
+  // An older install has an older kit and older items; a newer kit that only adds items gives no hint (PR-10).
+  for (const entry of Object.values(record.files)) Object.assign(entry, { kitVersion: '0.0.1', version: '0.0.1' });
   await fs.writeFile(recordPath, JSON.stringify(record));
   const executable = path.join(installed, 'bin', 'docatlas.js');
   const processEnv = { ...process.env, ...env };

@@ -54,7 +54,7 @@ src/helper의 표준 문서는 docs 밖에서도 발견한다.
 | F-06 | 서로 다른 루트 A/B, 루트 별칭, 각각 다른 본문 | 실행·상태 분리 |
 | F-07 | 별도 위치에 설치한 tarball과 JS/비 JS 대상 폴더 | 설치 독립성과 전체 흐름 |
 | F-08 | 기능 75개×4종, 문서별 최소 16KiB, 여러 깊이·동명·한글·큰 표, 비문서 파일 1,000개 | 규모·유휴 polling 비용 측정 |
-| F-10 | origin이 있는 git 저장소, 공개 docs/와 .docatlas/private/<기능>/ 두 개, 커밋한 .docatlas/agents.json, 하위 폴더의 .docatlas/, 개인 폴더의 심볼릭 링크 | 개인 문서 숨김·지도·백업·복구(계획) |
+| F-10 | origin이 있는 git 저장소, 공개 docs/와 .docatlas/private/<기능>/ 두 개, 커밋한 .docatlas/agents.json, 하위 폴더의 .docatlas/, 개인 폴더의 심볼릭 링크 | 개인 문서 숨김·지도·백업·복구(test/integration/private.test.js) |
 
 F-07은 npm run test:integration에서 tarball·production-only 설치와 JS/비 JS 가상 프로젝트를
 생성해 검증한다. DOCMAP_NPM_CACHE로 오프라인 설치 캐시를 지정하고,
@@ -410,7 +410,9 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 통과: 개인 문서가 팀원에게 흔적 없이 내 작업 폴더에만 있고, 지도에서는 구분돼 보인다.
 상태: 1단계(init·status·git 숨김)와 2단계(문서 지도의 Private 그룹·배지) 구현. 2단계 자동 근거: test/private-map.test.js, test/browser/private.spec.js
 (Platform checks run 41302543992, 6b903f2, macOS·Windows × Node 22·24 통과). 자동 근거: test/private.test.js가 git status에 개인 문서가 안 보이고 agents.json은 보이며,
-.gitignore가 생기지 않고 exclude에 패턴이 한 번만 들어감을 확인한다. 지도·스킬은 구현 전이고 사람 확인은 미실행이다.
+.gitignore가 생기지 않고 exclude에 패턴이 한 번만 들어감을 확인한다. 스킬은 4단계(kit 1.3.0)에서 더했다.
+Integration Test 자동 근거: F-10(test/integration/private.test.js)이 production tarball로 하위 폴더 init, git status에 안 보임, 지도의 Private 그룹과
+하위 `.docatlas` 제외를 확인한다. 실제 에이전트 세션·Windows 콘솔 등 사람 확인은 미실행이다.
 
 ### M-22 — 개인 문서 백업과 복구
 
@@ -433,6 +435,8 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 Platform checks run 41304393601(9134817)이 macOS·Windows × Node 22·24에서 통과했다. 스킬은 4단계에서 더했고(doc-driven-private-v1 1.0.0),
 에이전트·스킬 항목(help만 읽고 미리보기 → 확인 → 복구, 빈 폴더에서 복구 여부 묻기, 고친 뒤 백업)과 사람 확인은 미실행이다.
 Test Hardening 자동 근거: test/private-hardening.test.js가 큰 이진·CRLF·한글 이름 왕복, 동시 실행, 실패 정리, 권한, 링크로 바뀐 폴더를 확인한다.
+Integration Test 자동 근거: F-10이 production tarball로 백업 → 작업 폴더 삭제 → 다른 주소 형식의 새 clone → 지도 안내 → 미리보기(쓰기 없음) →
+복구(바이트 일치·숨김 줄·git status 깨끗함) → 지도의 Private 그룹·안내 사라짐을 확인한다.
 
 ## Phase 1 자동 검증 대응
 
