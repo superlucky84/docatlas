@@ -1434,7 +1434,7 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 개인 문서와 백업 — 4단계 완료
+## 개인 문서와 백업 — Test Hardening 완료
 
 Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
 진입: 2026-11-01 사용자 요청과 DC-32 선택. 기준 커밋 df7748f(main·작업 브랜치).
@@ -1735,7 +1735,7 @@ Refs: RQ-22, DC-33, M-21, M-22, PR-10
 기준 테스트: npm run check, npm test(kit 고정 테스트), agents help.
 결과: npm run check(문법 84개·kit 1.3.0 네 쌍) 통과, npm test 203개 중 198개 통과·5개 건너뜀·실패 0(새 테스트: requires 검사, 새 항목만 더한 kit의 안내 없음),
 npm pack --dry-run 55개 파일·76.6 kB. 임시 HOME에서 기본 설치 미리보기 12줄(세 쌍 × Claude·Codex), `--all` 16줄,
-`--only doc-driven-private-v1` 설치와 Codex 변환(toml) 확인.
+`--only doc-driven-private-v1` 설치와 Codex 변환(toml) 확인. Platform checks run 41304909846(be12eb2)이 macOS·Windows × Node 22·24에서 통과했다.
 종료 기준: 스킬·룰만 읽고 개인 문서를 만들고 숨기고 백업하는 순서를 따를 수 있다. 문서상 충족했고, 실제 에이전트 세션 확인은 M-21·M-22 사람 확인으로 남긴다.
 
 Files:
@@ -1760,10 +1760,41 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### Test Hardening
+### Test Hardening: 완료
 
-- [ ] 경계: 한글·공백 기능 이름, CRLF, 큰 이미지, 백업 중 실패 시 정리, 동시 실행, 권한, 심볼릭 링크로 바뀐 폴더.
-- [x] Windows: test/private.test.js를 test:platform에 넣었다(1단계 단순화). 실제 Windows 결과는 그 절의 CI 기록을 따른다.
+Refs: RQ-22, RQ-23, DC-34, DC-35, M-21, M-22
+진입: 4단계 완료(be12eb2). 사용자가 다음 단계 진행을 요청했다(2026-11-01).
+기준 검증(be12eb2, Linux / Node 22.23.4): 4단계 종료 검증과 같은 커밋이다. npm run check(kit 1.3.0 네 쌍) 통과, npm test 203개 중 198개 통과·5개 건너뜀·실패 0.
+
+먼저 탐색 스크립트로 경계를 확인했다. 동시 init은 숨김 줄을 한 번만 쓰고, 8 MB 이진 파일·CRLF는 그대로 돌아오며, 같은 초의 동시 백업은
+다른 이름의 온전한 백업이 됐다. 문제는 두 가지였다: 동시 복구에서 다른 실행이 막 만든 같은 내용의 파일을 conflict로 보고 종료 3을 냈고,
+고친 뒤에도 다른 실행이 쓰는 중인 큰 파일을 읽어 conflict가 남았다.
+
+- [x] 동시 실행 결정(설계 제안, DESIGN "백업과 복구"): 잠금 파일을 두지 않는다. 모든 쓰기가 원자적이거나 배타적이라 깨지거나 사라지는 파일이 없고,
+  남는 영향은 같은 내용의 백업이 여러 개 생길 수 있다는 것뿐이다. 잠금은 중단된 실행의 잠금을 풀 규칙이 필요해 더 복잡하다.
+- [x] 복구의 새 파일은 같은 폴더의 임시 파일에 쓴 뒤 hard link로 놓아 다 쓴 파일만 보인다(hard link가 없으면 `wx`).
+  이미 있는 이름이면 내용을 비교해 같으면 unchanged, 다르면 conflict로 본다.
+- [x] 검사와 쓰기 사이 재확인: restore는 숨김 줄 뒤 파일을 쓰기 전에, backup은 파일을 읽은 뒤 개인 폴더를 다시 확인한다(링크면 종료 3).
+- [x] 경계 테스트: test/private-hardening.test.js 6개. 한글·공백 기능·파일 이름, CRLF, 마지막 줄바꿈 없음, 빈 파일, 6 MB 이진 이미지의 바이트 단위 왕복,
+  동시 init 5개·backup 3개·restore 2개(온전한 백업, 남은 임시 파일 없음, 각 파일을 한 번만 만들고 다른 실행은 unchanged),
+  쓰기 중 실패한 백업의 임시 폴더 정리, 링크로 바뀐 개인 폴더에서 backup·restore·restore --force·status가 쓰기 전에 멈춤,
+  계획 뒤 링크로 바뀐 폴더에 쓰지 않음, 권한(읽을 수 없는 파일·쓸 수 없는 저장소·쓸 수 없는 복구 폴더는 종료 1, 남은 임시 파일 없음, 고친 뒤 다시 실행하면 완료).
+- [x] Windows: test/private.test.js(1단계), test/private-backup.test.js(3단계), test/private-hardening.test.js를 test:platform에 넣었다.
+- [x] 알려진 한계(DESIGN): 같은 사용자가 검사와 쓰기 사이의 짧은 틈에 경로를 바꾸는 경우까지는 막지 않는다(Node에 openat 계열 없음).
+  강제 종료된 백업이 남긴 `.partial-…` 폴더는 백업으로 보지 않고 지우지도 않는다(백업 정리 기능과 함께 후속).
+
+결과: npm run check 통과, npm test 209개 중 203개 통과·6개 건너뜀(root 실행으로 권한 테스트 1개 추가 건너뜀)·실패 0.
+root가 아닌 사용자(nobody)로 사본에서 개인 문서 테스트 3개 파일 42개를 돌려 권한 테스트까지 모두 통과했다.
+종료 기준: 동시 실행·실패·권한·링크에서 파일이 깨지거나 사라지지 않고, 잘못된 conflict를 내지 않는다. 충족했다.
+
+Files:
+- `src/private/restore.js` (modified)
+- `src/private/command.js` (modified)
+- `test/private-hardening.test.js` (added)
+- `package.json` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ### Integration Test
 
@@ -2040,8 +2071,11 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01, RQ-22 4단계): doc-driven-private-v1 1.0.0(kit 1.3.0, default false, requires designer), agents help 표시,
   새 항목만 더한 kit은 업데이트 안내를 띄우지 않음(PR-10 보완), 안내 문서와 CHANGELOG Unreleased. 결과는 "개인 문서와 백업" 절 4단계에 있다.
   CHANGELOG의 개인 문서 항목은 main 반영 때가 아니라 4단계에서 미리 적었다(main에 가면 그대로 Unreleased).
-- 다음(RQ-22·23): 원하면 2~4단계 리뷰. 그 뒤 Test Hardening(동시 실행 잠금, 검사-쓰기 사이 재확인 등)과 Integration Test(F-10, production tarball).
-  4단계 변경의 Platform checks 결과를 확인한다. ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
+- 완료(2026-11-01, RQ-22·23 Test Hardening): 잠금 없이 동시 실행 안전(설계 제안), 복구의 새 파일은 hard link로 온전히 놓기, 검사-쓰기 사이 재확인,
+  경계 테스트 6개. 결과는 "개인 문서와 백업" 절 Test Hardening에 있다.
+- 다음(RQ-22·23): Integration Test(F-10, production tarball: init → 작성 → backup → 작업 폴더 삭제 → 새 clone → restore → 지도의 Private 그룹).
+  4단계 Platform checks는 run 41304909846으로 통과했다. Test Hardening 변경의 Platform checks 결과를 확인한다. 원하면 2단계~Test Hardening 리뷰.
+  ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -2051,4 +2085,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), 그리고 이 인계 커밋(4단계)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), 그리고 이 인계 커밋(Test Hardening)이 있다. 0.4.1 게시본은 fcb4e68이다.

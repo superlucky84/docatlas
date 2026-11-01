@@ -360,6 +360,13 @@ async function backup(start, { stdout, stderr, git, home, key, now }) {
     return EXIT.NEEDS_DECISION;
   }
   const entries = await readPrivateFiles(folder, stdout);
+  // Files read through a folder that became a link while reading are not this project's files.
+  const again = await inspectFolder(root);
+  if (again.state === 'blocked') {
+    writeBlocked(stdout, again.reason, again.blocker);
+    stderr.write(MESSAGES.blocked);
+    return EXIT.NEEDS_DECISION;
+  }
   if (!entries.length) {
     stdout.write('skip\tbackup\t-\n');
     stdout.write('summary\tbackup=skip\tfiles=0\n');
@@ -458,6 +465,15 @@ async function restore(start, { stdout, stderr, git, home, key, from, force, dry
       // Files are written only into a folder git cannot see.
       stdout.write('summary\tcreate=0\tunchanged=0\tconflict=0\toverwrite=0\tblocked=0\n');
       stderr.write(MESSAGES['not-ignored']);
+      return EXIT.NEEDS_DECISION;
+    }
+  }
+  if (!dryRun) {
+    // The folder may have changed since the check; never write through a link.
+    const again = await inspectFolder(root);
+    if (again.state === 'blocked') {
+      writeBlocked(stdout, again.reason, again.blocker);
+      stderr.write(MESSAGES.blocked);
       return EXIT.NEEDS_DECISION;
     }
   }

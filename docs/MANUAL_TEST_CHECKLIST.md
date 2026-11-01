@@ -430,6 +430,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 손상 백업·심볼릭 링크·숨김 실패·지도 안내(복구 뒤 사라짐, 파일 쓰기 없음)를 확인한다.
 Platform checks run 41304393601(9134817)이 macOS·Windows × Node 22·24에서 통과했다. 스킬은 4단계에서 더했고(doc-driven-private-v1 1.0.0),
 에이전트·스킬 항목(help만 읽고 미리보기 → 확인 → 복구, 빈 폴더에서 복구 여부 묻기, 고친 뒤 백업)과 사람 확인은 미실행이다.
+Test Hardening 자동 근거: test/private-hardening.test.js가 큰 이진·CRLF·한글 이름 왕복, 동시 실행, 실패 정리, 권한, 링크로 바뀐 폴더를 확인한다.
 
 ## Phase 1 자동 검증 대응
 

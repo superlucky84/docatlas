@@ -32,6 +32,26 @@ export async function planRestore(privateFolder, files) {
   return plan;
 }
 
+const temporaryName = target => path.join(path.dirname(target),
+  '.' + path.basename(target) + '.docatlas-' + process.pid + '-' + crypto.randomBytes(4).toString('hex'));
+// Filesystems without hard links (for example FAT or some network shares) fall back to an exclusive write.
+const NO_HARD_LINKS = ['EPERM', 'ENOTSUP', 'EOPNOTSUPP', 'ENOSYS', 'EXDEV', 'EMLINK'];
+
+// Creates a new file that appears whole or not at all, and never replaces an existing name: the data is written
+// to a temporary file first and then hard-linked to the target. Throws EEXIST when the name is taken.
+async function createWhole(target, data) {
+  const temporary = temporaryName(target);
+  await fs.writeFile(temporary, data, { flag: 'wx' });
+  try {
+    await fs.link(temporary, target);
+  } catch (error) {
+    if (!NO_HARD_LINKS.includes(error.code)) throw error;
+    await fs.writeFile(target, data, { flag: 'wx' });
+  } finally {
+    await fs.rm(temporary, { force: true });
+  }
+}
+
 // Creates missing folders one at a time and checks each is a real folder. Returns a block reason or null.
 async function makeParents(privateFolder, relative) {
   let current = privateFolder;
@@ -58,11 +78,11 @@ export async function applyRestore(privateFolder, plan) {
     const target = path.join(privateFolder, ...item.path.split('/'));
     if (item.action === 'create') {
       try {
-        await fs.writeFile(target, item.data, { flag: 'wx' });
+        await createWhole(target, item.data);
       } catch (error) {
-        // Another file took the name, for example a name that differs only in case on macOS or Windows.
         if (error.code !== 'EEXIST') throw error;
-        item.action = 'conflict';
+        // Another run created it first, or the name differs only in case on macOS or Windows.
+        Object.assign(item, await planFile(privateFolder, item));
       }
       continue;
     }
@@ -72,8 +92,7 @@ export async function applyRestore(privateFolder, plan) {
       continue;
     }
     // A rename replaces the name itself, so a link put there after planning is replaced, not followed.
-    const temporary = path.join(path.dirname(target),
-      '.' + path.basename(target) + '.docatlas-' + process.pid + '-' + crypto.randomBytes(4).toString('hex'));
+    const temporary = temporaryName(target);
     try {
       await fs.writeFile(temporary, item.data, { flag: 'wx' });
       await fs.rename(temporary, target);
