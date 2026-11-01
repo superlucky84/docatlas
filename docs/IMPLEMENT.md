@@ -1982,7 +1982,9 @@ Refs: RQ-21, RQ-22, RQ-23, DC-31, DC-33, M-20, M-21, M-22
   npm run test:integration 6개(F-07·F-09·F-10), npm run test:browser 42개(설치 Chromium 1243을 1248 이름으로 임시 연결) 통과.
   npm pack·publish --dry-run: docatlas@0.5.0, 55개 파일, 79.2 kB(풀면 272.4 kB), latest·public. 레지스트리의 latest는 아직 0.4.2다.
 - [x] agents help가 Kit 1.3.0과 designer 1.3.0·implementer 1.3.0·reviewer 1.5.0 default, private 1.0.0 `with --all or --only; needs doc-driven-designer-v1`을 출력한다.
-- [x] 사용자 요청으로 작업 브랜치를 main에 fast-forward로 반영해 푸시한다(PR 없음). 작업 브랜치는 지우지 않는다.
+- [x] 사용자 요청으로 작업 브랜치를 main에 fast-forward로 반영해 푸시했다(75c7e62, PR 없음). 작업 브랜치는 지우지 않았다.
+  main CI(Platform checks run 41325036270, push)가 macOS·Windows × Node 22·24 네 작업 모두 통과했다.
+  이 기록은 작업 브랜치에만 있고 main에는 게시 기록과 함께 반영한다.
 
 종료 기준: 0.5.0 후보의 파일 구성과 버전 표시가 맞고 검사가 통과하며 main에 반영된다. main CI 확인·태그 푸시·게시 확인은 그다음 단계다.
 
@@ -2289,7 +2291,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   doc-driven-implementer-v1 1.3.0. 결과는 "개인 문서와 백업" 절 "백업 시점과 파일 공유"에 있다.
 - 완료(2026-11-01): 사용자 결정으로 0.5.0 배포를 준비했다. 버전·CHANGELOG·전체 검사·dry-run을 마치고 main에 fast-forward로 반영했다.
   결과와 사용자 절차는 "0.5.0 배포 준비" 절에 있다.
-- 다음: main CI 통과를 확인한 뒤 사용자가 `v0.5.0` 태그를 푸시하고, Publish to npm 실행과 npm latest 0.5.0·provenance를 확인한다.
+- 다음: main CI(run 41325036270)가 통과했다. 사용자가 `v0.5.0` 태그(75c7e62)를 푸시하고, Publish to npm 실행과 npm latest 0.5.0·provenance를 확인한다.
   그 뒤 GitHub 릴리스 v0.5.0(영문 노트). 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등)는 남아 있다.
   백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
 - 완료(2026-11-01): 사용자 요청으로 2단계~파일 공유를 리뷰했다(REQUEST_CHANGES, critical 2). 모두 반영했다. 결과는 "2단계~파일 공유 리뷰 반영"에 있다.
