@@ -1923,7 +1923,8 @@ implementer 1.2.0의 previous 해시가 58c71f5와 맞음을 확인했다. 9개 
   서브에이전트가 백업하지 않게 했다. implementer 1.3.0은 배포 전이라 버전 그대로 해시만 갱신했다.
 
 결과: npm run check 통과, npm test 213개 중 207개 통과·6개 건너뜀·실패 0, npm run test:platform 58개 중 55개 통과·3개 건너뜀(root),
-npm run test:integration 6개 통과.
+npm run test:integration 6개 통과. Platform checks run 41324166410(2ab6639)이 macOS·Windows × Node 22·24에서 통과했다
+(test/private-map.test.js 처음 포함).
 종료 기준: critical을 모두 고치고 warning·suggestion을 반영한다. 충족했다.
 
 Files:
@@ -2248,7 +2249,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 다음(RQ-22·23): 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등). main 반영과 배포(0.5.0 제안)는 사용자가 정한다.
   백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
 - 완료(2026-11-01): 사용자 요청으로 2단계~파일 공유를 리뷰했다(REQUEST_CHANGES, critical 2). 모두 반영했다. 결과는 "2단계~파일 공유 리뷰 반영"에 있다.
-  리뷰 반영 커밋의 Platform checks(새로 넣은 test/private-map.test.js 포함) 결과를 확인한다.
+  리뷰 반영은 Platform checks run 41324166410(2ab6639)으로 macOS·Windows에서 통과했다(test/private-map.test.js 포함).
   Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470, 10개·키 보강 run 41306747792.
   Integration Test 커밋은 통합 테스트와 문서만 바꿨고 test:integration은 Platform checks에 없어 CI를 다시 돌리지 않았다.
   원하면 main 반영 전에 2단계~Integration Test 리뷰.
