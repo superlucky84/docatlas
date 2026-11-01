@@ -1376,7 +1376,7 @@ npx --yes docatlas@0.4.2 agents help
 이전 방식(사용자가 main에서 npm publish)은 Trusted Publisher 등록이 끝내 안 될 때의 대안으로만 남긴다.
 2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
 
-## npm 게시 자동화 — 진행 중
+## npm 게시 자동화 — 리허설 통과, 등록·태그 대기
 
 Refs: RQ-21, DC-31, M-20
 진입: 2026-11-01 사용자 결정(Trusted Publishing, 태그 푸시로 게시, 0.4.2부터). 기준 커밋 1eb7c39(작업 브랜치), main은 337200b.
@@ -1416,8 +1416,10 @@ Files: none
 
 ### Integration Test
 
-- [ ] 작업 브랜치를 main에 fast-forward로 반영하고 Platform checks가 통과한다.
-- [ ] main에서 수동 실행(dry-run 리허설)이 검사와 npm publish --dry-run까지 통과한다.
+- [x] 작업 브랜치를 main에 fast-forward로 반영했다(556d0f0). Platform checks(run 41276800138)가 macOS·Windows × Node 22·24 모두 통과했다.
+- [x] main에서 수동 실행(run 41276806056)이 통과했다. ubuntu-latest, Node 24.22.1·npm 11.19.1(업그레이드 불필요), 게시 대상 확인
+  "docatlas@0.4.2 from 556d0f0 (main)", npm ci·check(kit 1.2.0 세 쌍)·test(159개 모두 통과)·pack(45개 파일·58.3 kB),
+  Publish 단계는 건너뜀, npm publish --dry-run "Publishing to https://registry.npmjs.org/ with tag latest and public access (dry-run)".
 - [ ] 사용자가 Trusted Publisher를 등록한 뒤 `v0.4.2` 태그 푸시로 0.4.2가 게시되고, npm에 출처 표시가 붙는다(M-20).
 
 종료 기준: 0.4.2가 이 workflow로 게시되고 레지스트리의 latest가 0.4.2다.
@@ -1668,7 +1670,10 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): 사용자 결정으로 0.4.2 배포를 준비했다. 버전·CHANGELOG·검사·dry-run을 마치고 main에 fast-forward로 반영했다.
   결과와 사용자 절차는 위 "0.4.2 배포 준비" 절에 있다.
 - 완료(2026-11-01): main CI(run 41265141901, 337200b)가 네 작업 모두 통과했다. 이 기록은 작업 브랜치에만 있고 main에는 게시 기록과 함께 반영한다.
-- 다음(RQ-20): 사용자가 0.4.2를 npm에 게시하고 원하면 태그 v0.4.2를 만든다.
+- 완료(2026-11-01): RQ-21·DC-31 npm 게시 자동화. publish.yml과 CONTRIBUTING "Releasing"을 main에 반영했다(556d0f0).
+  Platform checks(run 41276800138)와 수동 리허설(run 41276806056)이 통과했다.
+- 다음(RQ-20·RQ-21): 사용자가 npm에 Trusted Publisher를 등록한다(npm 11.15.0 이상의 `npm trust github`, 처음 시도는 npm이 낮아
+  "Unknown command: trust"였다). 등록이 확인되면 556d0f0에 `v0.4.2` 태그를 푸시해 workflow가 0.4.2를 게시한다.
   M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1677,4 +1682,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 337200b(0.4.2 준비, main). 작업 브랜치에는 그 위에 CI 기록 커밋이 있으며 SHA는 git log -1로 확인한다. 0.4.1 게시본은 fcb4e68이다.
+- 최신 확인 커밋: 556d0f0(main, publish.yml). 작업 브랜치에는 그 위에 리허설 기록 커밋이 있으며 SHA는 git log -1로 확인한다. 0.4.1 게시본은 fcb4e68이다.
