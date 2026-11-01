@@ -23,6 +23,7 @@
 - 완료: DC-21 METHOD 한국어판과 examples/ 합성 예제 프로젝트. M-18 사람 확인은 남아 있다.
 - 완료: DC-28 기본 설치 항목을 designer·implementer·reviewer 세 쌍으로 변경. 0.4.0으로 게시했다.
 - 완료: DC-29 문서 위치 원칙을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영. 0.4.1로 게시했다.
+- 진행 중: RQ-20·DC-30 구현 계획의 Refs·Files 표기. 기준 문서 4종을 갱신했고 DC-30의 세 TBD 확인을 기다린다.
 
 기술 선택은 각 단계에서 근거와 검증을 기록해 DC/IC를 해소한다.
 상세 계약을 바꾸면 요구사항·설계·단계·수동 기준을 같은 작업에서 갱신한다.
@@ -1093,6 +1094,64 @@ Confluence 갱신(2026-10-30, 사용자 요청): 사용자의 개인 공간 페�
 스킬은 1.2.0 전체로, 룰은 팀원이 정한 이름(doc-driven-designer)과 tools 머리말을 유지하고 본문만 최신으로 바꿨다.
 v5→v6 비교에서 바뀐 구간은 그 두 블록뿐이다. 팀 페이지의 다른 절과 갱신일 표시는 바꾸지 않았다.
 
+## 구현 계획의 Refs·Files 표기 — 기준 문서 완료, 결정 확인 대기
+
+Refs: RQ-20, DC-30, M-19
+진입: 2026-11-01 사용자 결정(Files와 Refs 둘 다, 스킬·룰 포함, 문서부터). 기준 커밋 0373bbc.
+기준 검증(0373bbc, Linux / Node 22.23.4): 문법 72개·agent kit 1.1.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀(root 권한)·실패 0.
+이 작업 절부터 [설계의 RQ-20 계약](./DESIGN.md#구현-계획의-refsfiles-표기--rq-20-계약설계-제안) 형식을 쓴다.
+형식이 DC-30 확정에서 바뀌면 이 절의 표기도 함께 고친다.
+
+### 기준 문서 — 완료
+
+- [x] 요구사항에 RQ-20과 사용자 결정·배경·설계 제안·범위 밖을 기록했다.
+- [x] 설계에 형식·규칙·파싱 계약·역할·바뀌는 파일과 버전 제안을 두고, DC-30을 세 TBD와 함께 열었다.
+- [x] 구현 계획에 이 작업 절과 인계를, 수동 검증에 M-19를 더했다.
+- [x] 확인: 바뀐 문서의 상대 링크·앵커와 git diff --check. 제품 코드·스킬·룰은 바꾸지 않았다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 1단계 — 규칙 원본
+
+진입: DC-30의 세 TBD가 정해지고 설계의 형식이 확정된다.
+
+- [ ] METHOD.md 작성 규칙에 Refs·Files 항목과 짧은 예시를 더하고 문서 세트 표의 IMPLEMENT.md 설명을 확인한다.
+  METHOD.ko.md에 같은 변경을 하고 두 문서의 구조(제목·목록·코드 펜스·표 행·링크 수)가 같은지 확인한다.
+- [ ] designer SKILL.md: IMPLEMENT.md 단계 틀에 Refs 줄과 Files 블록 형식을 넣고, ID를 줄여 쓰지 않는 규칙과
+  예정한 파일을 Files에 적지 않는 규칙을 둔다. 완료 기준에 단계별 Refs를 더한다. metadata.version 1.3.0.
+- [ ] implementer SKILL.md: 단계 시작 때 기존 변경 목록 확인, 문서 동기화 때 git에서 만든 Files 작성과 Refs 확인,
+  완료 보고에 Files. 서브에이전트이고 구현 계획이 범위 밖이면 블록을 보고로 돌려준다. metadata.version 1.2.0.
+- [ ] reviewer SKILL.md: Doc sync에서 Files와 수집한 변경 목록, Refs와 기준 문서의 ID를 비교하고 어긋나면 warning. metadata.version 1.5.0.
+- [ ] 세 에이전트 룰에 각 역할의 규칙을 한 줄씩 더한다. 머리말은 name·description만 둔다.
+- [ ] manifest.json: 세 항목 버전, 이전 해시를 previous로 옮기고 새 해시 기록, kitVersion 1.2.0. agent-kit/README.md 표, CHANGELOG Unreleased.
+- [ ] README 요약의 문서 표와 규칙이 여전히 맞는지 확인한다. 맞으면 바꾸지 않는다.
+- [ ] TBD-b가 제안대로 정해지면 examples/sample-shop/docs/checkout/IMPLEMENT.md의 단계에 Refs와 Files를 넣는다.
+
+기준 테스트: npm run check(버전·해시·previous 규칙), npm test.
+종료 기준: METHOD 두 언어판과 세 스킬·룰이 같은 형식과 역할을 말하고 kit 검사와 기존 테스트가 통과한다. 제품 코드는 바뀌지 않는다.
+
+### Test Hardening
+
+- [ ] manifest를 고치기 전 npm run check가 해시와 metadata.version 불일치로 실패하고, 고친 뒤 통과하는 것을 확인한다.
+- [ ] 버전을 고정한 테스트(agent-kit-plan.test.js의 kitVersion, agent-kit-install.test.js의 도움말 버전)가 실패하는 것을 확인하고 기대값을 고친다.
+- [ ] 설계의 파싱 계약 정규식으로 이 작업 절과 예제 checkout에서 Refs·Files를 뽑아 기대한 단계·ID·파일과 같은지,
+  METHOD·DESIGN의 코드 펜스 예시는 잡히지 않는지 확인한다. 검사 스크립트를 저장소에 둘지는 TBD-c와 함께 정한다.
+- [ ] 이 작업 절의 Files 블록을 git diff --name-status와 대조한다.
+
+종료 기준: 형식 오류와 버전 불일치가 검사에서 드러나고, 실제 기록이 파싱 계약으로 정확히 추출된다.
+
+### Integration Test
+
+- [ ] npm run check, npm test, npm pack --dry-run(파일 수 45 유지 확인), 바뀐 문서의 링크 검사, git diff --check.
+- [ ] 임시 HOME에 kit 1.1.0을 설치한 기록을 두고 새 kit의 문서 지도 업데이트 안내와 agents install 미리보기(세 스킬·룰 replace)를 확인한다.
+- [ ] 단계 끝 리뷰(doc-driven-reviewer-v1)는 사용자가 고른다.
+
+종료 기준: 설치본 갱신과 안내가 기존 kit 변경 때와 같이 동작하고, 패키지 구성이 그대로다. 배포 버전과 시점은 사용자가 정한다.
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -1326,10 +1385,14 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-10-30): 사용자 전역 사본을 ctxbin sync 대신 docatlas@0.4.1로 맞췄다(사용자 선택으로 --force, 백업 후). 다시 실행하면 unchanged 12.
   이후 갱신은 docatlas로만 한다. ctxbin sync를 실행하면 ctxbin 표기로 되돌아간다.
 - 완료(2026-10-30): Confluence 개인 공간 페이지와 팀원의 팀 페이지를 designer 1.2.0으로 갱신했다. 팀 페이지는 스킬·룰 코드 블록만 바꿨다.
-- 다음: M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
+- 완료(2026-11-01): RQ-20·DC-30 구현 계획의 Refs·Files 표기를 기준 문서 4종에 기록했다(작업 브랜치 ccr-9dd9ad4c-9qnhod).
+  사용자는 Files와 Refs를 둘 다 넣고, 세 스킬·룰에 규칙을 넣고, 문서부터 갱신하기로 했다. 형식은 설계의 RQ-20 계약(설계 제안)이다.
+- 다음(RQ-20): 사용자가 DC-30의 세 TBD를 정한다. (a) 라벨 영어 고정, (b) 새 작업부터·예제 checkout만 새 형식, (c) docatlas 검색 기능은 별도 후속이 제안이다.
+  정해지면 구현 계획의 "구현 계획의 Refs·Files 표기" 1단계(METHOD·세 스킬·룰·manifest)를 진행한다.
+- 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
   사용자 환경은 0.4.1부터 docatlas 기록이 생겨 다음 kit 변경 때 확인할 수 있다.
   M-18의 DC-29 항목(위치 절 읽기, 구조가 불분명한 프로젝트에서 designer 1.2.0이 위치를 묻는지),
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
-- 차단: 없음.
-- 최신 확인 커밋: 0406c4f(0.4.1 게시 기록). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
+- 차단: RQ-20 1단계는 DC-30의 TBD 결정을 기다린다. 다른 작업의 차단은 없다.
+- 최신 확인 커밋: 0373bbc(main). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
