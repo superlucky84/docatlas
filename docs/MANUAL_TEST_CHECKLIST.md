@@ -381,11 +381,13 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [x] main에서 Publish to npm을 수동 실행하면 검사와 npm publish --dry-run만 하고 실제 게시는 없다.
   2026-11-01 run 41276806056(556d0f0): Publish 단계 건너뜀, 리허설 단계 성공, 레지스트리 latest는 0.4.1 그대로.
 - [ ] package.json과 다른 버전의 태그, 또는 main에 없는 커밋의 태그는 게시 전에 실패한다.
-- [ ] `v0.4.2` 태그 푸시로 0.4.2가 게시되고, npm 패키지 페이지에 GitHub Actions 출처 표시(provenance)가 보인다.
-- [ ] 저장소 비밀값에 npm 토큰이 없다.
+  자동 근거: 같은 셸 코드를 로컬에서 재현해 두 경우 모두 실패했다(IMPLEMENT의 Test Hardening). GitHub에서의 실제 실패 실행은 아직 없다.
+- [x] `v0.4.2` 태그 푸시로 0.4.2가 게시되고, npm 패키지 페이지에 GitHub Actions 출처 표시(provenance)가 보인다.
+  2026-11-01 run 41277271628(태그 v0.4.2, 556d0f0, 05:31~05:32 UTC) 성공. npm latest 0.4.2, gitHead 556d0f0, dist.attestations에 SLSA provenance v1. 패키지 페이지의 표시는 사람이 화면에서 확인한다.
+- [ ] 저장소 비밀값에 npm 토큰이 없다. 에이전트는 비밀값 목록을 볼 수 없어 사용자가 저장소 Settings의 Secrets에서 확인한다.
 
 통과: 사람이 npm publish를 직접 실행하지 않고 태그 푸시만으로 검사된 버전이 게시된다.
-상태: 구현과 리허설 완료. Trusted Publisher 등록과 v0.4.2 태그 푸시가 남았다.
+상태: 0.4.2를 이 방식으로 게시했다. 잘못된 태그의 실제 실패 실행과 비밀값 확인은 남아 있다.
 
 ## Phase 1 자동 검증 대응
 
@@ -516,7 +518,8 @@ test/integration/package.test.js의 부모 1개·하위 3개, 총 4개가 Node 2
   docatlas@0.4.2 45개 파일·58.3 kB. agents help가 Kit 1.2.0과 세 항목 새 버전 default를 출력했다.
 - [x] main CI가 macOS·Windows × Node 22·24 네 작업 모두 통과한다.
   2026-11-01 run 41265141901(337200b): 네 작업 모두 check·test:platform·test:browser·pack 단계 성공.
-- [ ] 사용자가 게시 후 npm view docatlas@0.4.2 version과 npx --yes docatlas@0.4.2 agents help(designer 1.3.0)를 확인한다.
+- [x] 게시 후 npm view docatlas@0.4.2 version과 npx --yes docatlas@0.4.2 agents help(designer 1.3.0)를 확인한다.
+  2026-11-01 에이전트가 확인: version 0.4.2, latest 0.4.2, gitHead 556d0f0, agents help에 Kit 1.2.0과 세 항목 새 버전.
 - [ ] docatlas로 kit 1.1.0을 설치한 실제 환경에서 0.4.2 문서 지도가 업데이트 안내를 한 줄 보이고, 같은 설치 명령 뒤 사라진다(M-17·M-19).
 
 ## 0.4.1 배포 준비 확인 — 2026-10-30

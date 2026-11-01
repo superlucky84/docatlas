@@ -24,7 +24,8 @@
 - 완료: DC-28 기본 설치 항목을 designer·implementer·reviewer 세 쌍으로 변경. 0.4.0으로 게시했다.
 - 완료: DC-29 문서 위치 원칙을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영. 0.4.1로 게시했다.
 - 완료: RQ-20·DC-30 구현 계획의 Refs·Files 표기. METHOD 두 언어판과 kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0).
-  0.4.2로 main에 반영했고 npm 게시는 사용자 단계다.
+  0.4.2로 게시했다.
+- 완료: RQ-21·DC-31 npm 게시 자동화. 0.4.2를 v0.4.2 태그 푸시로 GitHub Actions가 Trusted Publishing으로 게시했다.
 
 기술 선택은 각 단계에서 근거와 검증을 기록해 DC/IC를 해소한다.
 상세 계약을 바꾸면 요구사항·설계·단계·수동 기준을 같은 작업에서 갱신한다.
@@ -1331,7 +1332,7 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 0.4.2 배포 준비 — main 반영, 게시 대기
+## 0.4.2 배포 준비 — 완료, 게시 확인
 
 Refs: RQ-20, DC-30, M-17, M-19
 진입: RQ-20을 작업 브랜치 ccr-9dd9ad4c-9qnhod에 커밋했다(81dce98, 리뷰 두 번 반영). 사용자가 0.4.2로 main 반영과 배포 준비를 요청했다(2026-11-01).
@@ -1376,7 +1377,7 @@ npx --yes docatlas@0.4.2 agents help
 이전 방식(사용자가 main에서 npm publish)은 Trusted Publisher 등록이 끝내 안 될 때의 대안으로만 남긴다.
 2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
 
-## npm 게시 자동화 — 리허설 통과, 등록·태그 대기
+## npm 게시 자동화 — 완료, 0.4.2 게시
 
 Refs: RQ-21, DC-31, M-20
 진입: 2026-11-01 사용자 결정(Trusted Publishing, 태그 푸시로 게시, 0.4.2부터). 기준 커밋 1eb7c39(작업 브랜치), main은 337200b.
@@ -1420,9 +1421,18 @@ Files: none
 - [x] main에서 수동 실행(run 41276806056)이 통과했다. ubuntu-latest, Node 24.22.1·npm 11.19.1(업그레이드 불필요), 게시 대상 확인
   "docatlas@0.4.2 from 556d0f0 (main)", npm ci·check(kit 1.2.0 세 쌍)·test(159개 모두 통과)·pack(45개 파일·58.3 kB),
   Publish 단계는 건너뜀, npm publish --dry-run "Publishing to https://registry.npmjs.org/ with tag latest and public access (dry-run)".
-- [ ] 사용자가 Trusted Publisher를 등록한 뒤 `v0.4.2` 태그 푸시로 0.4.2가 게시되고, npm에 출처 표시가 붙는다(M-20).
+- [x] 사용자가 Trusted Publisher를 등록한 뒤 `v0.4.2` 태그를 푸시했고 workflow가 0.4.2를 게시했다(M-20).
+  2026-11-01 run 41277271628(태그 v0.4.2, 556d0f0, 05:31~05:32 UTC) 성공. npm latest 0.4.2, gitHead 556d0f0, dist.attestations에 SLSA provenance v1.
+  빈 폴더의 npx --yes docatlas@0.4.2 --version이 0.4.2, agents help가 Kit 1.2.0과 designer 1.3.0·implementer 1.2.0·reviewer 1.5.0 default.
+  이 세션의 git 연결은 태그 푸시를 HTTP 403으로 거절해 태그는 사용자가 푸시했다.
 
-종료 기준: 0.4.2가 이 workflow로 게시되고 레지스트리의 latest가 0.4.2다.
+종료 기준: 0.4.2가 이 workflow로 게시되고 레지스트리의 latest가 0.4.2다. 충족했다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ## 검증 예제와 기록
 
@@ -1674,9 +1684,10 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   Platform checks(run 41276800138)와 수동 리허설(run 41276806056)이 통과했다.
 - 완료(2026-11-01): 사용자가 Trusted Publisher를 등록했다(npm 11.21.1의 `npm trust github`, 처음 시도는 npm이 낮아 "Unknown command: trust").
   등록값은 file publish.yml, repository superlucky84/docatlas, permissions publish·stage publish로 workflow와 같다.
-- 다음(RQ-20·RQ-21): 사용자가 556d0f0에 `v0.4.2` 태그를 푸시해 workflow가 0.4.2를 게시한다. 이 세션의 git 연결은 태그 푸시를
-  HTTP 403으로 거절해(브랜치 푸시는 허용) 에이전트가 태그를 만들 수 없었다. 게시 뒤 결과와 출처 표시를 확인해 기록한다.
-  M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
+- 완료(2026-11-01): 사용자가 v0.4.2 태그(556d0f0)를 푸시했고 Publish to npm(run 41277271628)이 0.4.2를 게시했다.
+  npm latest 0.4.2, gitHead 556d0f0, SLSA provenance 있음. 이 세션의 git 연결은 태그 푸시를 HTTP 403으로 거절해 태그는 사용자가 푸시했다.
+  게시 기록 커밋을 main에 fast-forward로 반영했다.
+- 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
   사용자 환경은 0.4.1부터 docatlas 기록이 생겨 다음 kit 변경 때 확인할 수 있다.
@@ -1684,4 +1695,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 556d0f0(main, publish.yml). 작업 브랜치에는 그 위에 리허설 기록 커밋이 있으며 SHA는 git log -1로 확인한다. 0.4.1 게시본은 fcb4e68이다.
+- 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 이 게시 기록 커밋이며 SHA는 git log -1로 확인한다. 0.4.1 게시본은 fcb4e68이다.
