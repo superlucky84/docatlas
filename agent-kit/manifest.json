@@ -8,11 +8,11 @@
       "default": true,
       "skill": {
         "path": "skills/doc-driven-designer-v1/SKILL.md",
-        "sha256": "581cc7d6e87bf45f69a4ce95063b12c5bd91596ec4eb43df076284613b5a68e2"
+        "sha256": "b86b881707342366b821b44418a5c20f285e32abd62d350f046a71dd4d2daf90"
       },
       "agent": {
         "path": "agents/doc-driven-designer-v1.md",
-        "sha256": "0093a00bb5bef316f036f13ab6ed18575333bbf2bd44eabacd653ad97d63159d"
+        "sha256": "5bc58aef4d70c8d13145a61699bbb514f3eab4978e679d71155dae09c0947ab4"
       },
       "previous": [
         {
@@ -72,11 +72,11 @@
       "default": true,
       "skill": {
         "path": "skills/doc-driven-implementer-v1/SKILL.md",
-        "sha256": "7c47e4eb360f23b1a1d45c1dfabc193531d4ebdc39827195e7292aa9187f71af"
+        "sha256": "2ca6ede212818e56b2527b42ecc637aa4750cef97f2f222bbcded45c79770ed1"
       },
       "agent": {
         "path": "agents/doc-driven-implementer-v1.md",
-        "sha256": "8a452d5743488ad886f853fd73d295228c0765def3199ff660f996392c1c3f9e"
+        "sha256": "3e635e79d409e54597b9f779f81e50b4a93fd8c07e9b5ffa3e70d1c9fd75a3e7"
       },
       "previous": [
         {
@@ -115,11 +115,11 @@
       "default": true,
       "skill": {
         "path": "skills/doc-driven-reviewer-v1/SKILL.md",
-        "sha256": "95b446ddf8ef798b4acf3d0bb082f8403b1fb427cba1b320191e687e0b9e6d8e"
+        "sha256": "a14f4d210e42c5d1d8b299feb515208a702cdfc14781cce2ded00cd34b6c6a71"
       },
       "agent": {
         "path": "agents/doc-driven-reviewer-v1.md",
-        "sha256": "1361f9e6a03e4e61b09297ebc3ea8098fff6c5c54809f01e87e533f193c4bb5a"
+        "sha256": "fbbd578703a28031636aad66e64c40da0c907c877d9c7d444cafb366f6649ebd"
       },
       "previous": [
         {

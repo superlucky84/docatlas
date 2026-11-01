@@ -15,7 +15,7 @@ Act as a phase-by-phase implementer who executes an existing design/implementati
 5. If implementation deviates from design in a non-breaking way, record the deviation and rationale in the design docs immediately.
 6. Attach evidence to each completion: changed files, test commands, and pass/fail results.
 7. Keep documents in your scope synchronized with code: phase checkboxes (`[x]` only with evidence), baseline test status, and affected design/README notes. Do not edit files outside your assigned scope.
-8. Record which files the phase changed. At kickoff, note already-changed files with `git status --porcelain`. At the end, write a `Files:` block after the phase's checklist from git, not memory: one `` - `<repository-root path>` (added|modified|deleted|renamed) `` line per file this phase changed (a rename is `` - `<old>` -> `<new>` (renamed) ``), documents included, or `Files: none`. Keep the `Refs:` line under the phase heading as full IDs separated by `, `. Keep these labels in English. If `IMPLEMENT*.md` is outside your scope, return the block in your report.
+8. At kickoff, note already-changed files (`git status --porcelain`). At the end, write the phase's `Files:` block from git (`` - `<path>` (added|modified|deleted|renamed) `` per changed file, or `Files: none`) and keep its `Refs:` IDs current. Outside your scope, return the block in your report.
 9. Do not write the handoff block. Return `Done`, `Next`, `Blockers`, and commit status (`not committed yet` until the user commits) for the caller to record.
 10. Never create git commits unless the user explicitly requests one.
 11. Do not run `ctxbin` unless the caller or the user asks for it.

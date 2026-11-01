@@ -663,7 +663,8 @@ Files:
 2026-11-01 사용자 결정: 보통 designer만 쓴다. designer 스킬·룰만으로 Refs와 Files가 모두 동작해야 하고,
 implementer·reviewer는 있을 때 같은 규칙을 강화한다. 둘이 없어도 기능이 빠지지 않는다.
 designer 스킬은 이미 구현 중 단계 완료(Phase Completion)와 인계 규칙을 담고 있으므로, 단계를 마칠 때의 Files 작성도 거기에 둔다.
-implementer·reviewer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 한두 줄로 다시 적는다.
+implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 한 줄로 다시 적는다. reviewer는 문서에 있는 블록을 git 변경과 비교하므로 형식 전체를 다시 적지 않는다.
+스킬·룰에는 에이전트가 따라야 할 동작만 두고, 하위 제목의 Refs 상속·폴더 항목·파싱 계약 같은 세부는 METHOD와 이 계약에 둔다(2026-11-01 사용자 우려에 따른 분량 정리).
 
 | 역할 | Refs | Files |
 | --- | --- | --- |

@@ -52,7 +52,7 @@ Translate user requirements into a maintainable document set that guides impleme
 - Require explicit confirmation for destructive data operations, and keep secrets out of git.
 
 ## Phase Records
-Each phase in `IMPLEMENT.md` keeps two records in a fixed format, so people and tools can find, line by line, which IDs a phase covers and which files it changed.
+Each phase in `IMPLEMENT.md` records the IDs it covers and the files it changed, in a fixed format that tools can read line by line.
 
 ```markdown
 ## Phase 2 — Guest session: done
@@ -63,15 +63,12 @@ Refs: RQ-1, DC-1, M-1
 
 Files:
 - `services/checkout/session.js` (added)
-- `services/checkout/orders.js` (modified)
 - `services/checkout/legacy-cart.js` -> `services/checkout/cart.js` (renamed)
 ```
 
-- `Refs:` is one line right under the phase heading, written when you create the phase. List full IDs separated by `, ` (`RQ-1, RQ-3`, never `RQ-1·3`), or write `Refs: none`. A subheading inherits its parent's `Refs:`.
-- `Files:` is one line after the phase's checklist and records, followed directly by one item per changed file: `` - `<path>` (<kind>) `` with kind `added`, `modified`, `deleted`, or `renamed`; a rename is `` - `<old>` -> `<new>` (renamed) ``. Paths are from the repository root with `/`. Write `Files: none` when the phase changed nothing. Many generated files in one folder may be one entry ending in `/`. Explanations go in the checklist, not in the items.
-- Never write `Files:` while planning; planned files stay in checklist text. When an implemented phase ends, the agent that implemented it writes `Files:` from git (`git status --porcelain`, `git diff --name-status`, and untracked files), not from memory. List only this phase's changes, documents included, and leave out uncommitted changes from earlier phases. Rewrite the block if the phase is reopened. When a phase has subheadings, give each subheading that changed files its own block.
-- Keep `Refs:`, `Files:`, the kinds, and `none` in English whatever language the documents use.
-- Leave existing phases without these records as they are unless the user asks to backfill them.
+- Write `Refs:` under the phase heading when you create the phase: full IDs separated by `, ` (never `RQ-1·3`), or `Refs: none`.
+- Write `Files:` when an implemented phase ends, never while planning. Build it from git (`git status --porcelain`, `git diff --name-status`), not memory: one line per file this phase changed, documents included, with a repository-root path and `added`, `modified`, `deleted`, or `renamed`. Leave out earlier phases' uncommitted changes. Use `Files: none` if nothing changed.
+- Keep these labels in English in any document language. Do not backfill older phases unless asked.
 
 ## Multi-Agent Rules
 - Each document has one writer at a time. In multi-agent work, the main agent owns the canonical documents and the handoff block; subagents edit documents only within the scope they are given and return proposed changes for anything else.
@@ -82,7 +79,7 @@ Files:
 - Do not reorganize existing handoff history unless the user asks. When asked, move superseded notes and old verification logs into a history file (e.g., `docs/handoff/`).
 
 ## Phase Completion
-- When an implementation phase from these documents is finished, record its `Files:` block (see Phase Records) and check its `Refs:` line before reporting. This applies whether or not an implementer skill is in use.
+- When an implementation phase from these documents is finished, write its `Files:` block and check its `Refs:` line (see Phase Records), with or without an implementer.
 - When an implementation phase from these documents is finished and a reviewer such as `doc-driven-reviewer-v1` is available, ask the user whether to review the phase's changes or continue to the next phase. Skip the question when the user already decided, and never start a review without the user's answer.
 
 ## Completion Criteria

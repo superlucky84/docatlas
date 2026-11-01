@@ -1198,6 +1198,30 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+### 스킬·룰 분량 정리 — 완료
+
+진입: 사용자 우려(2026-11-01) — 강화 기능 때문에 스킬·룰이 길거나 난해해져 기존 동작에 나쁜 영향을 줄까 걱정된다.
+측정: designer 스킬이 932→1,275단어(+36%)로 늘었고, 새 규칙 중 한 줄 616자처럼 기존 최장 줄보다 긴 줄이 있었다.
+
+- [x] 동작은 그대로 두고 문장을 줄였다. designer Phase Records는 예시·규칙 3개로, 하위 제목 상속·폴더 항목·블록 재작성·설명 위치 같은
+  세부는 METHOD와 설계 계약에만 둔다. Phase Completion 문장, 세 룰의 새 규칙, implementer·reviewer의 새 항목도 줄였다.
+- [x] reviewer는 문서의 블록을 git 변경과 비교하므로 형식 전체를 다시 적지 않는다. implementer는 형식을 한 줄로 유지한다. 설계 역할 절에 반영했다.
+- [x] 결과(0373bbc 대비 단어 수): designer 스킬 +21%(1,130), 룰 +16%; implementer 스킬 +11%, 룰 +13%; reviewer 스킬 +4%, 룰 +6%.
+  새 규칙의 모든 줄이 각 파일의 기존 최장 줄 이하다. 기존 규칙은 지우거나 바꾸지 않았고 implementer 룰 번호만 하나씩 밀렸다.
+- [x] 배포 전이라 항목 버전과 kitVersion은 그대로 두고 manifest의 현재 해시만 다시 기록했다. previous 항목은 그대로다.
+- [x] npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0).
+
+Files:
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/skills/doc-driven-implementer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-implementer-v1.md` (modified)
+- `agent-kit/skills/doc-driven-reviewer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-reviewer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -1435,7 +1459,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   사용자 결정: Files와 Refs 둘 다, 세 스킬·룰에 규칙, 문서부터. designer만으로 동작하고 implementer·reviewer는 강화 개념이다.
   DC-30의 세 TBD는 제안대로 정했다(영어 라벨, 새 작업부터·예제 checkout만, docatlas 검색은 별도 후속).
   METHOD 두 언어판, kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0), 예제 checkout, CHANGELOG Unreleased를 고쳤다.
-  검증 결과는 위 "구현 계획의 Refs·Files 표기" 절에 있다.
+  검증 결과는 위 "구현 계획의 Refs·Files 표기" 절에 있다. 사용자 우려에 따라 새 스킬·룰 문장을 줄였다(designer 스킬 +36%→+21%).
 - 다음(RQ-20): 단계 끝 리뷰 여부를 사용자가 정한다. 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점도 사용자가 정한다.
   M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).

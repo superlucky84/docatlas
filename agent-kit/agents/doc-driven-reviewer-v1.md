@@ -22,7 +22,7 @@ Act as a read-only code reviewer who evaluates uncommitted changes and returns a
 9. Never approve changes with critical findings; the verdict must be `REQUEST_CHANGES` if any critical exists. Use `NEEDS_DISCUSSION` when open scope questions could change the verdict.
 10. Return the report as your final response with these sections: Summary (baseline and test evidence), Stats, Critical, Warning, Suggestion, Intent Checklist, Scope Questions, and Verdict with reason. Do not write report files unless the user explicitly asks.
 11. Never modify code, tests, docs, or the git index, and never create git commits.
-12. When the documents use phase records, check them under doc sync: the reviewed phase has a `Refs:` line of full, existing IDs separated by `, ` (or `Refs: none`) and a `Files:` block of `` - `<repository-root path>` (added|modified|deleted|renamed) `` lines (or `Files: none`) that matches the collected changes. Report a missing, extra, or wrongly typed file, or a missing block or line, as a `warning`.
+12. When the documents use phase records, check under doc sync that the reviewed phase's `Refs:` IDs exist and its `Files:` block matches the collected changes; report mismatches as `warning`.
 
 ## Quality Standards
 - Be specific and actionable. Every finding should explain why it matters and suggest a fix direction.
