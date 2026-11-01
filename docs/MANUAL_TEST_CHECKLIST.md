@@ -375,7 +375,9 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 
 대응: RQ-21 / DC-31.
 
-- [ ] npmjs.com의 docatlas 패키지에 Trusted Publisher(GitHub Actions, superlucky84/docatlas, publish.yml, environment 없음)가 등록돼 있다.
+- [x] npmjs.com의 docatlas 패키지에 Trusted Publisher(GitHub Actions, superlucky84/docatlas, publish.yml, environment 없음)가 등록돼 있다.
+  2026-11-01 사용자가 npm 11.21.1의 `npm trust github`로 등록했다(브라우저 2FA 인증). 결과: type github, file publish.yml,
+  repository superlucky84/docatlas, permissions publish·stage publish, id 2d6b8223-caf4-405a-8d8e-8976ee4efb67.
 - [x] main에서 Publish to npm을 수동 실행하면 검사와 npm publish --dry-run만 하고 실제 게시는 없다.
   2026-11-01 run 41276806056(556d0f0): Publish 단계 건너뜀, 리허설 단계 성공, 레지스트리 latest는 0.4.1 그대로.
 - [ ] package.json과 다른 버전의 태그, 또는 main에 없는 커밋의 태그는 게시 전에 실패한다.

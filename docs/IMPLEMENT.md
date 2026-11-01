@@ -1672,8 +1672,10 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): main CI(run 41265141901, 337200b)가 네 작업 모두 통과했다. 이 기록은 작업 브랜치에만 있고 main에는 게시 기록과 함께 반영한다.
 - 완료(2026-11-01): RQ-21·DC-31 npm 게시 자동화. publish.yml과 CONTRIBUTING "Releasing"을 main에 반영했다(556d0f0).
   Platform checks(run 41276800138)와 수동 리허설(run 41276806056)이 통과했다.
-- 다음(RQ-20·RQ-21): 사용자가 npm에 Trusted Publisher를 등록한다(npm 11.15.0 이상의 `npm trust github`, 처음 시도는 npm이 낮아
-  "Unknown command: trust"였다). 등록이 확인되면 556d0f0에 `v0.4.2` 태그를 푸시해 workflow가 0.4.2를 게시한다.
+- 완료(2026-11-01): 사용자가 Trusted Publisher를 등록했다(npm 11.21.1의 `npm trust github`, 처음 시도는 npm이 낮아 "Unknown command: trust").
+  등록값은 file publish.yml, repository superlucky84/docatlas, permissions publish·stage publish로 workflow와 같다.
+- 다음(RQ-20·RQ-21): 사용자가 556d0f0에 `v0.4.2` 태그를 푸시해 workflow가 0.4.2를 게시한다. 이 세션의 git 연결은 태그 푸시를
+  HTTP 403으로 거절해(브랜치 푸시는 허용) 에이전트가 태그를 만들 수 없었다. 게시 뒤 결과와 출처 표시를 확인해 기록한다.
   M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
