@@ -1651,7 +1651,9 @@ Files:
 진입: 1·3단계 완료(스킬이 안내할 명령이 있어야 한다).
 
 - [ ] agent-kit에 개인 문서 스킬·룰 한 쌍(DC-33). designer를 따르고 위치·숨김·백업(고친 뒤 실행)·링크 금지 규칙과
-  빈 폴더에 백업이 있으면 복구를 먼저 묻는 규칙만 담는다.
+  빈 폴더에 백업이 있으면 복구를 먼저 묻는 규칙만 담는다. manifest에서 default false(기본 설치 아님, `--all`·`--only`로 설치).
+- [ ] 설치 안내: agent-kit/README·README·agents help에서 기본 세 쌍과 `--all` 네 쌍의 차이, private만 고를 때 designer도 필요함을 알린다.
+  agents help의 "default" 표시와 테스트(기본 대상·--all·--only)를 확인한다.
 - [ ] manifest·kit 버전·agent-kit/README·METHOD 두 언어판·README 요약·CHANGELOG.
 
 기준 테스트: npm run check, npm test(kit 고정 테스트), agents help.

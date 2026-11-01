@@ -311,7 +311,9 @@ RQ-20의 Files 기록은 이 기능의 사전 작업이다. 문서가 코드 옆
 - 확인됨: 개인 문서용 스킬·룰은 designer 위에 얹는 얇은 스킬이다. 문서 작성 방식(4종 문서·결정·phase·Refs/Files·인계)은
   doc-driven-designer-v1을 따르고, 위치·숨김·백업 규칙만 담는다. designer가 함께 설치돼 있어야 한다(기본 설치에 포함).
 - 확인됨: 개인 문서는 루트 아래 한 폴더에서 기능별로 중앙 관리한다. 코드 옆에 흩어 두지 않는다.
-- 확인됨(2026-11-01, DC-33~36 "전부 추천대로"): 스킬은 `doc-driven-private-v1`로 기본 설치하고 명시적 요청에만 쓴다.
+- 확인됨(2026-11-01, DC-33~36 "전부 추천대로"): 스킬은 `doc-driven-private-v1`로 하고 명시적 요청에만 쓴다.
+  설치(같은 날 사용자 변경): 기본 설치에 넣지 않는다. `agents install`은 지금처럼 세 쌍, `--all`은 private까지 네 쌍,
+  `--only doc-driven-private-v1`(과 필요하면 designer)로 따로 고를 수 있다. 그래서 기본 설치와 `--all`이 다시 달라진다(DC-28 이후 같았다).
   백업은 `~/.docatlas/private-backups/<origin 키>/<시각>/`, 같은 내용이면 건너뛰고 모두 보관한다. 명령은 `docatlas private init|status|backup|list|restore|help`.
   Private 그룹은 설정과 .gitignore의 영향을 받지 않는 고정 출처다.
 - 확인됨: 백업은 사용자가 말로 시키면 에이전트가 실행하고, 개인 문서 스킬은 문서를 고친 뒤에도 백업을 실행한다(잊지 않도록).

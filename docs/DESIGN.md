@@ -829,7 +829,10 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - 이름: `doc-driven-private-v1`(스킬과 룰 한 쌍). 사용자가 개인·비공개 문서를 명시적으로 요청할 때만 쓴다는 설명을 둔다.
 - 내용: 문서 작성은 doc-driven-designer-v1을 따른다. 위치(`.docatlas/private/<기능>/`), 숨김 확인(init), 개인 문서를 stage·commit하거나
   추적 파일에서 링크하지 않기, Refs·Files는 저장소 루트 기준, 고친 뒤 백업, 관련 문서를 찾을 때 공개·개인 문서를 함께 보기를 담는다.
-- 기본 설치한다. 명시적 요청에만 쓰이도록 설명으로 제한한다. 스킬·룰을 더하면 kit 버전·manifest·METHOD·README를 함께 고친다.
+- 설치(2026-11-01 사용자 변경): manifest에서 default false다. `agents install`의 기본 대상(세 쌍)에는 들어가지 않고,
+  `--all` 또는 `--only doc-driven-private-v1`로 설치한다. 기존 설치 코드가 default false 항목을 이미 이렇게 다루므로 설치 동작은 바꾸지 않는다.
+  designer 위에 얹는 스킬이라 designer가 없으면 동작하지 않는다. `--only`로 private만 고르면 도움말·안내에서 designer도 함께 고르라고 알린다.
+  명시적 요청에만 쓰이도록 설명으로 제한한다. 스킬·룰을 더하면 kit 버전·manifest·METHOD·README·agent-kit/README를 함께 고친다.
 - 새 문서를 만들기 전에 폴더가 비어 있고 백업이 있으면 복구할지 먼저 묻는다.
 
 ## 결정 체크리스트
@@ -945,7 +948,8 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - [x] DC-32: 2026-11-01 사용자 선택. 개인 문서는 `.docatlas/private/<기능>/`(agents.json은 그대로 커밋, git 안이면 실행 위치와 관계없이 저장소 최상위,
   git 밖이면 실행한 폴더, 홈과 그 위는 막음. git 밖의 위쪽 찾기는 같은 날 단순화로 없앴다), git 숨김은 `.git/info/exclude`,
   문서 지도는 별도 Private 그룹으로 항상 표시, 스킬은 designer 위에 얹는 얇은 스킬. M-21.
-- [x] DC-33: 2026-11-01 사용자 선택(제안대로). `doc-driven-private-v1`, 기본 설치, 명시적 요청에만 사용, 빈 폴더와 백업이 있으면 복구를 먼저 묻는다. M-21.
+- [x] DC-33: 2026-11-01 사용자 선택(제안대로). `doc-driven-private-v1`, 명시적 요청에만 사용, 빈 폴더와 백업이 있으면 복구를 먼저 묻는다. M-21.
+  같은 날 사용자 변경: 기본 설치가 아니다(default false). `--all`이나 `--only`로 설치하므로 기본 설치와 `--all`이 다시 달라진다.
 - [x] DC-34: 2026-11-01 사용자 선택(제안대로). `~/.docatlas/private-backups/<origin 키>/<시각>/`,
   같은 내용은 건너뜀, 모두 보관, 명령으로 백업하고 스킬이 고친 뒤 실행, 클라우드 폴더 지정은 후속. M-22.
 - [x] DC-35: 2026-11-01 사용자 선택(제안대로). `docatlas private init|status|backup|list|restore|help`, 대화형 입력 없음, restore는 미리보기와 --force. M-22.

@@ -394,6 +394,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 
 대응: RQ-22 / DC-32·33·36. 예제: F-10. 아래 항목은 구현 후의 인수 기준이다.
 
+- [ ] `docatlas agents install`은 세 쌍만, `--all`은 private까지 네 쌍, `--only doc-driven-private-v1`은 private만 설치한다(미리보기로 확인).
 - [ ] 개인 문서 스킬을 써서 기능 문서를 요청하면 `.docatlas/private/<기능>/`에 designer 형식의 문서가 생기고, 공개 docs/는 바뀌지 않는다.
 - [ ] `git status`에 개인 문서가 나타나지 않고, `.gitignore`는 바뀌지 않으며, `.git/info/exclude`에 `/.docatlas/private/` 한 줄이 있다.
 - [ ] 같은 폴더의 `.docatlas/agents.json`은 숨겨지지 않아 커밋할 수 있다.
