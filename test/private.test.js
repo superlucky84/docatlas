@@ -191,6 +191,27 @@ test('outside git the folder is created with a warning; missing git outside git 
   assert.deepEqual(field(missing.lines, 'warning').slice(0, 2), ['warning', 'not-git']);
 });
 
+test('outside git the nearest folder above with .docatlas/private is the root, but never the home folder', async t => {
+  const base = await workspace(t);
+  const home = path.join(base, 'home');
+  const project = path.join(home, 'project');
+  const nested = path.join(project, 'src', 'feature');
+  await fs.mkdir(nested, { recursive: true });
+  assert.deepEqual((await privateCommand(nested, ['status'], { home })).lines[0], ['root', nested]);
+
+  await fs.mkdir(privateFolder(project), { recursive: true });
+  const found = await privateCommand(nested, ['init'], { home });
+  assert.equal(found.code, 0, found.stderr);
+  assert.deepEqual(found.lines.slice(0, 2), [['root', project], ['unchanged', 'folder', privateFolder(project)]]);
+  assert.equal(await exists(path.join(nested, '.docatlas')), false);
+  assert.deepEqual((await privateCommand(project, ['status', '--root', nested], { home })).lines[0], ['root', project]);
+
+  const other = path.join(home, 'other', 'deep');
+  await fs.mkdir(other, { recursive: true });
+  await fs.mkdir(privateFolder(home), { recursive: true });
+  assert.deepEqual((await privateCommand(other, ['status'], { home })).lines[0], ['root', other]);
+});
+
 test('in a repository, missing git or a git error stops before any write', async t => {
   const root = await repository(t);
   const before = await fs.readFile(excludeFile(root), 'utf8');

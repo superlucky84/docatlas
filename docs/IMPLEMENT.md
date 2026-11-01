@@ -1526,6 +1526,28 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+### 1단계 보완 — git 밖의 루트 찾기: 완료
+
+진입: 사용자 질문(git 저장소가 아니면 실행 위치를 루트로 보나)에 답하고, 이미 있는 루트 전용 폴더를 루트로 보게 하자는 사용자 선택(2026-11-01).
+
+- [x] git 밖이면 시작 폴더부터 위로 실제 폴더인 `.docatlas/private/`를 찾아 그 폴더를 루트로 쓴다. 홈 폴더와 그 위는 보지 않고,
+  `.docatlas`·`private`이 링크인 폴더는 건너뛴다. 없으면 시작 폴더(folder.js의 findPrivateRoot, runPrivate의 home 옵션).
+- [x] 도움말의 루트 설명과 `--root` 설명, 설계·요구사항·M-21에 같은 규칙을 적었다.
+- [x] 테스트: 기록이 없을 때 시작 폴더, 위쪽 프로젝트의 개인 폴더를 찾아 하위 폴더에 새로 만들지 않음, `--root`도 같음, 홈 폴더의 `.docatlas/private`은 쓰지 않음.
+
+결과: test/private.test.js 16개 중 15개 통과·1개 건너뜀(root 권한), npm test 175개 중 171개 통과·4개 건너뜀·실패 0, npm run check 통과.
+종료 기준: git 밖에서도 하위 폴더 실행이 개인 폴더를 흩뜨리지 않는다. 충족했다.
+
+Files:
+- `src/private/folder.js` (modified)
+- `src/private/command.js` (modified)
+- `src/private/index.js` (modified)
+- `test/private.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ### 2단계 — 문서 지도의 Private 그룹
 
 진입: 1단계 완료.
@@ -1826,6 +1848,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   에이전트가 v0.4.1과 같은 구성의 노트를 미리 채운 작성 링크를 만들었다. 태그 v0.4.2는 그대로 556d0f0을 가리킨다.
 - 완료(2026-11-01, RQ-22 1단계): `docatlas private init|status|help`와 git 숨김. 결과는 "개인 문서와 백업" 절 1단계에 있다.
 - 완료(2026-11-01): 1단계 리뷰(warning 10)를 반영했다. 사용자가 "항상 저장소 최상위"를 골랐다.
+  git 밖에서는 위쪽의 기존 `.docatlas/private/`를 루트로 쓰도록 보완했다(사용자 선택).
 - 다음(RQ-22·23): 반영분을 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
@@ -1836,4 +1859,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 그리고 이 인계 커밋(1단계 리뷰 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), 그리고 이 인계 커밋(git 밖의 루트 찾기)이 있다. 0.4.1 게시본은 fcb4e68이다.

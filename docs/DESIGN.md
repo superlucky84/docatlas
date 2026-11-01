@@ -762,7 +762,9 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 ### git 숨김 — 1단계 구현
 
 - 위치(2026-11-01 사용자 선택): git 작업 트리 안이면 명령을 어느 폴더에서 실행하든(`--root` 포함) 저장소 최상위의 `.docatlas/private/`를 쓴다.
-  그래서 패턴은 항상 `/.docatlas/private/`다. git 밖이면 시작 폴더를 쓴다. 하위 폴더에서 연 문서 지도에는 개인 문서가 보이지 않는다.
+  그래서 패턴은 항상 `/.docatlas/private/`다. 하위 폴더에서 연 문서 지도에는 개인 문서가 보이지 않는다.
+  git 밖이면(2026-11-01 사용자 선택) 시작 폴더부터 위로 실제 폴더인 `.docatlas/private/`를 찾아 그 폴더를 쓴다. 홈 폴더와 그 위는 보지 않고,
+  심볼릭 링크인 `.docatlas`·`private`은 건너뛴다. 찾지 못하면 시작 폴더를 쓴다.
 - git 질의는 `rev-parse --is-inside-work-tree --show-toplevel --git-path info/exclude` 한 번으로 한다. worktree·submodule은 각자의 exclude 파일을 쓴다.
   git hook이 내보내는 GIT_DIR·GIT_WORK_TREE·GIT_INDEX_FILE·GIT_COMMON_DIR·GIT_NAMESPACE·GIT_PREFIX는 지우고 실행해 다른 저장소를 건드리지 않는다.
 - 판정: 질의가 성공하고 작업 트리면 저장소. 실패했는데 시작 폴더부터 위로(GIT_CEILING_DIRECTORIES 전까지) `.git`이 없으면 git 밖으로 보고 경고만 한다.

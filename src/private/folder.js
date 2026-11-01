@@ -39,6 +39,20 @@ export async function inspectFolder(root) {
   return { path: privatePath(root), state: 'present' };
 }
 
+// Outside git: the nearest folder at or above start whose .docatlas/private is a real folder, looking only below
+// the home folder (whose .docatlas holds install records and backups). Null when there is none.
+export async function findPrivateRoot(start, home) {
+  const stop = path.resolve(home);
+  let current = start;
+  for (;;) {
+    if (current === stop) return null;
+    if ((await inspectFolder(current)).state === 'present') return current;
+    const parent = path.dirname(current);
+    if (parent === current) return null;
+    current = parent;
+  }
+}
+
 // files counts every entry git could see (files and links); documents counts Markdown files.
 export async function countFiles(directory) {
   const count = { files: 0, documents: 0 };
