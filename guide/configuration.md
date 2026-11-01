@@ -54,6 +54,11 @@ The Python and Java rows were added in 0.3.0, and `.conda` in 0.3.1
 test environments, and generated copies from appearing in the map or being watched.
 Ordinary source folders and names such as `env`, `bin`, `out`, `vendor`,
 `target-design`, and `venv-guide` are not excluded.
+
+`.docatlas/private/` at the project root is the one exception to these rules. Markdown files
+there are private documents and always appear in a separate Private group, whatever `include`,
+`exclude`, `groups`, `.gitignore`, `--docs-dir`, or `--all-md` say. Symbolic links there are
+still skipped, and other files in `.docatlas/`, such as `agents.json`, stay excluded.
 A conda environment created inside the project under another name, such as `./env`, is not
 excluded either; add it to `.gitignore` or `exclude` so its package docs stay out of the map.
 These are replaceable defaults, not fixed exclusions: an explicit `exclude` array

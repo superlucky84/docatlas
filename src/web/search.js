@@ -81,6 +81,12 @@ export function createSearch({ open, reveal, showMap, getSequence, getSelected }
         button.append(highlighted('span', 'result-title', result.title, terms),
           highlighted('span', 'result-group', result.groupTitle, terms),
           highlighted('span', 'result-snippet', result.snippet, terms));
+        if (result.isPrivate) {
+          const badge = document.createElement('span');
+          badge.className = 'private-badge';
+          badge.textContent = 'Private';
+          button.append(badge);
+        }
         button.title = 'Matched ' + result.matchedField;
         button.onclick = () => { void open(result.id); };
         const path = document.createElement('button');

@@ -3,6 +3,8 @@ import { createSearch } from './search.js';
 import { connectLive } from './live.js';
 
 const $ = id => document.getElementById(id);
+// The private folder shows as one Private group (see the collector).
+const PRIVATE_GROUP = '.docatlas/private';
 let reader;
 let search;
 const labels = {
@@ -90,6 +92,8 @@ function renderGroup(group) {
   } else {
     row.append(element('span', 'structure-title', group.title));
   }
+  if (group.isPrivate) row.classList.add('is-private');
+  if (group.id === PRIVATE_GROUP) row.append(element('span', 'private-badge', 'Only on this computer'));
   item.append(row);
 
   if (group.documentIds.length) {

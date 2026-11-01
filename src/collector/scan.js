@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { extendIgnoreLayers, isIgnored, isProtectedName } from './policy.js';
+import { extendIgnoreLayers, isIgnored, isPrivatePath, isProtectedName, PRIVATE_FOLDER } from './policy.js';
 import { loadConfiguration } from './config.js';
 import { matchesDocsDirectory, normalizeCollectionOptions } from './options.js';
 import { ProjectError } from './errors.js';
@@ -27,14 +27,16 @@ function buildGroups(documents, config, project, warnings, headings) {
     if (groups.has(id)) {
       return groups.get(id);
     }
-    const parentId = id === '.' ? null : path.posix.dirname(id);
+    // The private folder shows as one Private group directly under the project.
+    const parentId = id === '.' ? null : id === PRIVATE_FOLDER ? '.' : path.posix.dirname(id);
     if (parentId !== null) {
       add(parentId);
     }
     const group = {
       id, parentId, sourceDirectory: id,
-      title: id === '.' ? project.displayName : path.posix.basename(id),
-      summary: '', documentIds: [], childIds: [], isStructural: true
+      title: id === '.' ? project.displayName : id === PRIVATE_FOLDER ? 'Private' : path.posix.basename(id),
+      summary: '', documentIds: [], childIds: [], isStructural: true,
+      ...(isPrivatePath(id) ? { isPrivate: true } : {})
     };
     groups.set(id, group);
     if (parentId !== null) {
@@ -55,15 +57,15 @@ function buildGroups(documents, config, project, warnings, headings) {
       compare(left.relativePath, right.relativePath)
     )[0];
     if (representative) {
-      group.title = groupTitle(headings.get(representative.id)) || group.title;
+      if (group.id !== PRIVATE_FOLDER) group.title = groupTitle(headings.get(representative.id)) || group.title;
       group.summary = representative.summary;
     }
-    Object.assign(group, config.groups.get(group.id));
+    if (!group.isPrivate) Object.assign(group, config.groups.get(group.id));
     group.documentIds.sort((left, right) =>
       DOCUMENT_ORDER.indexOf(byId.get(left).kind) - DOCUMENT_ORDER.indexOf(byId.get(right).kind) ||
       compare(left, right)
     );
-    group.childIds.sort(compare);
+    group.childIds.sort((left, right) => (left === PRIVATE_FOLDER) - (right === PRIVATE_FOLDER) || compare(left, right));
   }
   for (const id of config.groups.keys()) {
     if (!groups.has(id)) {
@@ -149,6 +151,7 @@ export async function scanProject(directory = process.cwd(), { previous, collect
         continue;
       }
       const isDirectory = entry.isDirectory();
+      if (isDirectory && relative === PRIVATE_FOLDER) continue;
       if (isIgnored(filename, isDirectory, layers) || config.isExcluded(relative, isDirectory)) {
         continue;
       }
@@ -160,30 +163,73 @@ export async function scanProject(directory = process.cwd(), { previous, collect
           !(selection.allMarkdown || config.isIncluded(relative) || matchesDocsDirectory(relative, selection.docsDirs))) {
         continue;
       }
-      try {
-        const markdown = await readRegular(filename);
-        const contentHash = hash(markdown);
-        const cached = previous?.snapshot.project.id === project.id ? previous.metadataCache?.get(relative) : null;
-        const metadata = cached?.contentHash === contentHash
-          ? cached : { ...extractMetadata(markdown, entry.name), contentHash };
-        metadataCache.set(relative, metadata);
-        headings.set(relative, metadata.headingTitle);
-        contents.set(relative, markdown);
-        searchTexts.set(relative, metadata.searchText);
-        documents.push({
-          id: relative, relativePath: relative,
-          groupId: path.posix.dirname(relative),
-          kind: documentKind(entry.name),
-          title: metadata.title, summary: metadata.summary,
-          canonicalId: null, contentHash
-        });
-      } catch (cause) {
-        warn('DOCUMENT_READ_FAILED', filename, 'Cannot read document (' + (cause.code || cause.name) + ')');
+      await collect(filename, entry.name, relative);
+    }
+  }
+
+  async function collect(filename, name, relative, isPrivate = false) {
+    try {
+      const markdown = await readRegular(filename);
+      const contentHash = hash(markdown);
+      const cached = previous?.snapshot.project.id === project.id ? previous.metadataCache?.get(relative) : null;
+      const metadata = cached?.contentHash === contentHash
+        ? cached : { ...extractMetadata(markdown, name), contentHash };
+      metadataCache.set(relative, metadata);
+      headings.set(relative, metadata.headingTitle);
+      contents.set(relative, markdown);
+      searchTexts.set(relative, metadata.searchText);
+      documents.push({
+        id: relative, relativePath: relative,
+        groupId: path.posix.dirname(relative),
+        kind: documentKind(name),
+        title: metadata.title, summary: metadata.summary,
+        canonicalId: null, contentHash,
+        ...(isPrivate ? { isPrivate: true } : {})
+      });
+    } catch (cause) {
+      warn('DOCUMENT_READ_FAILED', filename, 'Cannot read document (' + (cause.code || cause.name) + ')');
+    }
+  }
+
+  // The private folder: every Markdown file below <root>/.docatlas/private, whatever the include, exclude and
+  // ignore rules say. Symbolic links are skipped, including .docatlas and private themselves.
+  async function walkPrivate(directory) {
+    let entries;
+    try {
+      const stat = await fs.lstat(directory);
+      if (stat.isSymbolicLink()) {
+        warn('SYMLINK_SKIPPED', directory, 'Symbolic links are not collected');
+        return;
+      }
+      if (!stat.isDirectory()) return;
+      if (!isInside(root, await fs.realpath(directory))) {
+        warn('OUTSIDE_ROOT', directory, 'Directory is outside the project root');
+        return;
+      }
+      entries = await fs.readdir(directory, { withFileTypes: true });
+    } catch (cause) {
+      if (cause.code !== 'ENOENT') warn('DIRECTORY_READ_FAILED', directory, 'Cannot read directory (' + cause.code + ')');
+      return;
+    }
+    entries.sort((left, right) => compare(left.name, right.name));
+    for (const entry of entries) {
+      if (isProtectedName(entry.name)) continue;
+      const filename = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) {
+        warn('SYMLINK_SKIPPED', filename, 'Symbolic links are not collected');
+      } else if (entry.isDirectory()) {
+        await walkPrivate(filename);
+      } else if (entry.isFile() && /\.md$/i.test(entry.name)) {
+        await collect(filename, entry.name, relativePath(root, filename), true);
       }
     }
   }
 
   await walk(root, []);
+  // The main walk already warns about a linked .docatlas; only a real folder can hold private documents.
+  if ((await fs.lstat(path.join(root, '.docatlas')).catch(() => null))?.isDirectory()) {
+    await walkPrivate(path.join(root, PRIVATE_FOLDER));
+  }
   for (const directory of selection.docsDirs) {
     if (!directoryLayers.has(path.join(root, directory))) {
       warnings.push({ code: 'DOCS_DIR_SKIPPED', path: directory,
@@ -198,8 +244,9 @@ export async function scanProject(directory = process.cwd(), { previous, collect
       const local = segments.slice(0, index + 1).join('/');
       const filename = path.join(root, local);
       const isDirectory = index < segments.length - 1 || directory;
-      if (isProtectedName(segments[index]) || config.isExcluded(local, isDirectory) ||
-          isIgnored(filename, isDirectory, layers)) return false;
+      if (isProtectedName(segments[index])) return false;
+      if (!isPrivatePath(local, isDirectory) &&
+          (config.isExcluded(local, isDirectory) || isIgnored(filename, isDirectory, layers))) return false;
       if (isDirectory) layers = directoryLayers.get(filename) || layers;
     }
     return true;

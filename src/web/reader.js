@@ -117,6 +117,7 @@ export function createReader({ projectId, getDocument, getGroup, onSelect, captu
       $('document-title').textContent = source.title;
       $('document-path').textContent = source.relativePath;
       $('document-area').textContent = getGroup(source.groupId)?.title || source.groupId;
+      $('document-private').hidden = !source.isPrivate;
       document.body.dataset.view = 'document';
     }
     $('document-status').classList.remove('is-error');
@@ -160,6 +161,7 @@ export function createReader({ projectId, getDocument, getGroup, onSelect, captu
       $('document-title').textContent = source.title;
       $('document-path').textContent = source.relativePath;
       $('document-area').textContent = getGroup(source.groupId)?.title || source.groupId;
+      $('document-private').hidden = !source.isPrivate;
       $('document-source').textContent = data.markdown;
       $('document-content').innerHTML = data.html;
       $('document-status').textContent = '';

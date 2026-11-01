@@ -39,6 +39,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px soli
 .tree-row:hover { background: #f7f9fc; }
 .tree-row.is-open-docs { background: #f7f9fd; border-color: #e9edf5; }
 .tree-row.is-selected { background: var(--accent-soft); border-color: #dce5fc; }
+.tree-row.is-private { box-shadow: inset 2px 0 0 #e7c27a; }
+.private-badge { align-self: center; background: #fff6e6; color: #7a5200; border: 1px solid #f0d49c; border-radius: 4px; padding: 1px 6px; font-size: 10px; white-space: nowrap; }
+.search-result .private-badge { display: inline-block; margin-top: 6px; }
 .chevron, .chevron-spacer { width: 27px; min-width: 27px; height: 30px; }
 .chevron { border: 0; color: #929cac; border-radius: 4px; background: transparent; font-size: 22px; line-height: 1; }
 .chevron:hover { background: #e9edf5; color: #3d4d65; }

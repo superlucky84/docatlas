@@ -100,6 +100,12 @@ Markdown has no arrow. Counts describe the group's own documents. Empty director
 are omitted, so an on-disk subdirectory alone does not guarantee an arrow.
 On narrow screens, selecting a document switches to its reader, with a button back to the map.
 
+Private documents in `.docatlas/private/` at the project root appear last, in a group named
+**Private** and marked "Only on this computer". Their reader header and search results show a
+Private badge. `docatlas private init` creates the folder and hides it from git for your clone
+only, so teammates never see it; run `docatlas private help` for the details. The map reads
+the folder at the root it was opened with, so open the map from the project root.
+
 ## Reading and links
 
 The reader renders tables, fenced code, and read-only task checks, with an outline

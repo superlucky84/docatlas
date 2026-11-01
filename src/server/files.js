@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { loadConfiguration } from '../collector/config.js';
-import { extendIgnoreLayers, isIgnored, isProtectedName } from '../collector/policy.js';
+import { extendIgnoreLayers, isIgnored, isPrivatePath, isProtectedName } from '../collector/policy.js';
 import { HttpError } from './errors.js';
 import { readRegularFile as readRegular } from '../collector/read.js';
 
@@ -57,7 +57,8 @@ export async function createFileAccess(root) {
         if (stat.isSymbolicLink()) throw new HttpError(403, 'Symbolic links cannot be opened.');
         const directory = stat.isDirectory();
         const local = path.relative(root, filename).split(path.sep).join('/');
-        if (isIgnored(filename, directory, layers) || config.isExcluded(local, directory)) {
+        // Private documents are a fixed source: exclude and ignore rules do not apply to them.
+        if (!isPrivatePath(local, directory) && (isIgnored(filename, directory, layers) || config.isExcluded(local, directory))) {
           throw new HttpError(403, 'This path is excluded from the project.');
         }
         if (index < segments.length - 1 && !directory) {

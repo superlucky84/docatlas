@@ -27,7 +27,7 @@ export function searchDocuments(index, query) {
     const start = Math.max(0, offset - 45);
     const snippet = (start ? '…' : '') + context.text.slice(start, start + 160) + (start + 160 < context.text.length ? '…' : '');
     matches.push({ id: document.id, title: document.title, relativePath: document.relativePath,
-      groupTitle, matchedField: context.name, snippet, score });
+      groupTitle, matchedField: context.name, snippet, score, ...(document.isPrivate ? { isPrivate: true } : {}) });
   }
   matches.sort((left, right) => right.score - left.score || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
   return { query, total: matches.length, results: matches.slice(0, 50).map(({ score, ...result }) => result) };

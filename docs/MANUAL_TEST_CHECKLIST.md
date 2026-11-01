@@ -407,7 +407,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 개인 문서의 Files·Refs가 저장소 루트 기준 경로로 관련 코드와 공개 문서를 가리킨다.
 
 통과: 개인 문서가 팀원에게 흔적 없이 내 작업 폴더에만 있고, 지도에서는 구분돼 보인다.
-상태: 1단계(init·status·git 숨김) 구현. 자동 근거: test/private.test.js가 git status에 개인 문서가 안 보이고 agents.json은 보이며,
+상태: 1단계(init·status·git 숨김)와 2단계(문서 지도의 Private 그룹·배지) 구현. 2단계 자동 근거: test/private-map.test.js, test/browser/private.spec.js. 자동 근거: test/private.test.js가 git status에 개인 문서가 안 보이고 agents.json은 보이며,
 .gitignore가 생기지 않고 exclude에 패턴이 한 번만 들어감을 확인한다. 지도·스킬은 구현 전이고 사람 확인은 미실행이다.
 
 ### M-22 — 개인 문서 백업과 복구

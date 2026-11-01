@@ -1625,15 +1625,44 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### 2단계 — 문서 지도의 Private 그룹
+### 2단계 — 문서 지도의 Private 그룹: 완료
 
-진입: 1단계 완료.
+진입: 1단계 완료(단순화 cf2e790, Windows CI 통과). 사용자가 2단계 진행을 요청했다(2026-11-01).
+기준 검증(58c71f5, Linux / Node 22.23.4): npm run check 통과, npm test 183개 중 178개 통과·5개 건너뜀·실패 0.
 
-- [ ] 수집기가 루트의 `.docatlas/private/**/*.md`를 고정 출처로 읽어 Private 그룹과 private 표시를 만든다. 하위 `.docatlas/`와 agents.json은 계속 제외한다.
-- [ ] 서버·화면에 Private 배지와 검색 결과 표시. 변경 감지·세대 일관성·읽기 시 재검사 정책을 지킨다.
+- [x] 수집기: 경로 규칙 `isPrivatePath`·`PRIVATE_FOLDER`(policy.js)를 두고, 메인 탐색은 `.docatlas/private`를 건너뛰며, 별도 탐색(walkPrivate)이
+  루트의 `.docatlas/private` 아래 모든 `.md`를 모은다. 문서 수집은 collect 함수 하나로 묶었다. `acceptsPath`는 개인 경로에 제외·ignore를 적용하지 않는다.
+  그룹: Private 그룹은 부모 `.`, 제목 Private 고정, 루트 하위 목록 맨 뒤, groups 설정 미적용. 문서·그룹에 `isPrivate: true`.
+- [x] 서버: 읽기 검사(files.js inspect)가 같은 규칙으로 개인 경로를 허용한다. 실시간 감지는 acceptsPath를 쓰므로 그대로 개인 폴더를 본다.
+  검색 결과에 `isPrivate`를 싣는다.
+- [x] 화면: Private 그룹 줄의 "Only on this computer" 배지와 개인 그룹 줄의 옅은 왼쪽 선, 문서 머리의 Private 배지(`#document-private`), 검색 결과의 Private 배지.
+- [x] 사용 가이드: document-map(Private 그룹과 `docatlas private init`), configuration(기본 제외의 예외).
 
 기준 테스트: npm test(수집기·서버), npm run test:browser(지도·검색 배지).
-종료 기준: 공개 문서 동작은 그대로이고 개인 문서가 Private 그룹으로만 보인다.
+결과: test/private-map.test.js 6개(그룹 구조·맨 뒤·제목 고정, include/exclude/--all-md/--docs-dir/.gitignore/groups 무시와 중복 없음,
+`.docatlas` 하위 링크 경고, 검색 표시, 서버의 문서·이미지 읽기와 공개 문서 링크·다른 `.docatlas` 파일 404, 실행 중 저장한 개인 문서 반영) 통과.
+test/browser/private.spec.js 2개(Private 그룹 배지·문서 머리 배지와 공개 문서에서 숨김, 검색 결과 배지) 통과.
+npm run check 통과, npm test 189개 중 184개 통과·5개 건너뜀·실패 0, npm run test:browser 42개 통과(설치 Chromium 1243을 1248 이름으로 임시 연결),
+npm pack --dry-run 49개 파일·64.8 kB. 스크린샷으로 지도·문서 머리·검색 결과의 표시를 확인했다.
+종료 기준: 공개 문서 동작은 그대로이고 개인 문서가 Private 그룹으로만 보인다. 충족했다.
+
+Files:
+- `src/collector/policy.js` (modified)
+- `src/collector/scan.js` (modified)
+- `src/collector/search.js` (modified)
+- `src/server/files.js` (modified)
+- `src/web/app.js` (modified)
+- `src/web/search.js` (modified)
+- `src/web/reader.js` (modified)
+- `src/web/index.html` (modified)
+- `src/web/styles.css` (modified)
+- `test/private-map.test.js` (added)
+- `test/browser/private.spec.js` (added)
+- `guide/document-map.md` (modified)
+- `guide/configuration.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ### 3단계 — 백업과 복구
 
@@ -1931,7 +1960,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): 1단계 재리뷰(critical 2·warning 4)를 반영했다. git 밖 찾기는 홈 안에서만, 홈과 그 위는 막기(사용자 선택).
 - 완료(2026-11-01): 사용자 우려(규칙 복잡, Windows)에 따라 1단계를 단순화했다. git 밖은 실행한 폴더, git 밖 판단은 git의 답, 플랫폼 CI에 개인 문서 테스트.
   Platform checks(run 41286187387, cf2e790)가 macOS·Windows × Node 22·24에서 모두 통과했다.
-- 다음(RQ-22·23): 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
+- 완료(2026-11-01, RQ-22 2단계): 문서 지도의 Private 그룹과 배지. 결과는 "개인 문서와 백업" 절 2단계에 있다.
+- 다음(RQ-22·23): 2단계를 리뷰할지 3단계(백업과 복구)로 갈지 사용자가 정한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1941,4 +1971,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), 그리고 이 인계 커밋(1단계 단순화)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 그리고 이 인계 커밋(2단계)이 있다. 0.4.1 게시본은 fcb4e68이다.
