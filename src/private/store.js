@@ -112,6 +112,21 @@ export async function listBackups(folder) {
 
 export const latestRegular = backups => backups.find(backup => backup.reason === 'backup') ?? null;
 
+export const DEFAULT_KEEP = 3;
+
+// Removes all but the newest keep backups of a key and returns the removed folders. Only folders listBackups
+// accepted are removed, never a symbolic link, and never the backup named by protect (the one just written).
+export async function pruneBackups(folder, keep, protect = null) {
+  const { backups } = await listBackups(folder);
+  const removed = [];
+  for (const backup of backups.slice(keep)) {
+    if (backup.name === protect || await kind(backup.path) !== 'directory') continue;
+    await fs.rm(backup.path, { recursive: true, force: true });
+    removed.push(backup.path);
+  }
+  return removed;
+}
+
 export function sameFiles(backup, entries) {
   return Boolean(backup) && backup.files.length === entries.length &&
     backup.files.every((file, index) => file.path === entries[index].path && file.sha256 === entries[index].sha256);

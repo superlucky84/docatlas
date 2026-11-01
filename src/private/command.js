@@ -7,12 +7,14 @@ import { headCommit, isIgnored, locateRepository, trackedFiles } from './git.js'
 import { parseKey, projectKey } from './key.js';
 import { applyRestore, planRestore } from './restore.js';
 import {
-  inspectStore, isBackupName, latestRegular, listBackups, readBackup, readEntries, sameFiles, writeBackup
+  DEFAULT_KEEP, inspectStore, isBackupName, latestRegular, listBackups, pruneBackups, readBackup, readEntries, sameFiles,
+  writeBackup
 } from './store.js';
 
 export const PRIVATE_OPTIONS = {
   root: { type: 'string' },
   key: { type: 'string' },
+  keep: { type: 'string' },
   from: { type: 'string' },
   force: { type: 'boolean' },
   'dry-run': { type: 'boolean' },
@@ -20,7 +22,9 @@ export const PRIVATE_OPTIONS = {
 };
 export const PRIVATE_COMMANDS = ['init', 'status', 'backup', 'list', 'restore'];
 // Options that only some commands take. --root and --help work everywhere.
-const OPTION_COMMANDS = { 'dry-run': ['init', 'restore'], key: ['backup', 'list', 'restore'], from: ['restore'], force: ['restore'] };
+const OPTION_COMMANDS = {
+  'dry-run': ['init', 'restore'], key: ['backup', 'list', 'restore'], keep: ['backup'], from: ['restore'], force: ['restore']
+};
 
 // Same numbers as docatlas agents. For private commands, NEEDS_DECISION means the user must look: init stopped
 // before writing, or it wrote the exclude line but the folder is still visible to git.
@@ -58,7 +62,8 @@ export function privateHelp() {
     '<root>/.docatlas/agents.json, the project install record, stays visible and can be committed.', '',
     'Backups are copies outside the project, in ~/.docatlas/private-backups/<key>/<UTC time>/. The key comes',
     'from the origin remote (for example github.com/owner/repo), so a new clone of the same repository finds',
-    'them. Without an origin the key is local/<folder name>; use --key to choose one. Backups are never deleted.', '',
+    'them. Without an origin the key is local/<folder name>; use --key to choose one. Each backup run keeps the',
+    'newest ' + DEFAULT_KEEP + ' backups of the key and removes older ones (--keep <n> to keep more in that run).', '',
     'For AI agents running this for a user:',
     '  1. Before writing private documents, run: docatlas private init',
     '     It creates the folder, adds it to .git/info/exclude when that line is missing, and checks',
@@ -74,7 +79,7 @@ export function privateHelp() {
     'Usage:',
     '  docatlas private init [--root <dir>] [--dry-run]',
     '  docatlas private status [--root <dir>]',
-    '  docatlas private backup [--root <dir>] [--key <key>]',
+    '  docatlas private backup [--root <dir>] [--key <key>] [--keep <n>]',
     '  docatlas private list [--root <dir>] [--key <key>]',
     '  docatlas private restore [--root <dir>] [--key <key>] [--from <backup>] [--dry-run] [--force]',
     '  docatlas private help', '',
@@ -82,6 +87,7 @@ export function privateHelp() {
     '  --root <dir>      Folder to start from (default: current folder). Inside git, its repository top folder is used.',
     '  --key <key>       backup, list, restore: backup key instead of the one from origin, such as github.com/owner/repo.',
     '                    Parts joined by /, without spaces or characters that Windows does not allow in folder names.',
+    '  --keep <n>        backup: keep the newest n backups of the key, 1 to 1000 (default: ' + DEFAULT_KEEP + '). Only this run.',
     '  --from <backup>   restore: backup name from list (default: the newest backup made by the backup command).',
     '  --force           restore: back up the current files, then overwrite files that differ.',
     '  --dry-run         init, restore: print what would happen without writing.',
@@ -112,7 +118,8 @@ export function privateHelp() {
     '           warning no-origin - <message>',
     '  backup   warning <symbolic-link|wrong-type> <path>   not copied',
     '           <create|unchanged|skip> backup <backup folder or ->   unchanged: the newest backup has the same files',
-    '           summary backup=<action> files=<count>',
+    '           remove backup <backup folder>          older than the newest --keep backups; skip removes nothing',
+    '           summary backup=<action> files=<count> removed=<count>',
     '  list     backup <name> <created> <files> <backup|before-restore> <commit or ->   newest first',
     '           warning invalid-backup <folder>',
     '           summary backups=<count>',
@@ -345,7 +352,11 @@ async function readPrivateFiles(folder, stdout) {
   return readEntries(folder.path, files);
 }
 
-async function backup(start, { stdout, stderr, git, home, key, now }) {
+function writeRemoved(stdout, removed) {
+  for (const folder of removed) stdout.write('remove\tbackup\t' + folder + '\n');
+}
+
+async function backup(start, { stdout, stderr, git, home, key, keep, now }) {
   const { location, root, blocked } = await locate(start, { stdout, git, home });
   if (blocked) {
     stderr.write(blockedMessage(blocked));
@@ -369,14 +380,16 @@ async function backup(start, { stdout, stderr, git, home, key, now }) {
   }
   if (!entries.length) {
     stdout.write('skip\tbackup\t-\n');
-    stdout.write('summary\tbackup=skip\tfiles=0\n');
+    stdout.write('summary\tbackup=skip\tfiles=0\tremoved=0\n');
     stderr.write(MESSAGES['no-files']);
     return EXIT.OK;
   }
   const latest = latestRegular((await listBackups(store.path)).backups);
   if (sameFiles(latest, entries)) {
+    const removed = await pruneBackups(store.path, keep, latest.name);
     stdout.write('unchanged\tbackup\t' + latest.path + '\n');
-    stdout.write('summary\tbackup=unchanged\tfiles=' + entries.length + '\n');
+    writeRemoved(stdout, removed);
+    stdout.write('summary\tbackup=unchanged\tfiles=' + entries.length + '\tremoved=' + removed.length + '\n');
     return EXIT.OK;
   }
   const commit = location.repo ? await headCommit(root, { git }) : null;
@@ -386,8 +399,10 @@ async function backup(start, { stdout, stderr, git, home, key, now }) {
     stderr.write(MESSAGES.blocked);
     return EXIT.NEEDS_DECISION;
   }
+  const removed = await pruneBackups(store.path, keep, written.name);
   stdout.write('create\tbackup\t' + written.path + '\n');
-  stdout.write('summary\tbackup=create\tfiles=' + entries.length + '\n');
+  writeRemoved(stdout, removed);
+  stdout.write('summary\tbackup=create\tfiles=' + entries.length + '\tremoved=' + removed.length + '\n');
   return EXIT.OK;
 }
 
@@ -543,6 +558,10 @@ export async function runPrivate(args, {
   if (key === null) {
     return usage('Invalid --key: ' + values.key);
   }
+  const keep = values.keep === undefined ? DEFAULT_KEEP : /^[1-9]\d{0,3}$/.test(values.keep) ? Number(values.keep) : NaN;
+  if (!(keep >= 1 && keep <= 1000)) {
+    return usage('Invalid --keep: ' + values.keep + ' (use a number from 1 to 1000).');
+  }
   if (values.from !== undefined && !isBackupName(values.from)) {
     return usage('Invalid --from: ' + values.from + ' (use a backup name from docatlas private list).');
   }
@@ -555,7 +574,7 @@ export async function runPrivate(args, {
   const homeFolder = await fs.realpath(home).catch(() => path.resolve(home));
   try {
     return await COMMANDS[command](start, {
-      stdout, stderr, git, home: homeFolder, key, from: values.from, force: values.force === true,
+      stdout, stderr, git, home: homeFolder, key, keep, from: values.from, force: values.force === true,
       dryRun: values['dry-run'] === true, now: now ?? new Date()
     });
   } catch (error) {

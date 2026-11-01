@@ -11,7 +11,8 @@ Agent skill and rule versions are tracked separately in
   only you see in `.docatlas/private/<feature>/` at the project root (the repository top folder in
   git). `init` hides the folder from git through `.git/info/exclude`, for your clone only, and
   checks that git no longer sees it. `backup` copies the folder to
-  `~/.docatlas/private-backups/<origin>/<time>/` and makes no copy when nothing changed. `restore`
+  `~/.docatlas/private-backups/<origin>/<time>/`, makes no copy when nothing changed, and keeps the
+  newest three backups of the project (`--keep <n>` to keep more in that run). `restore`
   brings the documents and the hiding rule back in a new clone of the same repository, previews with
   `--dry-run`, and keeps files that differ unless you add `--force`, which saves them first. The
   commands never ask questions and print tab-separated lines, so an agent can run them.

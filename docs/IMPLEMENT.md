@@ -1796,6 +1796,36 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+### 백업 개수 제한 — 완료
+
+Refs: RQ-23, DC-34, M-22
+진입: 2026-11-01 사용자 변경. 백업을 다시 하면 덮어쓰는지 묻고, 모두 보관한다는 설명을 들은 뒤 "최근 n개만 남기기, 기본 3개"를 골랐다.
+기준 검증(c744624, Linux / Node 22.23.4): Test Hardening 종료 검증과 같은 커밋이다. npm run check 통과, npm test 209개 중 203개 통과·6개 건너뜀·실패 0.
+
+- [x] 문서: REQUIREMENTS에 사용자 변경, DESIGN "보관 개수"와 결과 줄(`remove backup`, `removed=`), DC-34 결정 줄을 먼저 고쳤다.
+- [x] backup이 create·unchanged로 끝나면 그 키의 백업을 이름(UTC 시각) 순으로 최신 3개만 남긴다. `--keep <n>`(1~1000)은 그 실행에만 적용된다.
+  종류(backup·before-restore)를 가리지 않고 세며, 방금 만든 백업과 unchanged일 때의 최신 일반 백업은 지우지 않는다.
+  파일이 없어 skip한 실행, restore·list·status는 지우지 않는다. manifest를 읽을 수 있는 실제 폴더만 지우고 잘못된 백업·`.partial-…`은 둔다.
+- [x] help·사용 가이드·CHANGELOG Unreleased·M-22 항목. 개인 문서 스킬 문장("바뀐 것이 없으면 복사하지 않는다")은 그대로 맞아 스킬 버전은 올리지 않았다.
+
+기준 테스트: npm test(개인 문서 백업 테스트).
+결과: 새 테스트 1개(네 번째 백업에서 가장 오래된 것 삭제, `--keep 5`·`--keep 1`, 잘못된 백업·`.partial` 보존, 시계가 뒤로 간 새 백업 보존,
+빈 폴더 skip·restore·list·status는 지우지 않음)와 `--keep` 옵션 검사(0·1001·all·2.5, 다른 명령) 통과.
+npm run check 통과, npm test 210개 중 204개 통과·6개 건너뜀·실패 0.
+종료 기준: 기본 실행은 최신 3개만 남기고, 복구할 백업을 지우는 경우가 없다. 충족했다.
+
+Files:
+- `src/private/store.js` (modified)
+- `src/private/command.js` (modified)
+- `src/private/index.js` (modified)
+- `test/private-backup.test.js` (modified)
+- `guide/document-map.md` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ### Integration Test
 
 - [ ] production tarball로 F-10: init → 문서 작성 → backup → 작업 폴더 삭제 → 새 clone → restore → 지도의 Private 그룹 확인.
@@ -2073,6 +2103,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   CHANGELOG의 개인 문서 항목은 main 반영 때가 아니라 4단계에서 미리 적었다(main에 가면 그대로 Unreleased).
 - 완료(2026-11-01, RQ-22·23 Test Hardening): 잠금 없이 동시 실행 안전(설계 제안), 복구의 새 파일은 hard link로 온전히 놓기, 검사-쓰기 사이 재확인,
   경계 테스트 6개. 결과는 "개인 문서와 백업" 절 Test Hardening에 있다.
+- 완료(2026-11-01, 사용자 변경): 백업은 최신 3개만 남긴다(`--keep <n>`은 그 실행만). 결과는 "개인 문서와 백업" 절 "백업 개수 제한"에 있다.
 - 다음(RQ-22·23): Integration Test(F-10, production tarball: init → 작성 → backup → 작업 폴더 삭제 → 새 clone → restore → 지도의 Private 그룹).
   4단계 Platform checks는 run 41304909846으로 통과했다. Test Hardening 변경의 Platform checks 결과를 확인한다. 원하면 2단계~Test Hardening 리뷰.
   ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
@@ -2085,4 +2116,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), 그리고 이 인계 커밋(Test Hardening)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 그리고 이 인계 커밋(백업 개수 제한)이 있다. 0.4.1 게시본은 fcb4e68이다.

@@ -8,4 +8,6 @@ export { PATTERN, headCommit, isIgnored, locateRepository, originUrl, trackedFil
 export { normalizeRemote, parseKey, projectKey } from './key.js';
 export { privateBackupNotice } from './notice.js';
 export { applyRestore, planRestore } from './restore.js';
-export { MANIFEST, STORE_PATH, inspectStore, latestRegular, listBackups, readBackup, storeFolder, writeBackup } from './store.js';
+export {
+  DEFAULT_KEEP, MANIFEST, STORE_PATH, inspectStore, latestRegular, listBackups, pruneBackups, readBackup, storeFolder, writeBackup
+} from './store.js';
