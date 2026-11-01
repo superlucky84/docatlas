@@ -5,6 +5,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { normalizeRemote, parseKey, privateBackupNotice, privateHelp, runPrivate } from '../src/private/index.js';
+import { quotePath } from '../src/private/notice.js';
 import { startCli } from './helpers/cli.js';
 
 const PATTERN = '/.docatlas/private/';
@@ -418,7 +419,11 @@ test('the document map hint appears only for an empty private folder with a back
     'Private documents: a backup from 2026-11-01 05:30 UTC is available. Restore with: docatlas private restore --dry-run');
   const elsewhere = await folder(t);
   assert.equal(await notice(target, elsewhere), 'Private documents: a backup from 2026-11-01 05:30 UTC is available. ' +
-    'Restore with: docatlas private restore --root ' + (/\s/.test(target) ? JSON.stringify(target) : target) + ' --dry-run');
+    'Restore with: docatlas private restore --root ' + quotePath(target) + ' --dry-run');
+  assert.equal(quotePath('C:\\Users\\me\\shop', 'win32'), 'C:\\Users\\me\\shop', 'backslashes are separators, not escapes');
+  assert.equal(quotePath('C:\\My Projects\\shop', 'win32'), '"C:\\My Projects\\shop"');
+  assert.equal(quotePath('/home/me/shop', 'linux'), '/home/me/shop');
+  assert.equal(quotePath("/home/me/it's shop", 'darwin'), "'/home/me/it'\\''s shop'");
   assert.equal(await notice(path.join(target, 'app')), null, 'a map below the top folder has no private group');
   assert.deepEqual({ home: await snapshot(home), target: await snapshot(target) }, before);
   assert.equal(await notice(source), null, 'a folder with private files');

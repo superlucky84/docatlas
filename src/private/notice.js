@@ -4,7 +4,12 @@ import { locateRepository } from './git.js';
 import { projectKey } from './key.js';
 import { inspectStore, latestRegular, listBackups } from './store.js';
 
-const quote = text => (/[\s"'$`\\]/.test(text) ? JSON.stringify(text) : text);
+// Quotes a path for the user's shell only when needed: single quotes on macOS and Linux, double quotes on Windows,
+// where a path cannot contain a double quote and backslashes are separators.
+export function quotePath(text, platform = process.platform) {
+  if (platform === 'win32') return /[\s&|<>^%()]/.test(text) ? '"' + text + '"' : text;
+  return /[\s"'$`\\!&|;<>()*?[\]{}#~]/.test(text) ? "'" + text.replace(/'/g, "'\\''") + "'" : text;
+}
 const formatTime = iso => {
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? iso : date.toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
@@ -33,7 +38,7 @@ export async function privateBackupNotice({ home, root, cwd = process.cwd(), git
     const latest = latestRegular((await listBackups(store.path)).backups);
     if (!latest) return null;
     const here = await privateRoot(await fs.realpath(cwd), git).catch(() => null);
-    const command = 'docatlas private restore' + (here === mapRoot ? '' : ' --root ' + quote(mapRoot)) + ' --dry-run';
+    const command = 'docatlas private restore' + (here === mapRoot ? '' : ' --root ' + quotePath(mapRoot)) + ' --dry-run';
     return 'Private documents: a backup from ' + formatTime(latest.createdAt) + ' is available. Restore with: ' + command;
   } catch {
     return null;
