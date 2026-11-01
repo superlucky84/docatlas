@@ -736,6 +736,71 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - 0.4.2: 337200b에는 workflow가 없으므로 workflow를 더한 main 커밋에 `v0.4.2`를 건다. package.json·lockfile·패키지 내용은 337200b와 같다.
   구현됨: 2026-11-01 v0.4.2(556d0f0) 태그로 run 41277271628이 게시했고 provenance가 붙었다.
 
+## 개인 문서와 백업 — RQ-22·23 계약(설계 제안)
+
+2026-11-01 사용자 선택(DC-32): `.docatlas/private/<기능>/`, `.git/info/exclude`로 숨김, 문서 지도의 별도 Private 그룹, designer 위에 얹는 얇은 스킬.
+아래에서 DC-32 외의 내용은 설계 제안이며 DC-33~36이 정해지면 확정한다. 아직 구현하지 않았다.
+
+### 구조
+
+```text
+<root>/
+  .docatlas/
+    agents.json              프로젝트 설치 기록(기존, 커밋 대상)
+    private/                 개인 문서. .git/info/exclude로 숨긴다
+      <기능>/
+        REQUIREMENTS.md  DESIGN.md  IMPLEMENT.md  MANUAL_TEST_CHECKLIST.md
+        (추가 문서·이미지)
+```
+
+- 개인 문서는 루트의 `.docatlas/private/` 한 곳에 기능별 폴더로 모은다. 하위 폴더의 `.docatlas/`는 개인 문서 위치가 아니다.
+- 기능 폴더 이름은 짧은 영문 소문자-하이픈을 제안한다. 기능 경계가 불분명하면 에이전트가 이름을 제안하고 사용자가 정한다.
+- 문서 작성 규칙은 designer와 같다(4종 문서·결정·phase·Refs/Files·인계). Refs·Files의 경로는 저장소 루트 기준이라
+  문서가 코드 옆에 없어도 관련 코드 위치를 그대로 가리킨다(RQ-20이 이 기능의 사전 작업인 이유).
+- 개인 문서는 공개 문서나 코드에서 링크하지 않는다. 개인 문서에서 공개 문서로 거는 상대 링크는 허용한다.
+
+### git 숨김
+
+- `git rev-parse --git-path info/exclude`로 실제 파일을 찾는다(worktree·submodule에서 `.git`이 파일일 수 있다).
+- 그 파일에 `/.docatlas/private/` 한 줄이 없으면 더한다. 중복해서 쓰지 않는다. `.gitignore`는 고치지 않는다.
+- `git ls-files .docatlas/private`에 이미 추적된 파일이 있으면 숨김 대신 경고하고 멈춘다(이미 커밋된 개인 문서는 사용자가 정리한다).
+- git 저장소가 아니면 숨길 대상이 없으므로 경고만 하고 계속한다.
+
+### 명령과 모듈(DC-35 제안)
+
+- 새 모듈 `src/private/`: 위치 준비, 숨김 확인, 백업, 목록, 복구. 수집기·서버·화면·agent-kit과 독립이다.
+- 명령: `docatlas private init | status | backup | list | restore | help`. agents 명령처럼 대화형 입력 없이 탭 구분 결과 줄과 종료 코드를 내고,
+  `restore`는 `--dry-run` 미리보기를 지원한다. `help`는 에이전트가 읽고 실행할 순서를 안내한다.
+  - init: `.docatlas/private/`를 만들고 git 숨김 규칙을 확인·추가한다.
+  - status: 개인 문서 수, 숨김 상태, 마지막 백업과 차이를 보여 준다.
+- 쓰기는 `.docatlas/private/`, `.git/info/exclude`, 백업 위치로 한정한다. 심볼릭 링크는 따라가지 않는다.
+
+### 백업과 복구(DC-34 제안)
+
+- 백업 위치: `~/.docatlas/private-backups/<프로젝트 키>/<UTC 시각>/`. 각 백업에 파일 목록·해시·원본 커밋·시각을 담은 manifest를 둔다.
+- 프로젝트 키: `origin` 원격 주소를 정규화한 값(예: github.com/superlucky84/docatlas, 계정 정보와 .git 제거). 그래서 다른 위치에 새로 clone해도
+  같은 키를 찾는다. 원격이 없으면 `local/<폴더 이름>`과 경고, `--key`로 바꿀 수 있다.
+- 마지막 백업과 내용이 같으면 새 백업을 만들지 않는다. 보관 개수는 TBD(제안: 모두 보관, 정리는 후속).
+- 복구: 새 clone에서 같은 키의 최신 백업(또는 `--from <백업>`)을 고른다. 계획은 create·unchanged·conflict로 보여 주고,
+  다른 내용의 기존 파일(conflict)은 건너뛴다. `--force`일 때만 현재 파일을 먼저 백업한 뒤 덮어쓴다. 복구는 git 숨김 규칙도 다시 넣는다.
+- 백업 시점: 명령으로 한다. 개인 문서 스킬은 문서를 고친 뒤 백업을 실행하라고 안내한다. 문서 지도는 읽기 전용 원칙대로 백업하지 않는다.
+- 백업 위치를 클라우드 동기화 폴더로 바꾸는 옵션(`--to` 또는 설정)은 TBD.
+
+### 문서 지도(DC-36 제안)
+
+- 수집기는 루트의 `.docatlas/private/**/*.md`를 공개 문서와 별개의 고정 출처로 읽어 최상위 Private 그룹 아래 기능별로 보여 준다.
+  읽기 모델의 문서에 private 표시를 두고, 화면은 배지로 구분하며 검색 결과에도 표시한다.
+- 기본 exclude의 `**/.docatlas/**`는 그대로 둔다. 하위 폴더의 `.docatlas/`와 루트의 다른 파일(agents.json 등)은 계속 수집하지 않는다.
+- 심볼릭 링크·루트 경계·읽기 시 재검사 정책은 공개 문서와 같다. 개인 문서 폴더는 원래 git 밖이므로 저장소 `.gitignore` 규칙을 적용할지,
+  설정(include/exclude)이 Private 그룹에 영향을 주는지, 지도에서 끄는 설정을 둘지는 TBD.
+
+### 개인 문서 스킬(DC-33 제안)
+
+- 이름: `doc-driven-private-v1`(스킬과 룰 한 쌍). 사용자가 개인·비공개 문서를 명시적으로 요청할 때만 쓴다는 설명을 둔다.
+- 내용: 문서 작성은 doc-driven-designer-v1을 따른다. 위치(`.docatlas/private/<기능>/`), 숨김 확인(init), 개인 문서를 stage·commit하거나
+  추적 파일에서 링크하지 않기, Refs·Files는 저장소 루트 기준, 고친 뒤 백업, 관련 문서를 찾을 때 공개·개인 문서를 함께 보기를 담는다.
+- 기본 설치 여부는 TBD(제안: 기본 설치. 명시적 요청에만 쓰이도록 설명으로 제한한다). 스킬·룰을 더하면 kit 버전·manifest·METHOD·README를 함께 고친다.
+
 ## 결정 체크리스트
 
 ### Phase 1 구현 계약
@@ -846,6 +911,14 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - [x] DC-29: 2026-10-30 사용자 선택. 블로그 글의 문서 위치 원칙 중 저장소에 없던 것(코드가 보여 주는 묶음 따르기, 모듈마다 docs/ 두지 않기,
   여러 모듈 기능은 위치 하나, 구조가 불분명하면 에이전트가 제안하고 사람이 결정)을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영한다.
   0.4.1로 배포한다(2026-10-30 사용자 결정). M-18.
+- [x] DC-32: 2026-11-01 사용자 선택. 개인 문서는 `.docatlas/private/<기능>/`(agents.json은 그대로 커밋), git 숨김은 `.git/info/exclude`,
+  문서 지도는 별도 Private 그룹으로 항상 표시, 스킬은 designer 위에 얹는 얇은 스킬. M-21.
+- [ ] DC-33: 개인 문서 스킬의 이름과 기본 설치 여부. 제안: `doc-driven-private-v1`, 기본 설치, 명시적 요청에만 사용. M-21.
+- [ ] DC-34: 백업 위치·프로젝트 키·보관 개수·백업 시점·클라우드 폴더 지정. 제안: `~/.docatlas/private-backups/<origin 키>/<시각>/`,
+  같은 내용은 건너뜀, 모두 보관, 명령으로 백업하고 스킬이 고친 뒤 실행, 클라우드 폴더 지정은 후속. M-22.
+- [ ] DC-35: 명령 이름과 범위. 제안: `docatlas private init|status|backup|list|restore|help`, 대화형 입력 없음, restore는 미리보기와 --force. M-22.
+- [ ] DC-36: 문서 지도와 설정의 관계. 제안: Private 그룹은 include/exclude 설정과 저장소 .gitignore의 영향을 받지 않는 고정 출처,
+  끄는 설정은 후속. 심볼릭 링크·루트 경계 정책은 같다. M-21.
 - [x] DC-31: 2026-11-01 사용자 결정. npm 게시를 버전 태그의 GitHub Actions(Trusted Publishing, OIDC)로 자동화하고 0.4.2부터 쓴다.
   수동 실행은 dry-run 리허설, 태그 커밋은 main에 있어야 하며 태그와 버전이 같아야 한다. Trusted Publisher 등록과 태그 푸시 시점은 사용자 단계다. M-20.
 - [x] DC-30: 2026-11-01 사용자 결정. 구현 계획의 단계마다 Refs와 Files를 둘 다 남기고, 세 스킬·룰에 규칙을 넣으며, 문서부터 갱신한다.

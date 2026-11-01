@@ -1434,6 +1434,74 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+## 개인 문서와 백업 — 계획, 결정 대기
+
+Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
+진입: 2026-11-01 사용자 요청과 DC-32 선택. 기준 커밋 df7748f(main·작업 브랜치).
+기준 검증: 각 구현 단계를 시작할 때 실행한다. 직전 기록은 npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0).
+1단계를 시작하려면 DC-33~36이 정해져야 한다.
+
+### 기준 문서 — 완료
+
+- [x] 요구사항에 RQ-22·23과 사용자 설명·선택·범위 밖, 설계에 구조·git 숨김·명령·백업·문서 지도·스킬 제안과 DC-32~36을 적었다.
+- [x] 구현 계획에 이 절을, 수동 검증에 F-10과 M-21·M-22를 더했다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 1단계 — 위치 준비와 git 숨김
+
+진입: DC-33~36 확정.
+
+- [ ] `src/private/`에 루트의 `.docatlas/private/` 경로 규칙, `git rev-parse --git-path info/exclude` 기반 숨김 확인·추가, 추적 파일 감지를 둔다.
+- [ ] `docatlas private init|status|help`와 결과 줄·종료 코드. 대화형 입력 없음.
+
+기준 테스트: 임시 git 저장소(일반·worktree·git 아님)에서 init 반복 실행 시 exclude 한 줄 유지, 추적된 개인 파일이면 멈춤, agents.json은 숨기지 않음.
+종료 기준: 개인 문서 폴더가 git status에 나타나지 않고 .gitignore와 추적 파일이 바뀌지 않는다.
+
+### 2단계 — 문서 지도의 Private 그룹
+
+진입: 1단계 완료.
+
+- [ ] 수집기가 루트의 `.docatlas/private/**/*.md`를 고정 출처로 읽어 Private 그룹과 private 표시를 만든다. 하위 `.docatlas/`와 agents.json은 계속 제외한다.
+- [ ] 서버·화면에 Private 배지와 검색 결과 표시. 변경 감지·세대 일관성·읽기 시 재검사 정책을 지킨다.
+
+기준 테스트: npm test(수집기·서버), npm run test:browser(지도·검색 배지).
+종료 기준: 공개 문서 동작은 그대로이고 개인 문서가 Private 그룹으로만 보인다.
+
+### 3단계 — 백업과 복구
+
+진입: 1단계 완료.
+
+- [ ] backup(같은 내용이면 건너뜀, manifest), list, restore(미리보기·create/unchanged/conflict·--force 전 백업·숨김 규칙 복원).
+- [ ] 프로젝트 키(origin 정규화, 원격 없음 경고, --key).
+
+기준 테스트: 임시 HOME과 두 clone(같은 origin)에서 백업 → 새 clone 복구, 충돌 보존, 심볼릭 링크 거부, 쓰기 범위 확인.
+종료 기준: 작업 폴더를 지운 뒤에도 새 clone에서 문서와 숨김 규칙이 돌아오고, 기존 파일은 말없이 덮어쓰이지 않는다.
+
+### 4단계 — 개인 문서 스킬·룰
+
+진입: 1·3단계 완료(스킬이 안내할 명령이 있어야 한다).
+
+- [ ] agent-kit에 개인 문서 스킬·룰 한 쌍(DC-33). designer를 따르고 위치·숨김·백업·링크 금지 규칙만 담는다.
+- [ ] manifest·kit 버전·agent-kit/README·METHOD 두 언어판·README 요약·CHANGELOG.
+
+기준 테스트: npm run check, npm test(kit 고정 테스트), agents help.
+종료 기준: 스킬·룰만 읽고 개인 문서를 만들고 숨기고 백업하는 순서를 따를 수 있다.
+
+### Test Hardening
+
+- [ ] 경계: 한글·공백 기능 이름, CRLF, 큰 이미지, 백업 중 실패 시 정리, 동시 실행, 권한, 심볼릭 링크로 바뀐 폴더.
+
+### Integration Test
+
+- [ ] production tarball로 F-10: init → 문서 작성 → backup → 작업 폴더 삭제 → 새 clone → restore → 지도의 Private 그룹 확인.
+
+종료 기준: M-21·M-22의 자동 근거가 갖춰지고 사람 확인 항목이 정리된다.
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -1689,6 +1757,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   게시 기록 커밋을 main에 fast-forward로 반영했다.
 - 완료(2026-11-01): GitHub 릴리스 v0.4.2(영문 노트, Latest)를 사용자가 만들었다(05:43 UTC). 이 세션의 GitHub 도구에는 릴리스 생성이 없어
   에이전트가 v0.4.1과 같은 구성의 노트를 미리 채운 작성 링크를 만들었다. 태그 v0.4.2는 그대로 556d0f0을 가리킨다.
+- 다음(RQ-22·23): 개인 문서와 백업 기능의 DC-33~36을 사용자가 정한다. 계획은 위 "개인 문서와 백업" 절에 있다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1697,4 +1766,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 이 게시 기록 커밋이며 SHA는 git log -1로 확인한다. 0.4.1 게시본은 fcb4e68이다.
+- 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이고, 작업 브랜치에는 그 위에 개인 문서 계획 커밋이 있다. 0.4.1 게시본은 fcb4e68이다.
