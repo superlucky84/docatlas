@@ -440,8 +440,9 @@ test('the document map prints the restore hint after it starts', async t => {
     await new Promise(resolve => setTimeout(resolve, 50));
   }
   assert.match(cli.output().stdout, /\nPrivate documents: a backup from .+ UTC is available\. Restore with: docatlas private restore --dry-run\n/);
-  // Windows has no SIGINT for child processes; the clean shutdown itself is covered by the CLI tests.
-  if (process.platform === 'win32') return;
+  // Stop the map before cleanup: Windows cannot delete a folder that a running process uses.
   cli.child.kill('SIGINT');
-  assert.deepEqual(await cli.exited, { code: 0, signal: null });
+  const exit = await cli.exited;
+  // Windows ends a child process without running its SIGINT handler; elsewhere the map stops cleanly.
+  if (process.platform !== 'win32') assert.deepEqual(exit, { code: 0, signal: null });
 });
