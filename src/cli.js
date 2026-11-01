@@ -6,6 +6,7 @@ import { CollectionOptionsError, ConfigurationError, ProjectError } from './coll
 import { startServer } from './server/index.js';
 import { runAgents } from './agent-kit/command.js';
 import { agentKitNotice } from './agent-kit/notice.js';
+import { runPrivate } from './private/command.js';
 
 const metadata = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const help = [
@@ -15,7 +16,9 @@ const help = [
   '  docatlas --help',
   '  docatlas --version',
   '  docatlas agents install [options]  Install doc-driven agent skills for Claude Code and Codex.',
-  '  docatlas agents help               Steps for people and AI agents running the install.', '',
+  '  docatlas agents help               Steps for people and AI agents running the install.',
+  '  docatlas private init|status       Keep documents only you see in .docatlas/private/.',
+  '  docatlas private help              Steps for people and AI agents using private documents.', '',
   'Compatibility aliases: docmap, ddd-docmap', '',
   'Options:',
   '  --root <directory>  Read this project instead of the current directory.',
@@ -44,6 +47,9 @@ export async function run(args, {
 } = {}) {
   if (args[0] === 'agents') {
     return runAgents(args.slice(1), { stdout, stderr, home, cwd, kitDir, now });
+  }
+  if (args[0] === 'private') {
+    return runPrivate(args.slice(1), { stdout, stderr, cwd });
   }
   let values;
   try {

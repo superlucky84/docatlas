@@ -1434,12 +1434,12 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 개인 문서와 백업 — 계획, 결정 대기
+## 개인 문서와 백업 — 1단계 완료
 
 Refs: RQ-22, RQ-23, DC-32, DC-33, DC-34, DC-35, DC-36, M-21, M-22
 진입: 2026-11-01 사용자 요청과 DC-32 선택. 기준 커밋 df7748f(main·작업 브랜치).
 기준 검증: 각 구현 단계를 시작할 때 실행한다. 직전 기록은 npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0).
-1단계를 시작하려면 DC-33~36이 정해져야 한다.
+2026-11-01 사용자가 DC-33~36을 "전부 추천대로" 정했다.
 
 ### 기준 문서 — 완료
 
@@ -1452,15 +1452,39 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### 1단계 — 위치 준비와 git 숨김
+### 1단계 — 위치 준비와 git 숨김: 완료
 
-진입: DC-33~36 확정.
+진입: DC-33~36 확정. 2026-11-01 충족.
 
-- [ ] `src/private/`에 루트의 `.docatlas/private/` 경로 규칙, `git rev-parse --git-path info/exclude` 기반 숨김 확인·추가, 추적 파일 감지를 둔다.
-- [ ] `docatlas private init|status|help`와 결과 줄·종료 코드. 대화형 입력 없음.
+기준 검증(e7d5ade, Linux / Node 22.23.4): 문법 76개·agent kit 1.2.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀·실패 0.
+
+- [x] `src/private/`(git.js·folder.js·command.js·index.js): 루트의 `.docatlas/private/` 경로와 심볼릭 링크·비폴더 차단,
+  `git rev-parse --show-toplevel`·`--git-path info/exclude`로 숨김 파일과 패턴(루트가 하위 폴더면 그 경로 포함, `\ * ? [ ]` 이스케이프),
+  `git check-ignore -q -- .docatlas/private/`로 숨김 여부, `git ls-files`로 추적 파일 감지. exclude는 주석 한 줄과 패턴을 덧붙이고
+  기존 내용·줄바꿈(CRLF)·권한을 지키며 임시 파일 후 이름 변경으로 쓴다. git이 없거나 저장소가 아니면 경고만 한다.
+- [x] `docatlas private init|status|help`: 탭 구분 결과 줄, init `--dry-run`, 종료 코드 0·1·2·3(agents와 같음), 대화형 입력 없음.
+  init은 추적된 개인 파일·심볼릭 링크가 있으면 아무것도 쓰지 않고 3. status는 tracked·exposed(숨기지 않은 문서)·blocked면 3.
+  CLI 도움말에 두 줄을 더했다. 수집기·서버·화면·agent-kit은 바꾸지 않았다.
 
 기준 테스트: 임시 git 저장소(일반·worktree·git 아님)에서 init 반복 실행 시 exclude 한 줄 유지, 추적된 개인 파일이면 멈춤, agents.json은 숨기지 않음.
-종료 기준: 개인 문서 폴더가 git status에 나타나지 않고 .gitignore와 추적 파일이 바뀌지 않는다.
+결과: test/private.test.js 11개 통과. 첫 init과 재실행(한 줄 유지), agents.json만 git status에 보임·.gitignore 없음, dry-run 무쓰기,
+추적 파일 차단, 숨기지 않은 문서 exposed, git 아님·git 없음 경고, 한글·공백·대괄호 하위 루트의 이스케이프 패턴, worktree의 공유 exclude,
+CRLF·권한·임시 파일 정리, 심볼릭 링크 차단, 도움말·잘못된 사용 2, docatlas 명령 연결.
+npm run check 문법 77개·kit 세 쌍, npm test 170개 중 167개 통과·3개 건너뜀·실패 0, npm pack --dry-run 49개 파일·61.8 kB(src/private/ 4개 추가).
+종료 기준: 개인 문서 폴더가 git status에 나타나지 않고 .gitignore와 추적 파일이 바뀌지 않는다. 충족했다.
+Windows는 Platform checks가 npm test를 돌리지 않아 이 테스트를 아직 실행하지 않았다(Test Hardening에서 다룬다).
+
+Files:
+- `src/private/git.js` (added)
+- `src/private/folder.js` (added)
+- `src/private/command.js` (added)
+- `src/private/index.js` (added)
+- `src/cli.js` (modified)
+- `test/private.test.js` (added)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ### 2단계 — 문서 지도의 Private 그룹
 
@@ -1477,6 +1501,7 @@ Files:
 진입: 1단계 완료.
 
 - [ ] backup(같은 내용이면 건너뜀, manifest), list, restore(미리보기·create/unchanged/conflict·--force 전 백업·숨김 규칙 복원).
+- [ ] 문서 지도 시작 때 개인 문서가 없고 백업이 있으면 터미널 한 줄 안내(읽기만, 실패해도 지도 실행 유지).
 - [ ] 프로젝트 키(origin 정규화, 원격 없음 경고, --key).
 
 기준 테스트: 임시 HOME과 두 clone(같은 origin)에서 백업 → 새 clone 복구, 충돌 보존, 심볼릭 링크 거부, 쓰기 범위 확인.
@@ -1486,7 +1511,8 @@ Files:
 
 진입: 1·3단계 완료(스킬이 안내할 명령이 있어야 한다).
 
-- [ ] agent-kit에 개인 문서 스킬·룰 한 쌍(DC-33). designer를 따르고 위치·숨김·백업·링크 금지 규칙만 담는다.
+- [ ] agent-kit에 개인 문서 스킬·룰 한 쌍(DC-33). designer를 따르고 위치·숨김·백업(고친 뒤 실행)·링크 금지 규칙과
+  빈 폴더에 백업이 있으면 복구를 먼저 묻는 규칙만 담는다.
 - [ ] manifest·kit 버전·agent-kit/README·METHOD 두 언어판·README 요약·CHANGELOG.
 
 기준 테스트: npm run check, npm test(kit 고정 테스트), agents help.
@@ -1495,6 +1521,7 @@ Files:
 ### Test Hardening
 
 - [ ] 경계: 한글·공백 기능 이름, CRLF, 큰 이미지, 백업 중 실패 시 정리, 동시 실행, 권한, 심볼릭 링크로 바뀐 폴더.
+- [ ] Windows: test/private.test.js를 플랫폼 검사에 넣을지 정하고 Windows의 경로·exclude 동작을 확인한다.
 
 ### Integration Test
 
@@ -1757,7 +1784,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   게시 기록 커밋을 main에 fast-forward로 반영했다.
 - 완료(2026-11-01): GitHub 릴리스 v0.4.2(영문 노트, Latest)를 사용자가 만들었다(05:43 UTC). 이 세션의 GitHub 도구에는 릴리스 생성이 없어
   에이전트가 v0.4.1과 같은 구성의 노트를 미리 채운 작성 링크를 만들었다. 태그 v0.4.2는 그대로 556d0f0을 가리킨다.
-- 다음(RQ-22·23): 개인 문서와 백업 기능의 DC-33~36을 사용자가 정한다. 계획은 위 "개인 문서와 백업" 절에 있다.
+- 완료(2026-11-01, RQ-22 1단계): `docatlas private init|status|help`와 git 숨김. 결과는 "개인 문서와 백업" 절 1단계에 있다.
+- 다음(RQ-22·23): 1단계를 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
