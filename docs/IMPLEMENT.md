@@ -1606,7 +1606,10 @@ Files:
 
 결과: test/private.test.js 24개. root로는 22개 통과·2개 건너뜀, nobody로는 24개 모두 통과. npm run test:platform 30개 중 28개 통과·2개 건너뜀.
 npm run check 통과, npm test 183개 중 178개 통과·5개 건너뜀·실패 0, npm pack --dry-run 49개 파일·63.9 kB.
-Windows 결과: 작업 브랜치에서 Platform checks를 수동 실행해 확인한다(아래 기록).
+Windows 결과: 작업 브랜치에서 Platform checks를 수동 실행했다(run 41286187387, cf2e790). macOS·Windows × Node 22·24 네 작업 모두 성공.
+Windows Node 22(Windows Server 2025, git 2.56.0.windows.4)의 test:platform은 30개 중 26개 통과·4개 건너뜀·실패 0이다.
+개인 문서 테스트 24개 중 20개가 Windows에서 실행돼 통과했고(worktree·submodule·CRLF·홈 막기·bare·링크 포함),
+건너뛴 4개는 POSIX 권한(2)·셸 스크립트 가짜 git(1)·0700 권한(1) 테스트다.
 종료 기준: 규칙이 "git 안이면 저장소 최상위, 밖이면 실행한 폴더, 홈은 막음"으로 줄고 macOS·Windows CI가 개인 문서 테스트를 실행한다.
 
 Files:
@@ -1925,7 +1928,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   git 밖에서는 위쪽의 기존 `.docatlas/private/`를 루트로 쓰도록 보완했다(사용자 선택).
 - 완료(2026-11-01): 1단계 재리뷰(critical 2·warning 4)를 반영했다. git 밖 찾기는 홈 안에서만, 홈과 그 위는 막기(사용자 선택).
 - 완료(2026-11-01): 사용자 우려(규칙 복잡, Windows)에 따라 1단계를 단순화했다. git 밖은 실행한 폴더, git 밖 판단은 git의 답, 플랫폼 CI에 개인 문서 테스트.
-- 다음(RQ-22·23): Windows CI 결과를 확인한 뒤, 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
+  Platform checks(run 41286187387, cf2e790)가 macOS·Windows × Node 22·24에서 모두 통과했다.
+- 다음(RQ-22·23): 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).

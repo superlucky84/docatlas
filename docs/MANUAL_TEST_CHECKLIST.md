@@ -400,6 +400,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 모노레포의 하위 폴더에서 init을 실행해도 저장소 최상위의 `.docatlas/private/` 하나만 쓰인다.
 - [ ] git이 없는 프로젝트에서는 실행한 폴더(또는 `--root`)에 개인 폴더가 생기고, git이 없다는 경고가 나온다.
 - [ ] Windows에서 init·status가 같은 결과를 낸다(경로 대소문자·드라이브 문자·CRLF exclude).
+  자동 근거: Platform checks run 41286187387에서 개인 문서 테스트 20개가 Windows Node 22·24로 통과했다. 사람의 실제 Windows 확인은 남아 있다.
 - [ ] 홈 폴더(또는 홈이 git 저장소인 dotfiles)에서 실행하면 아무것도 만들지 않고 프로젝트 폴더에서 실행하라고 알린다.
 - [ ] 문서 지도에 공개 문서와 구분된 Private 그룹이 보이고, 검색 결과에도 개인 문서 표시가 있다. 하위 폴더의 `.docatlas/`는 보이지 않는다.
 - [ ] 개인 문서의 Files·Refs가 저장소 루트 기준 경로로 관련 코드와 공개 문서를 가리킨다.
