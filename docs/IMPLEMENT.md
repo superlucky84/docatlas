@@ -1969,6 +1969,47 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+## 0.5.0 배포 준비 — main 반영, 게시 대기
+
+Refs: RQ-21, RQ-22, RQ-23, DC-31, DC-33, M-20, M-21, M-22
+진입: 개인 문서와 백업의 모든 단계와 리뷰 반영을 작업 브랜치에 커밋했다(1814833, Platform checks run 41324166410 통과).
+사용자가 기존 사용성 영향이 없는지 확인한 뒤 0.5.0 배포를 요청했다(2026-11-01).
+기준 검증(1814833, Linux / Node 22.23.4): npm run check 통과, npm test 213개 중 207개 통과·6개 건너뜀·실패 0.
+
+- [x] manifest·lockfile을 npm version 0.5.0 --no-git-tag-version --ignore-scripts로 갱신했다. CLI --version이 0.5.0을 출력한다.
+- [x] CHANGELOG의 Unreleased를 0.5.0 — 2026-11-01로 옮겼다. 날짜는 npm 게시일(UTC)이며 다른 날 게시하면 고친다.
+- [x] npm run check(문법 86개·kit 1.3.0 네 쌍), npm test 213개 중 207개 통과·6개 건너뜀(root)·실패 0, npm run test:platform 58개 중 55개 통과·3개 건너뜀,
+  npm run test:integration 6개(F-07·F-09·F-10), npm run test:browser 42개(설치 Chromium 1243을 1248 이름으로 임시 연결) 통과.
+  npm pack·publish --dry-run: docatlas@0.5.0, 55개 파일, 79.2 kB(풀면 272.4 kB), latest·public. 레지스트리의 latest는 아직 0.4.2다.
+- [x] agents help가 Kit 1.3.0과 designer 1.3.0·implementer 1.3.0·reviewer 1.5.0 default, private 1.0.0 `with --all or --only; needs doc-driven-designer-v1`을 출력한다.
+- [x] 사용자 요청으로 작업 브랜치를 main에 fast-forward로 반영해 푸시한다(PR 없음). 작업 브랜치는 지우지 않는다.
+
+종료 기준: 0.5.0 후보의 파일 구성과 버전 표시가 맞고 검사가 통과하며 main에 반영된다. main CI 확인·태그 푸시·게시 확인은 그다음 단계다.
+
+Files:
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+
+### 0.5.0 게시 절차 — 태그 푸시(RQ-21)
+
+이 세션의 git 연결은 태그 푸시를 거절하므로 사용자가 태그를 푸시한다. main CI가 통과한 뒤 main의 최신 커밋에 건다.
+
+```sh
+git checkout main
+git pull --ff-only origin main
+git tag v0.5.0
+git push origin v0.5.0
+npm view docatlas version --registry=https://registry.npmjs.org/
+npx --yes docatlas@0.5.0 private help
+```
+
+Publish to npm workflow가 태그 커밋이 main에 있는지, 태그가 package.json 버전과 같은지 확인한 뒤 검사·테스트를 거쳐 게시한다.
+2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -2246,7 +2287,10 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   결과는 "개인 문서와 백업" 절 Integration Test에 있다. 개인 문서 기능의 계획 단계는 모두 끝났다.
 - 완료(2026-11-01, 사용자 변경): 자동 백업은 구현 phase마다 한 번(에이전트 몫을 마쳤을 때), 나머지는 요청 때만. 백업끼리 바뀌지 않은 파일은 하드 링크로 공유.
   doc-driven-implementer-v1 1.3.0. 결과는 "개인 문서와 백업" 절 "백업 시점과 파일 공유"에 있다.
-- 다음(RQ-22·23): 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등). main 반영과 배포(0.5.0 제안)는 사용자가 정한다.
+- 완료(2026-11-01): 사용자 결정으로 0.5.0 배포를 준비했다. 버전·CHANGELOG·전체 검사·dry-run을 마치고 main에 fast-forward로 반영했다.
+  결과와 사용자 절차는 "0.5.0 배포 준비" 절에 있다.
+- 다음: main CI 통과를 확인한 뒤 사용자가 `v0.5.0` 태그를 푸시하고, Publish to npm 실행과 npm latest 0.5.0·provenance를 확인한다.
+  그 뒤 GitHub 릴리스 v0.5.0(영문 노트). 사람 확인 M-21·M-22(실제 에이전트 세션의 스킬 동작 등)는 남아 있다.
   백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
 - 완료(2026-11-01): 사용자 요청으로 2단계~파일 공유를 리뷰했다(REQUEST_CHANGES, critical 2). 모두 반영했다. 결과는 "2단계~파일 공유 리뷰 반영"에 있다.
   리뷰 반영은 Platform checks run 41324166410(2ab6639)으로 macOS·Windows에서 통과했다(test/private-map.test.js 포함).
@@ -2262,6 +2306,6 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
+- 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 이 인계 커밋(0.5.0 배포 준비)이고, 이전 main은 df7748f(릴리스 기록)였다. 작업 브랜치에는 그 위에 e7d5ade(계획),
   6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 27c02c8(백업 시점과 파일 공유), 5e015e0(Windows 기록),
-  그리고 이 인계 커밋(2단계~파일 공유 리뷰 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  2ab6639(리뷰 반영), 1814833(Windows 기록), 그리고 이 인계 커밋(0.5.0 배포 준비, main에 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.

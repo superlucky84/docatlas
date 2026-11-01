@@ -5,7 +5,7 @@ changes on main that are not published yet.
 Agent skill and rule versions are tracked separately in
 [agent-kit/manifest.json](agent-kit/manifest.json).
 
-## Unreleased
+## 0.5.0 — 2026-11-01
 
 - Private documents: `docatlas private init|status|backup|list|restore|help` keeps documents that
   only you see in `.docatlas/private/<feature>/` at the project root (the repository top folder in
