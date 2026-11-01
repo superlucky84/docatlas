@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { addExcludeLine, countFiles, findPrivateRoot, inspectFolder, isHomeOrAbove, readExclude } from './folder.js';
+import { addExcludeLine, countFiles, inspectFolder, isHomeOrAbove, readExclude } from './folder.js';
 import { isIgnored, locateRepository, trackedFiles } from './git.js';
 
 export const PRIVATE_OPTIONS = {
@@ -31,9 +31,8 @@ export function privateHelp() {
   return [
     'docatlas private — documents only you see, in .docatlas/private/ at the project root', '',
     'Private documents live in <root>/.docatlas/private/<feature>/. Inside a git repository <root> is always',
-    'the top folder of the repository, wherever you run the command. Outside git, when the current folder is',
-    'inside the home folder, <root> is the nearest folder at or above it, below the home folder, that has',
-    'a .docatlas entry; otherwise <root> is the current folder. <root> is never the home folder or above it.',
+    'the top folder of the repository, wherever you run the command. Outside git, <root> is the current',
+    'folder (or --root), so run it from the project folder. <root> is never the home folder or above it.',
     'The private folder is hidden from git with .git/info/exclude, which applies only to this clone and',
     'is never committed, so others see no trace.',
     '<root>/.docatlas/agents.json, the project install record, stays visible and can be committed.', '',
@@ -50,7 +49,7 @@ export function privateHelp() {
     '  docatlas private status [--root <dir>]',
     '  docatlas private help', '',
     'Options:',
-    '  --root <dir>   Folder to start from (default: current folder). <root> is found from it as described above.',
+    '  --root <dir>   Folder to start from (default: current folder). Inside git, its repository top folder is used.',
     '  --dry-run      init only: print what would happen without writing.',
     '  -h, --help     Show this help.', '',
     'Output lines (tab-separated):',
@@ -97,9 +96,7 @@ function writeBlocked(stdout, reason, filename, message) {
 
 async function locate(start, { stdout, git, home }) {
   const location = await locateRepository(start, { git });
-  const root = location.repo ? location.root
-    : location.blocked ? start
-      : await findPrivateRoot(start, home) ?? start;
+  const root = location.repo ? location.root : start;
   stdout.write('root\t' + root + '\n');
   if (location.blocked) {
     writeBlocked(stdout, location.blocked, start, location.message);

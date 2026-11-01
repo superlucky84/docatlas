@@ -16,7 +16,8 @@ function gitEnvironment() {
   for (const name of Object.keys(env)) {
     if (REPOSITORY_VARIABLES.includes(name.toUpperCase())) delete env[name];
   }
-  return env;
+  // English messages, so "not a git repository" can be recognized on every system.
+  return { ...env, LC_ALL: 'C', LANGUAGE: 'C' };
 }
 
 function runGit(cwd, args, git) {
@@ -32,47 +33,16 @@ function runGit(cwd, args, git) {
   });
 }
 
-async function kind(filename) {
-  return fs.lstat(filename).then(stat => (stat.isDirectory() ? 'directory' : stat.isFile() ? 'file' : 'other'), () => 'missing');
-}
-
-// A .git entry git would use: a folder with HEAD, or a file that starts with "gitdir:" (worktrees and submodules).
-async function validGitEntry(filename) {
-  const found = await kind(filename);
-  if (found === 'directory') return (await kind(path.join(filename, 'HEAD'))) === 'file';
-  if (found !== 'file') return false;
-  const handle = await fs.open(filename, 'r').catch(() => null);
-  if (!handle) return false;
-  try {
-    const { buffer, bytesRead } = await handle.read(Buffer.alloc(7), 0, 7, 0);
-    return buffer.subarray(0, bytesRead).toString('latin1') === 'gitdir:';
-  } finally {
-    await handle.close();
+// Only used when git cannot be started: is there a .git entry at or above start?
+async function hasGitAbove(start) {
+  for (let current = start; ; current = path.dirname(current)) {
+    if (await fs.lstat(path.join(current, '.git')).then(() => true, () => false)) return true;
+    if (path.dirname(current) === current) return false;
   }
 }
 
-const truthy = value => ['1', 'true', 'yes', 'on'].includes(String(value ?? '').toLowerCase());
-
-// The nearest folder at or above start with a valid .git, searched the way git does: it stops before a
-// GIT_CEILING_DIRECTORIES entry (compared by real path) and at a file system boundary unless
-// GIT_DISCOVERY_ACROSS_FILESYSTEM is set.
-async function gitMarker(start) {
-  const entries = (process.env.GIT_CEILING_DIRECTORIES ?? '').split(path.delimiter).filter(Boolean);
-  const ceilings = await Promise.all(entries.map(entry => fs.realpath(entry).catch(() => path.resolve(entry))));
-  const across = truthy(process.env.GIT_DISCOVERY_ACROSS_FILESYSTEM);
-  const device = (await fs.stat(start)).dev;
-  let current = start;
-  for (;;) {
-    if (await validGitEntry(path.join(current, '.git'))) return current;
-    const parent = path.dirname(current);
-    if (parent === current || ceilings.includes(parent)) return null;
-    if (!across && (await fs.stat(parent).catch(() => null))?.dev !== device) return null;
-    current = parent;
-  }
-}
-
-// repo: the work tree's top folder and its info/exclude file.
-// Not a repository: { repo: false, reason: 'not-git' }. Cannot tell: { repo: false, blocked, message }.
+// repo: the work tree's top folder and its info/exclude file. git decides everything else:
+// { repo: false, reason: 'not-git' } when git says this is not a repository, or { repo: false, blocked, message }.
 export async function locateRepository(start, { git = 'git' } = {}) {
   const result = await runGit(start, ['rev-parse', '--is-inside-work-tree', '--show-toplevel', '--git-path', 'info/exclude'], git);
   const [inside, top, exclude] = result.stdout.split(/\r?\n/);
@@ -83,12 +53,15 @@ export async function locateRepository(start, { git = 'git' } = {}) {
   if (result.ok) {
     return { repo: true, root: await fs.realpath(top), excludePath: path.resolve(start, exclude), pattern: PATTERN };
   }
-  if (!(await gitMarker(start))) {
+  if (result.missing) {
+    return await hasGitAbove(start)
+      ? { repo: false, blocked: 'git-missing', message: 'git could not be started, but this folder is in a git repository.' }
+      : { repo: false, reason: 'not-git' };
+  }
+  if (/not a git repository/i.test(result.message)) {
     return { repo: false, reason: 'not-git' };
   }
-  return result.missing
-    ? { repo: false, blocked: 'git-missing', message: 'git could not be started, but this folder is in a git repository.' }
-    : { repo: false, blocked: 'git-error', message: result.message || 'git could not read this repository.' };
+  return { repo: false, blocked: 'git-error', message: result.message || 'git could not read this repository.' };
 }
 
 // True when any git ignore source (.gitignore, info/exclude, global excludes) hides the private folder.

@@ -39,32 +39,11 @@ export async function inspectFolder(root) {
   return { path: privatePath(root), state: 'present' };
 }
 
-const inside = (parent, child) => {
-  const relative = path.relative(parent, child);
-  return relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
-};
-
 // True when root is the home folder or one of its parents. Private documents never live there: the home
-// .docatlas holds install records and backups.
+// .docatlas holds install records and backups. path.relative compares without case on Windows.
 export function isHomeOrAbove(root, home) {
-  return root === home || inside(root, home);
-}
-
-// Outside git: the nearest folder at or above start, below the home folder, that has a .docatlas entry. That folder
-// is a project root, with or without private documents, so the search stops there. Searching only happens when
-// start is inside the home folder, and an unreadable folder stops it. Null when nothing is found.
-export async function findPrivateRoot(start, home) {
-  if (!inside(home, start)) return null;
-  let current = start;
-  while (current !== home) {
-    try {
-      if ((await kind(path.join(current, PRIVATE_PATH[0]))) !== 'missing') return current;
-    } catch {
-      return null;
-    }
-    current = path.dirname(current);
-  }
-  return null;
+  const relative = path.relative(root, home);
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 }
 
 // files counts every entry git could see (files and links); documents counts Markdown files.

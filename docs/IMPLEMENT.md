@@ -1561,9 +1561,10 @@ Files:
 - [x] C1 bare 저장소·그 하위·`.git` 안이 git 밖으로 판정되던 문제: git이 `false`를 출력한 뒤 실패하므로 첫 줄을 성공·실패와 관계없이 읽어 not-work-tree로 막는다.
 - [x] C2 홈 밖에서 시작하면 `/`까지 올라가 다른 사용자의 폴더를 쓰거나 EACCES로 막히던 문제: 위로 찾기는 시작 폴더가 홈 안일 때만 하고,
   `.docatlas` 항목이 있는 가장 가까운 폴더에서 멈춰 그 폴더를 루트로 쓴다(사용자 결정의 "다른 프로젝트의 .docatlas에서 멈춤"을 이렇게 구현했다).
-  홈 밖이면 시작 폴더를 쓴다.
+  홈 밖이면 시작 폴더를 쓴다. (같은 날 단순화에서 위쪽 찾기 자체를 없앴다. 아래 "1단계 단순화".)
 - [x] 홈 막기: 정해진 루트가 홈 자체나 그 위면(홈이 git 최상위인 dotfiles 포함) `blocked home`, 종료 3, 아무것도 쓰지 않는다.
 - [x] git 밖 판정을 git과 맞췄다: 유효한 `.git`만(HEAD가 있는 폴더, `gitdir:` 파일), GIT_CEILING_DIRECTORIES를 실제 경로로, 파일 시스템 경계에서 멈춤.
+  (같은 날 단순화에서 이 재구현을 없애고 git의 "not a git repository" 답을 그대로 쓴다.)
 - [x] 테스트 격리: 모든 실행에 테스트용 빈 home을 준다(실제 홈과 TMPDIR 위의 폴더가 결과를 바꾸지 않는다).
 - [x] 반영한 suggestion: exclude 줄 비교는 뒤 공백만 무시, 새 private 폴더 0700(sudo 실행 시 소유자 문제는 알려진 한계로 기록),
   `--dry-run`도 패턴 줄이 있으면 숨김을 미리 확인, 도움말을 명령별 blocked 이유로 정리, 모든 status 실행의 요약이 문서화된 값인지 확인,
@@ -1583,6 +1584,39 @@ Files:
 - `src/private/command.js` (modified)
 - `src/private/index.js` (modified)
 - `test/private.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 1단계 단순화 — 완료
+
+진입: 사용자 우려(2026-11-01) — 규칙이 복잡해졌고 Windows 사용자가 걱정된다. 그때까지 개인 문서 테스트는 Windows에서 한 번도 돌지 않았다
+(Platform checks가 npm test를 실행하지 않는다). 사용자는 git 밖 규칙을 "실행한 폴더로 단순화"로 골랐다.
+
+- [x] git 밖이면 실행한 폴더(또는 `--root`)가 루트다. 위쪽 찾기(findPrivateRoot)를 없앴다. 홈과 그 위 막기는 그대로다.
+- [x] git 밖 판단을 git에게 맡겼다. git을 LC_ALL=C·LANGUAGE=C로 실행하고 "not a git repository"면 git 밖, 그 밖의 오류는 git-error.
+  유효한 `.git`·탐색 제한·디스크 경계를 우리 코드로 다시 구현하던 부분을 없앴다(git.js 108줄 → 78줄). git을 실행할 수 없을 때만
+  위쪽에 `.git` 항목이 있는지 보고 git-missing과 git 밖을 나눈다.
+- [x] 홈 비교를 경로 비교(path.relative)로 바꿔 Windows 대소문자 차이에 강하게 했다.
+- [x] Windows 확인: test/private.test.js를 `npm run test:platform`에 넣어 Platform checks(macOS·Windows × Node 22·24)가 실행한다.
+  셸 스크립트 가짜 git·POSIX 권한·0700 테스트는 Windows에서 건너뛴다. CONTRIBUTING의 플랫폼 검사 설명에 한 줄을 더했다.
+- [x] 테스트: 위쪽 찾기 테스트 3개를 없애고, git 밖은 시작 폴더(부모에 개인 폴더가 있어도), 읽을 수 없는 `.docatlas`는 종료 1·쓰기 없음,
+  git의 "not a git repository" 답은 경고·그 밖 오류는 git-error를 더했다.
+
+결과: test/private.test.js 24개. root로는 22개 통과·2개 건너뜀, nobody로는 24개 모두 통과. npm run test:platform 30개 중 28개 통과·2개 건너뜀.
+npm run check 통과, npm test 183개 중 178개 통과·5개 건너뜀·실패 0, npm pack --dry-run 49개 파일·63.9 kB.
+Windows 결과: 작업 브랜치에서 Platform checks를 수동 실행해 확인한다(아래 기록).
+종료 기준: 규칙이 "git 안이면 저장소 최상위, 밖이면 실행한 폴더, 홈은 막음"으로 줄고 macOS·Windows CI가 개인 문서 테스트를 실행한다.
+
+Files:
+- `src/private/git.js` (modified)
+- `src/private/folder.js` (modified)
+- `src/private/command.js` (modified)
+- `src/private/index.js` (modified)
+- `test/private.test.js` (modified)
+- `package.json` (modified)
+- `CONTRIBUTING.md` (modified)
 - `docs/REQUIREMENTS.md` (modified)
 - `docs/DESIGN.md` (modified)
 - `docs/IMPLEMENT.md` (modified)
@@ -1623,7 +1657,7 @@ Files:
 ### Test Hardening
 
 - [ ] 경계: 한글·공백 기능 이름, CRLF, 큰 이미지, 백업 중 실패 시 정리, 동시 실행, 권한, 심볼릭 링크로 바뀐 폴더.
-- [ ] Windows: test/private.test.js를 플랫폼 검사에 넣을지 정하고 Windows의 경로·exclude 동작을 확인한다.
+- [x] Windows: test/private.test.js를 test:platform에 넣었다(1단계 단순화). 실제 Windows 결과는 그 절의 CI 기록을 따른다.
 
 ### Integration Test
 
@@ -1890,7 +1924,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): 1단계 리뷰(warning 10)를 반영했다. 사용자가 "항상 저장소 최상위"를 골랐다.
   git 밖에서는 위쪽의 기존 `.docatlas/private/`를 루트로 쓰도록 보완했다(사용자 선택).
 - 완료(2026-11-01): 1단계 재리뷰(critical 2·warning 4)를 반영했다. git 밖 찾기는 홈 안에서만, 홈과 그 위는 막기(사용자 선택).
-- 다음(RQ-22·23): 반영분을 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
+- 완료(2026-11-01): 사용자 우려(규칙 복잡, Windows)에 따라 1단계를 단순화했다. git 밖은 실행한 폴더, git 밖 판단은 git의 답, 플랫폼 CI에 개인 문서 테스트.
+- 다음(RQ-22·23): Windows CI 결과를 확인한 뒤, 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1900,4 +1935,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
 - 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), 그리고 이 인계 커밋(1단계 재리뷰 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.
+  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), 그리고 이 인계 커밋(1단계 단순화)이 있다. 0.4.1 게시본은 fcb4e68이다.

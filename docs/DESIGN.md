@@ -763,19 +763,18 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 
 - 위치(2026-11-01 사용자 선택): git 작업 트리 안이면 명령을 어느 폴더에서 실행하든(`--root` 포함) 저장소 최상위의 `.docatlas/private/`를 쓴다.
   그래서 패턴은 항상 `/.docatlas/private/`다. 하위 폴더에서 연 문서 지도에는 개인 문서가 보이지 않는다.
-  git 밖이면(2026-11-01 사용자 선택) 시작 폴더가 홈 안일 때만 위로 찾는다. 시작 폴더부터 홈 직전까지 `.docatlas` 항목이 있는 가장 가까운 폴더가
-  루트다. 그 안에 개인 폴더가 있으면 그것을 쓰고, 없으면(다른 프로젝트의 경계) 그 폴더에 만든다. `.docatlas`가 링크·다른 종류면 그 폴더가 루트가 되고
-  init이 막혔다고 알린다. `.docatlas`를 확인할 수 없는 오류가 나면 찾기를 멈춘다. 루트의 `.docatlas` 안을 읽을 수 없으면 명령은 아무것도 쓰지 않고
-  실패(종료 1)로 끝난다. 홈 밖에서 시작하거나 찾지 못하면 시작 폴더를 쓴다.
+  git 밖이면(2026-11-01 최종 사용자 선택) 시작 폴더(실행한 폴더 또는 `--root`)가 루트다. 위로 찾지 않는다(이전의 위쪽 찾기 규칙은 단순화로 없앴다).
+  루트의 `.docatlas` 안을 읽을 수 없으면 명령은 아무것도 쓰지 않고 실패(종료 1)로 끝난다.
 - 홈 막기(2026-11-01 사용자 선택): 정해진 루트가 홈 폴더 자체나 그 위면(git 최상위가 홈인 dotfiles 저장소 포함) `blocked home`, 종료 3이다.
   홈의 `~/.docatlas/`는 설치 기록과 백업 자리라 개인 문서와 섞지 않는다.
 - git 질의는 `rev-parse --is-inside-work-tree --show-toplevel --git-path info/exclude` 한 번으로 한다. worktree·submodule은 각자의 exclude 파일을 쓴다.
   git hook이 내보내는 GIT_DIR·GIT_WORK_TREE·GIT_INDEX_FILE·GIT_COMMON_DIR·GIT_NAMESPACE·GIT_PREFIX는 지우고 실행해 다른 저장소를 건드리지 않는다.
-- 판정: 질의가 성공하고 작업 트리면 저장소. 질의의 첫 출력이 `false`면(성공·실패와 관계없이, bare 저장소와 `.git` 안) not-work-tree로 막는다.
-  실패했는데 시작 폴더부터 위로 유효한 `.git`(HEAD가 있는 폴더 또는 `gitdir:` 파일)이 없으면 git 밖으로 보고 경고만 한다.
-  이 위로 찾기는 git처럼 GIT_CEILING_DIRECTORIES(실제 경로로 바꿔 비교)와 파일 시스템 경계(GIT_DISCOVERY_ACROSS_FILESYSTEM이 없을 때)에서 멈춘다.
-  `.git`이 있는데 git을 실행할 수 없으면 git-missing, git이 오류를 내면(예: 소유자가 다른 저장소) git-error, 작업 트리가 아니면 not-work-tree로
-  아무것도 쓰지 않고 종료 3. 숨겼는지 확인할 수 없을 때 성공으로 보고하지 않기 위해서다.
+- 판정은 git에게 맡긴다(2026-11-01 단순화). git은 영어 메시지(LC_ALL=C·LANGUAGE=C)로 실행한다.
+  - 질의가 성공하고 작업 트리면 저장소. 첫 출력이 `false`면(성공·실패와 관계없이, bare 저장소와 `.git` 안) not-work-tree로 막는다.
+  - 실패 메시지가 "not a git repository"면 git 밖으로 보고 경고만 한다. GIT_CEILING_DIRECTORIES·파일 시스템 경계·빈 `.git` 같은 판단은 git의 것을 그대로 따른다.
+  - 그 밖의 오류(예: 소유자가 다른 저장소)는 git-error로 종료 3.
+  - git을 실행할 수 없으면(ENOENT·EACCES 등) 시작 폴더부터 위로 `.git` 항목이 있는지만 본다. 있으면 git-missing으로 종료 3, 없으면 git 밖 경고.
+  모두 아무것도 쓰지 않는다. 숨겼는지 확인할 수 없을 때 성공으로 보고하지 않기 위해서다.
 - exclude 파일에 패턴 줄이 없으면 주석 한 줄(`# docatlas private documents (docatlas private init)`)과 패턴을 덧붙인다. 중복해서 쓰지 않는다.
   줄 비교는 git처럼 뒤 공백만 무시한다(앞 공백은 패턴의 일부다). 새로 만드는 `private` 폴더는 0700이다(같은 컴퓨터의 다른 사용자가 읽지 못하게).
   sudo 등 다른 사용자로 실행하면 exclude와 폴더의 소유자가 바뀔 수 있다. 실행 사용자는 저장소 소유자여야 한다(알려진 한계, 막지 않음).
@@ -944,7 +943,7 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
   여러 모듈 기능은 위치 하나, 구조가 불분명하면 에이전트가 제안하고 사람이 결정)을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영한다.
   0.4.1로 배포한다(2026-10-30 사용자 결정). M-18.
 - [x] DC-32: 2026-11-01 사용자 선택. 개인 문서는 `.docatlas/private/<기능>/`(agents.json은 그대로 커밋, git 안이면 실행 위치와 관계없이 저장소 최상위,
-  git 밖이면 홈 안에서만 위쪽의 기존 개인 폴더를 찾고 다른 `.docatlas`에서 멈춤, 홈과 그 위는 막음), git 숨김은 `.git/info/exclude`,
+  git 밖이면 실행한 폴더, 홈과 그 위는 막음. git 밖의 위쪽 찾기는 같은 날 단순화로 없앴다), git 숨김은 `.git/info/exclude`,
   문서 지도는 별도 Private 그룹으로 항상 표시, 스킬은 designer 위에 얹는 얇은 스킬. M-21.
 - [x] DC-33: 2026-11-01 사용자 선택(제안대로). `doc-driven-private-v1`, 기본 설치, 명시적 요청에만 사용, 빈 폴더와 백업이 있으면 복구를 먼저 묻는다. M-21.
 - [x] DC-34: 2026-11-01 사용자 선택(제안대로). `~/.docatlas/private-backups/<origin 키>/<시각>/`,

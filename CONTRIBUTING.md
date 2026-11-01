@@ -74,8 +74,9 @@ reading, search, live saves, independent shutdown, and original file hashes.
 
 The [platform workflow](.github/workflows/platform.yml) targets macOS and Windows with
 Node 22 and 24. Run `npm run test:platform` to check native Unicode/space paths, CRLF,
-source discovery, references/assets, live policy changes, controlled cleanup, and
-production tarball launchers. This does not replace manual OS acceptance.
+source discovery, references/assets, live policy changes, controlled cleanup,
+production tarball launchers, and `docatlas private` git hiding. This does not replace
+manual OS acceptance.
 
 The platform suite installs its fresh tarball with `--prefer-offline`: cached data
 is reused and missing dependency metadata can be downloaded. It needs registry access
