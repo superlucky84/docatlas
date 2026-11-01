@@ -149,8 +149,8 @@ Refs: RQ-1, DC-1, M-1
 
 Files:
 - `services/checkout/session.js` (added)
-- `services/checkout/orders.js` (modified)
 - `services/checkout/legacy-cart.js` -> `services/checkout/cart.js` (renamed)
+- `docs/checkout/IMPLEMENT.md` (modified)
 ```
 
 - **Refs**는 phase 제목 바로 아래에 둡니다. 전체 ID를 쉼표로 구분해 쓰고(`RQ-1·3`이 아니라 `RQ-1, RQ-3`),
@@ -158,9 +158,9 @@ Files:
 - **Files**는 phase의 체크리스트와 기록 뒤에 둡니다. 항목마다 저장소 루트 기준 경로를 백틱으로 감싸고
   `(added)`, `(modified)`, `(deleted)`, `(renamed)` 중 하나를 붙입니다. 바꾼 파일이 없는 phase는
   `Files: none`입니다. 한 폴더에 생성된 파일이 많으면 `/`로 끝나는 폴더 항목 하나로 적을 수 있습니다.
-- Files는 구현한 phase를 마칠 때, 어느 에이전트가 구현했든 기억이 아니라 git(`git status`,
-  `git diff --name-status`, 추적되지 않은 새 파일)에서 만듭니다. 문서를 포함해 이 phase의 변경만 적고,
-  앞 phase에서 커밋하지 않은 변경은 뺍니다. 예정한 파일은 체크리스트 문장에 남깁니다.
+- Files는 구현한 phase를 마칠 때, 어느 에이전트가 구현했든 기억이 아니라 git(`git status --porcelain -uall`,
+  `git diff --name-status`)에서 만듭니다. 문서를 포함해 이 phase의 변경만 적고, 앞 phase에서 커밋하지 않은
+  파일은 이 phase가 다시 바꾸지 않았다면 뺍니다. 예정한 파일은 체크리스트 문장에 남깁니다.
 - 문서를 어떤 언어로 쓰든 `Refs:`, `Files:`, 변경 종류, `none`은 영어로 씁니다. 도구는 코드 블록을
   건너뛰므로 위와 같은 예시는 기록으로 잡히지 않습니다.
 

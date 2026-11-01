@@ -1171,7 +1171,8 @@ Files:
   단계·물려받은 Refs·파일·renamed 항목이 기대와 같고, METHOD 두 언어판·designer 스킬·DESIGN의 코드 펜스 예시는 잡히지 않았다.
 - [x] 이 작업 절의 Files 블록을 합친 목록이 git status의 변경 19개와 같다.
 - [x] designer 스킬·룰만으로 형식·작성 시점·git 출처·영어 라벨을 모두 찾을 수 있다. implementer·reviewer를 참조해야 아는 규칙은 없고,
-  두 스킬·룰도 각자 형식을 담고 있다.
+  두 스킬·룰도 각자 형식을 담고 있다(e1087a8 기준). 분량 정리 뒤 reviewer는 형식을 다시 적지 않고, 앞 단계 변경을 빼는 규칙의
+  빈틈은 리뷰에서 찾아 아래 "리뷰 반영"에서 고쳤다.
 
 종료 기준: 형식 오류와 버전 불일치가 검사에서 드러나고, 실제 기록이 파싱 계약으로 정확히 추출된다.
 designer만으로 규칙이 완결된다. 충족했다.
@@ -1188,7 +1189,8 @@ Files:
   pack 45개 파일·58.7 kB(파일 수 그대로), 바뀐 문서 10개의 상대 링크 34개 문제 0, git diff --check 통과.
 - [x] ~/.claude만 있는 임시 HOME에 main(0373bbc, kit 1.1.0)의 agents install로 6개를 설치한 뒤, 새 코드의 미리보기는 replace(recorded) 6이었다.
   문서 지도 시작 시 "kit 1.2.0 is available (installed 1.1.0)" 안내가 나왔고, 설치 후 스킬은 designer 1.3.0이며 안내가 사라졌다.
-- [ ] 단계 끝 리뷰(doc-driven-reviewer-v1)는 사용자가 고른다.
+- [x] 단계 끝 리뷰(doc-driven-reviewer-v1): 사용자가 요청했다(2026-11-01). 결과와 반영은 아래 "리뷰 반영"에 있다.
+  위 pack 크기와 임시 HOME 확인은 a824c9b 전 측정이며, 리뷰 반영 뒤 다시 실행한 결과도 그 절에 있다.
 
 npm run test:platform·test:integration·test:browser는 제품 코드와 설치 동작이 바뀌지 않아 실행하지 않았다.
 종료 기준: 설치본 갱신과 안내가 기존 kit 변경 때와 같이 동작하고, 패키지 구성이 그대로다. 배포 버전과 시점은 사용자가 정한다.
@@ -1206,8 +1208,10 @@ Files:
 - [x] 동작은 그대로 두고 문장을 줄였다. designer Phase Records는 예시·규칙 3개로, 하위 제목 상속·폴더 항목·블록 재작성·설명 위치 같은
   세부는 METHOD와 설계 계약에만 둔다. Phase Completion 문장, 세 룰의 새 규칙, implementer·reviewer의 새 항목도 줄였다.
 - [x] reviewer는 문서의 블록을 git 변경과 비교하므로 형식 전체를 다시 적지 않는다. implementer는 형식을 한 줄로 유지한다. 설계 역할 절에 반영했다.
-- [x] 결과(0373bbc 대비 단어 수): designer 스킬 +21%(1,130), 룰 +16%; implementer 스킬 +11%, 룰 +13%; reviewer 스킬 +4%, 룰 +6%.
-  새 규칙의 모든 줄이 각 파일의 기존 최장 줄 이하다. 기존 규칙은 지우거나 바꾸지 않았고 implementer 룰 번호만 하나씩 밀렸다.
+- [x] 결과(0373bbc 대비 단어 수, 절사): designer 스킬 +21%(1,130), 룰 +16%; implementer 스킬 +11%, 룰 +13%; reviewer 스킬 +4%, 룰 +6%.
+  세 스킬의 새 줄은 각 파일의 기존 최장 줄 이하였지만, designer 룰(266자, 기존 194자)과 implementer 룰(297자, 기존 256자)은 더 길었다.
+  기존 규칙을 지우지는 않았다. 다만 designer 스킬 Completion Criteria 항목과 implementer 룰의 완료 보고 문장에 새 기록을 더했고
+  implementer 룰 번호가 하나씩 밀렸다. (처음 기록은 "모든 줄이 기존 최장 줄 이하, 기존 규칙은 바꾸지 않았다"였고 리뷰가 바로잡았다.)
 - [x] 배포 전이라 항목 버전과 kitVersion은 그대로 두고 manifest의 현재 해시만 다시 기록했다. previous 항목은 그대로다.
 - [x] npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0).
 
@@ -1221,6 +1225,42 @@ Files:
 - `agent-kit/manifest.json` (modified)
 - `docs/DESIGN.md` (modified)
 - `docs/IMPLEMENT.md` (modified)
+
+### 리뷰 반영 — 완료
+
+진입: 사용자가 doc-driven-reviewer-v1 리뷰를 요청했다(2026-11-01). 별도 에이전트가 0373bbc...a824c9b를 읽기 전용으로 리뷰했다.
+결과: REQUEST_CHANGES, critical 0·warning 5·suggestion 7. 리뷰어가 npm run check·npm test를 다시 실행해 통과를 확인했고,
+Files 블록이 커밋별 실제 변경과 같음을 대조했다.
+
+- [x] W1 앞 단계 변경 빼기의 단서와 방법: designer 스킬에 "단계 시작 때 변경 목록을 적고, 끝에서 이 단계가 다시 바꾸지 않은 파일만 뺀다"를 넣었다.
+  METHOD 두 언어판과 implementer 룰 8번에도 같은 단서를 넣었다. designer 룰은 요약이라 두지 않았다(서브에이전트 designer는 구현하지 않고 문서 초안만 쓴다).
+  designer 스킬만으로 완결된다.
+- [x] W2 새 폴더가 `?? dir/`로 접히는 문제: 스킬·룰·METHOD의 git 명령을 `git status --porcelain -uall`로 바꿨다.
+- [x] W3 비소급 규칙과의 충돌: designer Artifact Flow·Completion Criteria를 "new phase"로 좁히고, designer 룰을 13번(Refs, 소급 안 함)과
+  14번(Files)으로 나눴다.
+- [x] W4 분량 정리의 측정 기록을 실측으로 고쳤다. W5 낡은 근거(형식 담김, 측정 시점)를 고치고 아래처럼 다시 실행했다.
+- [x] 반영한 suggestion: designer 룰에 `Files: none`, implementer 룰에 kickoff 목록의 쓰임, 예시(designer·METHOD 두 언어판)에 그 단계의 문서 항목,
+  manifest previous에 이전 Codex 변환본 해시 3개(렌더러 codex.js는 0.3.0부터 그대로), 인계의 커밋, 파싱 계약의 펜스 정의.
+- [x] 반영하지 않은 suggestion: 단계 도중 커밋한 파일(설계에 알려진 한계 TBD로 기록), test/examples.test.js의 형식 회귀 검사(수집 기능 DC-30 c에서).
+- [x] 분량(0373bbc 대비 단어 수): designer 스킬 +24.2%(1,158), 룰 +19.7%; implementer 스킬 +13.2%, 룰 +16.0%; reviewer 스킬 +4.8%, 룰 +6.9%.
+  새 줄의 최대 길이: designer 스킬 356자(기존 456), implementer 스킬 300자(기존 309), reviewer 스킬 283자(기존 304), reviewer 룰 192자(기존 265).
+  designer 룰 204자(기존 194)와 implementer 룰 346자(기존 256)는 기존보다 길다.
+- [x] 다시 실행(Linux / Node 22.23.4): npm run check(kit 1.2.0 세 쌍), npm test(159개 중 156개 통과·3개 건너뜀·실패 0), npm pack --dry-run(45개 파일·58.3 kB).
+  ~/.claude와 ~/.codex가 있는 임시 HOME에 main(0373bbc)으로 12개 설치 → 새 미리보기 replace(recorded) 12, 문서 지도 안내 한 줄,
+  설치 후 designer 1.3.0·implementer 1.2.0·reviewer 1.5.0, 안내 사라짐. 설치 기록을 지운 Codex 사본 6개는 replace(previous-file) 6.
+
+Files:
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/skills/doc-driven-implementer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-implementer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ## 검증 예제와 기록
 
@@ -1460,7 +1500,9 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   DC-30의 세 TBD는 제안대로 정했다(영어 라벨, 새 작업부터·예제 checkout만, docatlas 검색은 별도 후속).
   METHOD 두 언어판, kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0), 예제 checkout, CHANGELOG Unreleased를 고쳤다.
   검증 결과는 위 "구현 계획의 Refs·Files 표기" 절에 있다. 사용자 우려에 따라 새 스킬·룰 문장을 줄였다(designer 스킬 +36%→+21%).
-- 다음(RQ-20): 단계 끝 리뷰 여부를 사용자가 정한다. 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점도 사용자가 정한다.
+  사용자 요청으로 리뷰했다(REQUEST_CHANGES, critical 0·warning 5). warning 5개를 모두 고쳐 designer 스킬은 +24%다.
+  커밋: 956fc14·7a630af(기준 문서), e1087a8(구현), a824c9b(분량 정리), 이 인계 커밋(리뷰 반영).
+- 다음(RQ-20): 다음 패키지 버전(스킬만 바뀐 0.4.1 전례로는 패치)과 main 반영·배포 시점도 사용자가 정한다.
   M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1469,4 +1511,4 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 0373bbc(main). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.
+- 최신 확인 커밋: a824c9b(작업 브랜치, main은 0373bbc). 0.4.1 게시본은 fcb4e68이다. 이 인계 커밋의 SHA는 git log -1로 확인한다.

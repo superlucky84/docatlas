@@ -358,7 +358,8 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
   줄여 쓰지 않은 ID의 Refs 줄이 있고, 아직 구현하지 않은 단계에는 Files 블록이 없다.
 - [ ] 같은 designer 단독 환경에서 한 단계를 구현하고 마치면 implementer·reviewer 없이도 그 단계에 실제 git 변경
   (added·modified·deleted·renamed)과 같은 Files 블록이 남고, 검증만 한 단계는 `Files: none`이다.
-- [ ] implementer 1.2.0을 함께 쓰면 커밋하지 않은 앞 단계의 변경이 섞이지 않고, 완료 보고의 변경 파일이 Files와 같다(강화).
+  커밋하지 않고 두 단계를 이어 구현해도 앞 단계 파일은 이 단계가 다시 바꾸지 않았다면 빠지고, 새 폴더의 파일은 파일 단위로 적힌다.
+- [ ] implementer 1.2.0을 함께 쓰면 완료 보고의 변경 파일이 Files와 같다(강화).
 - [ ] reviewer 1.5.0이 Files에 빠진 파일이나 바뀌지 않은 파일이 있으면 doc sync warning으로 보고한다(강화).
 - [ ] 설계의 파싱 계약 규칙만으로 새 단계의 Refs·Files를 뽑을 수 있고, 코드 펜스 안의 형식 예시는 잡히지 않는다.
 - [ ] docatlas로 kit 1.1.0을 설치한 환경에서 새 kit을 담은 문서 지도가 업데이트 안내를 보이고, 다시 설치하면 세 스킬·룰이 바뀌고 안내가 사라진다.
@@ -480,10 +481,10 @@ test/integration/package.test.js의 부모 1개·하위 3개, 총 4개가 Node 2
 | --- | --- | --- |
 | M-19 | 파싱 계약 정규식의 일회성 스크립트로 구현 계획의 새 작업 절과 예제 checkout 추출 | 단계·물려받은 Refs·파일·renamed가 기대와 같고 코드 펜스 예시는 0건 |
 | M-19 | 새 작업 절의 Files 블록 합집합과 git status | 변경 19개로 같음 |
-| M-19 | designer 스킬·룰만 읽고 형식·작성 시점·git 출처·영어 라벨 찾기 | 모두 있음. implementer·reviewer에도 형식이 있음 |
+| M-19 | designer 스킬·룰만 읽고 형식·작성 시점·git 출처·영어 라벨 찾기 | 모두 있음(리뷰 반영 뒤 앞 단계 변경 빼기 포함). implementer는 한 줄 형식, reviewer는 문서 블록과 git 변경을 비교 |
 | M-19 | METHOD.md와 METHOD.ko.md 구조 대조 | 제목·목록·코드 블록·표 행·링크 수 동일 |
-| M-19 | main(kit 1.1.0)으로 설치한 임시 HOME에서 새 kit 안내와 재설치 | 안내 한 줄, 미리보기 replace(recorded) 6, 설치 후 designer 1.3.0, 안내 사라짐 |
-| M-19 | npm run check · npm test · npm pack --dry-run | kit 1.2.0 세 쌍, 159개 중 156개 통과·3개 건너뜀·실패 0, 45개 파일 |
+| M-19 | main(kit 1.1.0)으로 설치한 임시 HOME에서 새 kit 안내와 재설치 | 리뷰 반영 뒤 ~/.claude·~/.codex로 다시 실행: 안내 한 줄, 미리보기 replace(recorded) 12, 설치 후 세 항목 새 버전, 안내 사라짐. 기록 없는 Codex 사본 6개는 replace(previous-file) |
+| M-19 | npm run check · npm test · npm pack --dry-run | 리뷰 반영 뒤 다시 실행: kit 1.2.0 세 쌍, 159개 중 156개 통과·3개 건너뜀·실패 0, 45개 파일·58.3 kB |
 
 ## 0.4.1 배포 준비 확인 — 2026-10-30
 

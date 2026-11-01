@@ -164,8 +164,8 @@ Refs: RQ-1, DC-1, M-1
 
 Files:
 - `services/checkout/session.js` (added)
-- `services/checkout/orders.js` (modified)
 - `services/checkout/legacy-cart.js` -> `services/checkout/cart.js` (renamed)
+- `docs/checkout/IMPLEMENT.md` (modified)
 ```
 
 - **Refs** goes right under the phase heading. Write full IDs separated by commas
@@ -175,9 +175,9 @@ Files:
   `(renamed)`. A phase that changed nothing gets `Files: none`. Many generated files in one
   folder can be a single folder entry ending in `/`.
 - Write Files when an implemented phase ends, whichever agent implemented it, from git
-  (`git status`, `git diff --name-status`, and new untracked files), not from memory. List only
-  this phase's changes, documents included, and leave out uncommitted changes from earlier
-  phases. Planned files stay in the checklist text.
+  (`git status --porcelain -uall` and `git diff --name-status`), not from memory. List only
+  this phase's changes, documents included. Leave out files that earlier uncommitted phases
+  changed unless this phase changed them again. Planned files stay in the checklist text.
 - Keep `Refs:`, `Files:`, the kinds, and `none` in English whatever language the documents
   use. Tools skip code blocks, so examples like the one above are not records.
 

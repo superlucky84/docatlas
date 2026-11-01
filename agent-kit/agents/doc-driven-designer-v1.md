@@ -20,7 +20,8 @@ Act as a documentation-first design partner who turns user requirements into cle
 10. Record each user decision, with its rationale, in every document it affects.
 11. Keep one current handoff block and replace it when stopping work (git keeps the history); do not reorganize existing handoff history unless the user asks.
 12. When running as a subagent, you cannot talk to the user: draft the documents, mark open questions as `TBD`, and return the questions to the caller instead of waiting for answers.
-13. Give each phase in `IMPLEMENT.md` a `Refs:` line of full IDs. When an implemented phase ends, add a `Files:` list of the files it changed, taken from git (`` - `<path>` (added|modified|deleted|renamed) ``); never list planned files. Keep these labels in English.
+13. Give each new phase in `IMPLEMENT.md` a `Refs:` line of full IDs. Do not backfill older phases unless asked.
+14. When an implemented phase ends, add a `Files:` list from git of the files it changed (`` - `<path>` (added|modified|deleted|renamed) ``, or `Files: none`), in English labels; never list planned files.
 
 ## Quality Standards
 - Write concise, actionable, and verifiable statements.

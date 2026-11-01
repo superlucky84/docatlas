@@ -36,7 +36,7 @@ Translate user requirements into a maintainable document set that guides impleme
 3. Update `IMPLEMENT.md`.
    - Split work into phases with entry criteria, implementation checklist, baseline tests, and exit criteria.
    - Include late-stage **Test Hardening** and **Integration Test** phases.
-   - Give each phase a `Refs:` line, and each implemented phase a `Files:` block (see Phase Records).
+   - Give each new phase a `Refs:` line, and a `Files:` block once implemented (see Phase Records).
 4. Update `MANUAL_TEST_CHECKLIST.md`.
    - Define release-facing manual checks and pass/fail criteria.
 
@@ -64,10 +64,12 @@ Refs: RQ-1, DC-1, M-1
 Files:
 - `services/checkout/session.js` (added)
 - `services/checkout/legacy-cart.js` -> `services/checkout/cart.js` (renamed)
+- `docs/checkout/IMPLEMENT.md` (modified)
 ```
 
 - Write `Refs:` under the phase heading when you create the phase: full IDs separated by `, ` (never `RQ-1·3`), or `Refs: none`.
-- Write `Files:` when an implemented phase ends, never while planning. Build it from git (`git status --porcelain`, `git diff --name-status`), not memory: one line per file this phase changed, documents included, with a repository-root path and `added`, `modified`, `deleted`, or `renamed`. Leave out earlier phases' uncommitted changes. Use `Files: none` if nothing changed.
+- Write `Files:` when an implemented phase ends, never while planning. When the phase starts, note the changed files (`git status --porcelain -uall`).
+- At the end, build `Files:` from git (`git status --porcelain -uall`, `git diff --name-status`), not memory: one line per file this phase changed, documents included, with a repository-root path and `added`, `modified`, `deleted`, or `renamed`. Leave out files noted at the start unless this phase changed them again. Use `Files: none` if nothing changed.
 - Keep these labels in English in any document language. Do not backfill older phases unless asked.
 
 ## Multi-Agent Rules
@@ -86,5 +88,5 @@ Files:
 Consider planning complete only when:
 - All four artifacts are aligned and non-contradictory.
 - Decision checklists are resolved or clearly tracked.
-- Each implementation phase has a `Refs:` line, entry criteria, baseline tests, and exit criteria.
+- Each new implementation phase has a `Refs:` line, entry criteria, baseline tests, and exit criteria.
 - Hardening and integration test phases are present.

@@ -33,7 +33,7 @@ If sources conflict, stop and resolve the conflict explicitly with the user.
 - Find the target phase (or named work section) in `IMPLEMENT*.md`.
 - Confirm entry criteria and dependencies are satisfied.
 - List concrete implementation tasks and baseline tests for the phase.
-- Note already-changed files (`git status --porcelain`) so the phase's `Files:` block can leave out earlier uncommitted work.
+- Note already-changed files (`git status --porcelain -uall`) so the phase's `Files:` block can leave out earlier uncommitted work.
 
 ### 2) Implement
 - Make minimal, coherent code changes aligned to that phase only.
@@ -46,7 +46,7 @@ If sources conflict, stop and resolve the conflict explicitly with the user.
 
 ### 4) Sync Documents
 - Update `IMPLEMENT*.md` phase checklist status (`[ ]` -> `[x]`) for completed items only.
-- Write the phase's `Files:` block from git: one `` - `<repository-root path>` (added|modified|deleted|renamed) `` line per file this phase changed, or `Files: none`. Leave out the files noted at kickoff unless this phase changed them again.
+- Write the phase's `Files:` block from git (`git status --porcelain -uall`, `git diff --name-status`): one `` - `<repository-root path>` (added|modified|deleted|renamed) `` line per file this phase changed, or `Files: none`. Leave out the files noted at kickoff unless this phase changed them again.
 - Keep the phase's `Refs:` line to full IDs. If `IMPLEMENT*.md` is outside your scope, return the `Files:` block in your report.
 - Record unresolved items clearly (do not silently skip).
 - If behavior changed materially, sync corresponding `DESIGN*.md` and `README.md` sections.

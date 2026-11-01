@@ -12,7 +12,9 @@ Agent skill and rule versions are tracked separately in
   IDs it covers and, once implemented, a `Files:` list of the files it changed, taken from git, in
   a fixed format that tools can read line by line. The designer alone writes both. The implementer
   also keeps earlier uncommitted work out of a phase's list, and the reviewer reports a list that
-  does not match the changes. Existing phases are left as they are. If you installed the skills
+  does not match the changes. Existing phases are left as they are. Codex rule copies from
+  docatlas 0.3.0 to 0.4.1 are now recognized as earlier versions even without an install record,
+  so they are updated instead of skipped. If you installed the skills
   with `docatlas agents install`, the document map shows a one-line notice; run the same command
   again to update them.
 
