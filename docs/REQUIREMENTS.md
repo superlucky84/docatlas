@@ -44,7 +44,7 @@
 | ../docatlas.config.json | 이 저장소 문서 지도의 수집 범위를 docs/로 한정 | DC-21 적용 완료 |
 | ../guide/ | 사용 가이드: 문서 지도·설정·지원 환경 | DC-25 작성 완료 |
 | ../.github/workflows/publish.yml | 버전 태그로 npm 게시(Trusted Publishing), 수동 실행은 dry-run 리허설 | RQ-21 작성 |
-| ../src/private/ (계획) | 개인 문서 위치 준비·git 숨김·백업·복구 | RQ-22·23 계획 |
+| ../src/private/ | 개인 문서 위치 준비·git 숨김·백업·복구 | RQ-22 1단계 init·status·help 구현, 백업·복구는 계획 |
 
 설치되는 프로젝트는 입력 데이터의 소유자다. 도구의 설치 위치와 문서를 읽을
 프로젝트 위치를 구분한다.
@@ -300,6 +300,7 @@ doc-driven-designer-v1과는 별개의 룰로, 시킬 때 따로 정리되게 �
 RQ-20의 Files 기록은 이 기능의 사전 작업이다. 문서가 코드 옆에 없으므로 Files·Refs가 관련 코드 위치를 알려 준다.
 
 - 확인됨(2026-11-01 사용자 선택): 위치는 `.docatlas/private/<기능>/`이다. 같은 폴더의 `.docatlas/agents.json`(프로젝트 설치 기록, 커밋 대상)은 그대로 둔다.
+- 확인됨(2026-11-01 사용자 선택): git 저장소 안이면 어느 폴더에서 실행하든 저장소 최상위의 `.docatlas/private/` 하나를 쓴다(1단계 리뷰의 질문).
 - 확인됨: git에서 숨기는 방법은 `.git/info/exclude`다. 내 clone에만 적용되고 커밋되지 않아 팀원에게 흔적이 없다.
   새 clone에는 이 규칙이 없으므로 복구가 다시 넣는다.
 - 확인됨: 문서 지도는 개인 문서를 공개 문서와 구분되는 별도 Private 그룹으로 항상 보여 준다. 지도는 loopback에서만 열린다.

@@ -1456,7 +1456,8 @@ Files:
 
 진입: DC-33~36 확정. 2026-11-01 충족.
 
-기준 검증(e7d5ade, Linux / Node 22.23.4): 문법 76개·agent kit 1.2.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀·실패 0.
+기준 검증(e7d5ade, Linux / Node 22.23.4): 문법 72개·agent kit 1.2.0 세 쌍, Node 159개 중 156개 통과·3개 건너뜀·실패 0.
+(처음 기록은 "문법 76개"였다. 구현을 시작한 뒤에 잰 값이라 리뷰가 바로잡았다.)
 
 - [x] `src/private/`(git.js·folder.js·command.js·index.js): 루트의 `.docatlas/private/` 경로와 심볼릭 링크·비폴더 차단,
   `git rev-parse --show-toplevel`·`--git-path info/exclude`로 숨김 파일과 패턴(루트가 하위 폴더면 그 경로 포함, `\ * ? [ ]` 이스케이프),
@@ -1481,6 +1482,45 @@ Files:
 - `src/private/index.js` (added)
 - `src/cli.js` (modified)
 - `test/private.test.js` (added)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 1단계 리뷰 반영 — 완료
+
+진입: 사용자 요청으로 doc-driven-reviewer-v1이 e7d5ade...6aea538을 리뷰했다(2026-11-01). REQUEST_CHANGES, critical 0·warning 10·suggestion 9.
+리뷰의 질문 중 "하위 폴더에서 실행하면 어디에 두나"는 사용자가 "항상 저장소 최상위"를 골랐다. "git을 확인할 수 없으면 종료 3"과
+"노출 판정은 모든 파일"은 안전한 쪽으로 정했다. 문서 지도 안내·복구 질문은 사용자가 대화에서 직접 승인한 항목이라 그대로 둔다.
+
+- [x] 위치: git 안이면 실행 위치와 관계없이 저장소 최상위를 쓰고 패턴은 항상 `/.docatlas/private/`다. 결과 첫 줄에 `root <폴더>`를 낸다.
+  하위 폴더 패턴과 그 이스케이프는 없앴다.
+- [x] git 질의에서 GIT_DIR 등 저장소 변수를 지운다(hook 안에서 다른 저장소의 exclude에 쓰던 문제). `--is-inside-work-tree`를 함께 확인한다.
+- [x] git 오류와 git 밖을 나눈다: `.git`이 위에 없으면 not-git 경고, 있으면 git-missing(실행 불가, ENOENT·EACCES 등)·git-error·not-work-tree로 종료 3.
+  ls-files·check-ignore가 실패하면 성공으로 넘기지 않고 오류로 끝낸다(종료 1).
+- [x] init이 쓴 뒤 check-ignore로 확인하고, `.gitignore`의 `!` 규칙 등으로 여전히 보이면 not-ignored로 종료 3. status는 이때 init 반복 대신 사용자 확인을 안내한다.
+- [x] 노출 판정을 모든 파일로 하고 status에 files 줄을 더했다. 폴더가 막혔으면 git 확인을 건너뛰고 blocked 줄을 낸다(git이 링크 너머 경로를 거부한다).
+- [x] exclude를 바이트로 읽고 덧붙인다(UTF-8이 아닌 기존 줄 보존). 권한은 쓴 뒤 chmod로 맞춘다(umask 영향 제거). `info` 폴더가 링크면 멈춘다.
+  폴더를 만들기 직전에 다시 확인한다. 경로 끝 공백을 지우던 trim을 없앴다. 잘못된 주석(exclude.js)을 고쳤다.
+- [x] 도움말: 최상위 규칙, 모든 blocked 이유, files·tracked `-`, 종료 3의 뜻. 테스트가 옵션 목록과 status 요약을 양방향으로 대조한다.
+- [x] 테스트 격리: 빈 전역 git 설정·시스템 설정 끄기·GIT_CEILING_DIRECTORIES·저장소 변수 제거·commit.gpgsign=false. 바깥 저장소를 건드리지 않는다.
+  새 테스트: 하위 폴더→최상위, .md가 아닌 파일 노출, `!` 규칙, git 밖의 git 없음, 저장소 안의 git 없음·git 오류(가짜 git), GIT_DIR·GIT_WORK_TREE 무시,
+  submodule, 바이트·CRLF·마지막 줄바꿈·0o664 권한, exclude 파일 없음, `.docatlas` 링크·private 파일·info 링크, 쓰기 실패 시 임시 파일 정리.
+- [x] 문서: DESIGN의 git 숨김·명령 절에 구현된 계약과 "1단계 구현" 표시, 종료 3 설명(388행) 수정, 보관 개수 확정 반영,
+  REQUIREMENTS 모듈 표와 최상위 결정, MANUAL의 "제안" 표기와 모노레포 항목, 기준 검증 숫자(76→72).
+- [ ] 반영하지 않음: 동시 실행 잠금과 검사·쓰기 사이의 완전한 재확인(Test Hardening에서 정한다), Windows 실행(Test Hardening),
+  CHANGELOG 줄(main에 반영할 때 더한다).
+
+결과: test/private.test.js 15개. root로는 14개 통과·1개 건너뜀(권한 테스트), nobody 사용자로는 15개 모두 통과.
+npm run check 문법 77개·kit 세 쌍, npm test 174개 중 170개 통과·4개 건너뜀·실패 0, npm pack --dry-run 49개 파일·63.3 kB.
+종료 기준: 리뷰의 warning이 해결되거나 이유와 함께 남고 검사가 통과한다. 충족했다.
+
+Files:
+- `src/private/git.js` (modified)
+- `src/private/folder.js` (modified)
+- `src/private/command.js` (modified)
+- `src/private/index.js` (modified)
+- `test/private.test.js` (modified)
 - `docs/REQUIREMENTS.md` (modified)
 - `docs/DESIGN.md` (modified)
 - `docs/IMPLEMENT.md` (modified)
@@ -1785,7 +1825,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): GitHub 릴리스 v0.4.2(영문 노트, Latest)를 사용자가 만들었다(05:43 UTC). 이 세션의 GitHub 도구에는 릴리스 생성이 없어
   에이전트가 v0.4.1과 같은 구성의 노트를 미리 채운 작성 링크를 만들었다. 태그 v0.4.2는 그대로 556d0f0을 가리킨다.
 - 완료(2026-11-01, RQ-22 1단계): `docatlas private init|status|help`와 git 숨김. 결과는 "개인 문서와 백업" 절 1단계에 있다.
-- 다음(RQ-22·23): 1단계를 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
+- 완료(2026-11-01): 1단계 리뷰(warning 10)를 반영했다. 사용자가 "항상 저장소 최상위"를 골랐다.
+- 다음(RQ-22·23): 반영분을 다시 리뷰할지 2단계(문서 지도의 Private 그룹)로 갈지 사용자가 정한다.
 - 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
   docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
@@ -1794,4 +1835,5 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이고, 작업 브랜치에는 그 위에 개인 문서 계획 커밋이 있다. 0.4.1 게시본은 fcb4e68이다.
+- 최신 확인 커밋: 0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. main은 df7748f(릴리스 기록)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
+  6aea538(1단계), 그리고 이 인계 커밋(1단계 리뷰 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.

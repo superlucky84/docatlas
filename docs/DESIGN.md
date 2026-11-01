@@ -385,7 +385,7 @@ docatlas agents help
   마지막 summary 줄(create·replace·unchanged·skipped·blocked 개수)을 쓴다. --dry-run은 동작 줄과 summary 줄 앞에 dry-run을 붙이고 쓰지 않는다.
 - 대화형 질문을 하지 않는다(RQ-18). skip-*나 blocked가 있으면 나머지를 마치고 사용자 결정이 필요하다고 stderr에 알린다.
 - 종료 코드: 0 완료(할 일 없음 포함), 3 완료했지만 사용자 결정이 필요한 항목 있음, 1 실패(이번 실행이 쓴 파일 복구), 2 잘못된 인자.
-  기존 문서 지도의 0·1·2 의미는 유지하고, 3은 agents 명령에만 쓴다.
+  기존 문서 지도의 0·1·2 의미는 유지한다. 3은 agents와 private 명령이 쓴다(private의 3은 아래 개인 문서 계약 참고).
 - 쓰기 순서: 설치 잠금 → 모든 대상이 판정 이후 바뀌지 않았고 링크가 생기지 않았는지 다시 확인 → --force 대상 백업 →
   임시 파일 후 이름 변경 → 설치 기록 갱신 → 잠금 해제. 백업은 ~/.docatlas/backups/<UTC 시각>/<global|project>/<대상 상대 경로>다.
   실패하면 이번 실행이 쓴 파일과 만든 폴더를 되돌린다.
@@ -759,20 +759,34 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
   문서가 코드 옆에 없어도 관련 코드 위치를 그대로 가리킨다(RQ-20이 이 기능의 사전 작업인 이유).
 - 개인 문서는 공개 문서나 코드에서 링크하지 않는다. 개인 문서에서 공개 문서로 거는 상대 링크는 허용한다.
 
-### git 숨김
+### git 숨김 — 1단계 구현
 
-- `git rev-parse --git-path info/exclude`로 실제 파일을 찾는다(worktree·submodule에서 `.git`이 파일일 수 있다).
-- 그 파일에 `/.docatlas/private/` 한 줄이 없으면 더한다. 중복해서 쓰지 않는다. `.gitignore`는 고치지 않는다.
-- `git ls-files .docatlas/private`에 이미 추적된 파일이 있으면 숨김 대신 경고하고 멈춘다(이미 커밋된 개인 문서는 사용자가 정리한다).
-- git 저장소가 아니면 숨길 대상이 없으므로 경고만 하고 계속한다.
+- 위치(2026-11-01 사용자 선택): git 작업 트리 안이면 명령을 어느 폴더에서 실행하든(`--root` 포함) 저장소 최상위의 `.docatlas/private/`를 쓴다.
+  그래서 패턴은 항상 `/.docatlas/private/`다. git 밖이면 시작 폴더를 쓴다. 하위 폴더에서 연 문서 지도에는 개인 문서가 보이지 않는다.
+- git 질의는 `rev-parse --is-inside-work-tree --show-toplevel --git-path info/exclude` 한 번으로 한다. worktree·submodule은 각자의 exclude 파일을 쓴다.
+  git hook이 내보내는 GIT_DIR·GIT_WORK_TREE·GIT_INDEX_FILE·GIT_COMMON_DIR·GIT_NAMESPACE·GIT_PREFIX는 지우고 실행해 다른 저장소를 건드리지 않는다.
+- 판정: 질의가 성공하고 작업 트리면 저장소. 실패했는데 시작 폴더부터 위로(GIT_CEILING_DIRECTORIES 전까지) `.git`이 없으면 git 밖으로 보고 경고만 한다.
+  `.git`이 있는데 git을 실행할 수 없으면 git-missing, git이 오류를 내면(예: 소유자가 다른 저장소) git-error, 작업 트리가 아니면 not-work-tree로
+  아무것도 쓰지 않고 종료 3. 숨겼는지 확인할 수 없을 때 성공으로 보고하지 않기 위해서다.
+- exclude 파일에 패턴 줄이 없으면 주석 한 줄(`# docatlas private documents (docatlas private init)`)과 패턴을 덧붙인다. 중복해서 쓰지 않는다.
+  기존 내용은 바이트 그대로 두고 CRLF와 마지막 줄바꿈을 따르며, 임시 파일에 쓰고 권한을 맞춘 뒤 이름을 바꾼다. `.gitignore`는 고치지 않는다.
+- `git ls-files`에 추적된 개인 파일이 있으면 숨김 대신 멈춘다(종료 3, 아무것도 쓰지 않음). 이미 커밋된 개인 문서는 사용자가 정리한다.
+- `.docatlas`·`private`·exclude 파일·`info` 폴더가 심볼릭 링크거나 종류가 다르면 멈춘다. 폴더를 만들기 직전에 다시 확인한다.
+  동시 실행 잠금은 두지 않았다(Test Hardening에서 정한다).
+- init은 쓴 뒤 `git check-ignore -q -- .docatlas/private/`로 실제로 숨겨졌는지 확인한다. `.gitignore`의 `!` 규칙처럼 다른 규칙이 폴더를 다시 보이게 하면
+  not-ignored로 종료 3을 내고 사용자에게 보이게 한다(같은 init을 반복하라고 안내하지 않는다).
+- 노출 판정은 Markdown뿐 아니라 개인 폴더의 모든 파일(이미지 등)로 한다. status는 documents(Markdown)와 files(전체)를 따로 보여 준다.
 
-### 명령과 모듈(DC-35)
+### 명령과 모듈(DC-35) — 1단계에서 init·status·help 구현
 
 - 새 모듈 `src/private/`: 위치 준비, 숨김 확인, 백업, 목록, 복구. 수집기·서버·화면·agent-kit과 독립이다.
 - 명령: `docatlas private init | status | backup | list | restore | help`. agents 명령처럼 대화형 입력 없이 탭 구분 결과 줄과 종료 코드를 내고,
   `restore`는 `--dry-run` 미리보기를 지원한다. `help`는 에이전트가 읽고 실행할 순서를 안내한다.
   - init: `.docatlas/private/`를 만들고 git 숨김 규칙을 확인·추가한다.
-  - status: 개인 문서 수, 숨김 상태, 마지막 백업과 차이를 보여 준다.
+  - status: 개인 문서 수, 숨김 상태를 보여 준다(1단계). 마지막 백업과의 차이는 3단계에서 더한다.
+- 결과 줄: 두 명령 모두 첫 줄에 `root <폴더>`. init은 `<action> folder`, `<action> exclude <파일> <패턴>`, `warning not-git`, `blocked <이유> <경로>`,
+  `summary`. status는 folder·documents·files·git·exclude·ignored·tracked·summary(ok|empty|exposed|tracked|blocked|not-git).
+- 종료 3의 뜻: agents는 "완료했지만 결정 필요"이고, private init은 "쓰기 전에 멈춤" 또는 "줄은 썼지만 git이 아직 폴더를 봄", status는 "사용자가 봐야 할 상태"다.
 - 쓰기는 `.docatlas/private/`, `.git/info/exclude`, 백업 위치로 한정한다. 심볼릭 링크는 따라가지 않는다.
 
 ### 백업과 복구(DC-34)
@@ -780,7 +794,7 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - 백업 위치: `~/.docatlas/private-backups/<프로젝트 키>/<UTC 시각>/`. 각 백업에 파일 목록·해시·원본 커밋·시각을 담은 manifest를 둔다.
 - 프로젝트 키: `origin` 원격 주소를 정규화한 값(예: github.com/superlucky84/docatlas, 계정 정보와 .git 제거). 그래서 다른 위치에 새로 clone해도
   같은 키를 찾는다. 원격이 없으면 `local/<폴더 이름>`과 경고, `--key`로 바꿀 수 있다.
-- 마지막 백업과 내용이 같으면 새 백업을 만들지 않는다. 보관 개수는 TBD(제안: 모두 보관, 정리는 후속).
+- 마지막 백업과 내용이 같으면 새 백업을 만들지 않는다. 백업은 모두 보관하고 정리는 후속이다(DC-34).
 - 복구: 새 clone에서 같은 키의 최신 백업(또는 `--from <백업>`)을 고른다. 계획은 create·unchanged·conflict로 보여 주고,
   다른 내용의 기존 파일(conflict)은 건너뛴다. `--force`일 때만 현재 파일을 먼저 백업한 뒤 덮어쓴다. 복구는 git 숨김 규칙도 다시 넣는다.
 - 백업 시점: 명령으로 한다. 사용자가 말로 시키면 에이전트가 실행하고, 개인 문서 스킬은 문서를 고친 뒤에도 실행한다.
@@ -919,7 +933,7 @@ implementer는 다른 스킬이 설치됐다고 가정하지 않고 형식을 �
 - [x] DC-29: 2026-10-30 사용자 선택. 블로그 글의 문서 위치 원칙 중 저장소에 없던 것(코드가 보여 주는 묶음 따르기, 모듈마다 docs/ 두지 않기,
   여러 모듈 기능은 위치 하나, 구조가 불분명하면 에이전트가 제안하고 사람이 결정)을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영한다.
   0.4.1로 배포한다(2026-10-30 사용자 결정). M-18.
-- [x] DC-32: 2026-11-01 사용자 선택. 개인 문서는 `.docatlas/private/<기능>/`(agents.json은 그대로 커밋), git 숨김은 `.git/info/exclude`,
+- [x] DC-32: 2026-11-01 사용자 선택. 개인 문서는 `.docatlas/private/<기능>/`(agents.json은 그대로 커밋, git 안이면 실행 위치와 관계없이 저장소 최상위), git 숨김은 `.git/info/exclude`,
   문서 지도는 별도 Private 그룹으로 항상 표시, 스킬은 designer 위에 얹는 얇은 스킬. M-21.
 - [x] DC-33: 2026-11-01 사용자 선택(제안대로). `doc-driven-private-v1`, 기본 설치, 명시적 요청에만 사용, 빈 폴더와 백업이 있으면 복구를 먼저 묻는다. M-21.
 - [x] DC-34: 2026-11-01 사용자 선택(제안대로). `~/.docatlas/private-backups/<origin 키>/<시각>/`,

@@ -397,6 +397,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 개인 문서 스킬을 써서 기능 문서를 요청하면 `.docatlas/private/<기능>/`에 designer 형식의 문서가 생기고, 공개 docs/는 바뀌지 않는다.
 - [ ] `git status`에 개인 문서가 나타나지 않고, `.gitignore`는 바뀌지 않으며, `.git/info/exclude`에 `/.docatlas/private/` 한 줄이 있다.
 - [ ] 같은 폴더의 `.docatlas/agents.json`은 숨겨지지 않아 커밋할 수 있다.
+- [ ] 모노레포의 하위 폴더에서 init을 실행해도 저장소 최상위의 `.docatlas/private/` 하나만 쓰인다.
 - [ ] 문서 지도에 공개 문서와 구분된 Private 그룹이 보이고, 검색 결과에도 개인 문서 표시가 있다. 하위 폴더의 `.docatlas/`는 보이지 않는다.
 - [ ] 개인 문서의 Files·Refs가 저장소 루트 기준 경로로 관련 코드와 공개 문서를 가리킨다.
 
@@ -408,7 +409,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 
 대응: RQ-23 / DC-34·35. 예제: F-10.
 
-- [ ] 백업하면 작업 폴더 밖(제안: ~/.docatlas/private-backups/<프로젝트 키>/)에 시각별 백업이 생기고, 내용이 같으면 새로 만들지 않는다.
+- [ ] 백업하면 작업 폴더 밖(~/.docatlas/private-backups/<프로젝트 키>/)에 시각별 백업이 생기고, 내용이 같으면 새로 만들지 않는다.
 - [ ] 작업 폴더를 지우고 같은 원격을 새로 clone한 뒤 복구하면 개인 문서와 git 숨김 규칙이 돌아온다.
 - [ ] 복구 미리보기는 파일을 바꾸지 않고, 내용이 다른 기존 파일은 --force 없이는 덮어쓰지 않는다. --force는 먼저 현재 파일을 백업한다.
 - [ ] 에이전트가 help만 읽고 미리보기 → 확인 → 복구 순서로 실행한다.

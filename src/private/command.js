@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
-import { addExcludeLine, countDocuments, inspectFolder, readExclude } from './folder.js';
-import { inspectGit, isIgnored, trackedFiles } from './git.js';
+import { addExcludeLine, countFiles, inspectFolder, readExclude } from './folder.js';
+import { isIgnored, locateRepository, trackedFiles } from './git.js';
 
 export const PRIVATE_OPTIONS = {
   root: { type: 'string' },
@@ -10,25 +10,32 @@ export const PRIVATE_OPTIONS = {
   help: { type: 'boolean', short: 'h' }
 };
 
-// Same exit codes as docatlas agents. NEEDS_DECISION means something the user must look at.
+// Same numbers as docatlas agents. For private commands, NEEDS_DECISION means the user must look: init stopped
+// before writing, or it wrote the exclude line but the folder is still visible to git.
 export const EXIT = { OK: 0, FAILED: 1, USAGE: 2, NEEDS_DECISION: 3 };
+export const STATUS_SUMMARIES = ['ok', 'empty', 'exposed', 'tracked', 'blocked', 'not-git'];
 
-const GIT_WARNINGS = {
-  'not-git': 'This folder is not in a git repository, so there is nothing to hide the documents from.',
-  'git-missing': 'git was not found, so the documents could not be hidden. Install git and run init again.'
+const NOT_GIT = 'This folder is not in a git repository, so there is nothing to hide the documents from.';
+const MESSAGES = {
+  blocked: 'A private path is a symbolic link or has the wrong type, or git could not be read. Show these lines to the user.\n',
+  tracked: 'git already tracks files in .docatlas/private/. Show these lines to the user; nothing was written.\n',
+  'not-ignored': 'Another ignore rule, such as a ! line in .gitignore, still shows the folder to git. Show this to the user.\n',
+  exposed: 'Private files are not hidden from git. Run docatlas private init.\n'
 };
 
 export function privateHelp() {
   return [
     'docatlas private — documents only you see, in .docatlas/private/ at the project root', '',
-    'Private documents live in <root>/.docatlas/private/<feature>/. They are hidden from git with',
+    'Private documents live in <root>/.docatlas/private/<feature>/. Inside a git repository <root> is always',
+    'the top folder of the repository, wherever you run the command. The folder is hidden from git with',
     '.git/info/exclude, which applies only to this clone and is never committed, so others see no trace.',
     '<root>/.docatlas/agents.json, the project install record, stays visible and can be committed.', '',
     'For AI agents running this for a user:',
     '  1. Before writing private documents, run: docatlas private init',
-    '     It creates the folder and adds the folder to .git/info/exclude when it is missing there.',
+    '     It creates the folder, adds it to .git/info/exclude when that line is missing, and checks',
+    '     that git no longer sees the folder.',
     '  2. If a command exits with 3, show its lines to the user and stop. Do not stage, commit,',
-    '     move or delete files to fix it yourself.',
+    '     move or delete files, or change ignore files, to fix it yourself.',
     '  3. Never stage or commit files under .docatlas/private/, and never link to them from tracked files.',
     '  The command never asks questions. Read its output lines and exit code.', '',
     'Usage:',
@@ -36,27 +43,31 @@ export function privateHelp() {
     '  docatlas private status [--root <dir>]',
     '  docatlas private help', '',
     'Options:',
-    '  --root <dir>   Project root (default: current folder).',
+    '  --root <dir>   Folder to start from (default: current folder). Inside git, its repository top folder is used.',
     '  --dry-run      init only: print what would happen without writing.',
     '  -h, --help     Show this help.', '',
     'Output lines (tab-separated):',
+    '  both    root <folder that holds .docatlas/private>',
+    '          blocked <reason> <path> [message]   reasons: symbolic-link, wrong-type, tracked, not-ignored,',
+    '                                              not-work-tree, git-missing, git-error',
     '  init    <action> folder <path>',
     '          <action> exclude <exclude file> <pattern>',
-    '          blocked <reason> <path>',
-    '          warning <code> - <message>',
+    '          warning not-git - <message>',
     '          summary folder=<action> exclude=<action>',
     '          Actions: create, add, unchanged, skip. With --dry-run, action and summary lines start with dry-run.',
     '  status  folder <present|missing|blocked> <path>',
-    '          documents <count>',
-    '          git <repo|not-git|git-missing> <top folder or ->',
-    '          exclude <present|missing|skip> <exclude file or -> <pattern or ->',
+    '          documents <Markdown files>',
+    '          files <all files>',
+    '          git <repo|not-git> <top folder or ->',
+    '          exclude <present|missing|blocked|skip> <exclude file or -> <pattern or ->',
     '          ignored <yes|no|->',
-    '          tracked <count>',
-    '          summary <ok|empty|exposed|tracked|blocked|not-git>', '',
+    '          tracked <count|->',
+    '          summary <' + STATUS_SUMMARIES.join('|') + '>', '',
     'Exit codes:',
     '  0  Done, or nothing to do.',
-    '  3  Needs the user: private files are tracked by git, documents are not hidden, or a path is a',
-    '     symbolic link or not a folder.',
+    '  3  Needs the user. init stopped before writing (tracked files, a symbolic link or wrong type, or git',
+    '     could not be read), or it wrote the exclude line but git still sees the folder. status found',
+    '     private files that git can see or tracks, or a blocked path.',
     '  1  Failed.',
     '  2  Invalid arguments.', ''
   ].join('\n');
@@ -70,75 +81,116 @@ async function directory(filename) {
   return resolved;
 }
 
-function blocked(stdout, reason, filename) {
-  stdout.write('blocked\t' + reason + '\t' + filename + '\n');
+function writeBlocked(stdout, reason, filename, message) {
+  stdout.write('blocked\t' + reason + '\t' + filename + (message ? '\t' + message : '') + '\n');
 }
 
-async function init(root, { stdout, stderr, git, dryRun }) {
-  const folder = await inspectFolder(root);
-  if (folder.state === 'blocked') {
-    blocked(stdout, folder.reason, folder.blocker);
-    stderr.write('The private folder path is a symbolic link or not a folder. Show this to the user; nothing was written.\n');
+async function locate(start, { stdout, git }) {
+  const location = await locateRepository(start, { git });
+  const root = location.repo ? location.root : start;
+  stdout.write('root\t' + root + '\n');
+  if (location.blocked) {
+    writeBlocked(stdout, location.blocked, start, location.message);
+  }
+  return { location, root };
+}
+
+async function init(start, { stdout, stderr, git, dryRun }) {
+  const { location, root } = await locate(start, { stdout, git });
+  if (location.blocked) {
+    stderr.write(MESSAGES.blocked);
     return EXIT.NEEDS_DECISION;
   }
-  const repo = await inspectGit(root, { git });
+  const folder = await inspectFolder(root);
+  if (folder.state === 'blocked') {
+    writeBlocked(stdout, folder.reason, folder.blocker);
+    stderr.write(MESSAGES.blocked);
+    return EXIT.NEEDS_DECISION;
+  }
   let exclude = null;
-  if (repo.repo) {
+  if (location.repo) {
     const tracked = await trackedFiles(root, { git });
     if (tracked.length) {
-      for (const file of tracked) blocked(stdout, 'tracked', file);
-      stderr.write('git already tracks files in .docatlas/private/. Show these to the user; nothing was written.\n');
+      for (const file of tracked) writeBlocked(stdout, 'tracked', file);
+      stderr.write(MESSAGES.tracked);
       return EXIT.NEEDS_DECISION;
     }
-    exclude = await readExclude(repo.excludePath, repo.pattern);
+    exclude = await readExclude(location.excludePath, location.pattern);
     if (exclude.blocked) {
-      blocked(stdout, exclude.blocked, exclude.path);
-      stderr.write('The git exclude file is a symbolic link or not a file. Show this to the user; nothing was written.\n');
+      writeBlocked(stdout, exclude.blocked, exclude.blocker);
+      stderr.write(MESSAGES.blocked);
       return EXIT.NEEDS_DECISION;
     }
   }
   const folderAction = folder.state === 'missing' ? 'create' : 'unchanged';
-  const excludeAction = !repo.repo ? 'skip' : exclude.present ? 'unchanged' : 'add';
+  const excludeAction = !location.repo ? 'skip' : exclude.present ? 'unchanged' : 'add';
+  let visible = false;
   if (!dryRun) {
-    if (folderAction === 'create') await fs.mkdir(folder.path, { recursive: true });
+    if (folderAction === 'create') {
+      const again = await inspectFolder(root);
+      if (again.state === 'blocked') {
+        writeBlocked(stdout, again.reason, again.blocker);
+        stderr.write(MESSAGES.blocked);
+        return EXIT.NEEDS_DECISION;
+      }
+      await fs.mkdir(folder.path, { recursive: true });
+    }
     if (excludeAction === 'add') await addExcludeLine(exclude);
+    visible = location.repo && !(await isIgnored(root, { git }));
   }
   const prefix = dryRun ? 'dry-run\t' : '';
   stdout.write(prefix + folderAction + '\tfolder\t' + folder.path + '\n');
-  stdout.write(prefix + excludeAction + '\texclude\t' + (exclude?.path ?? '-') + '\t' + (repo.pattern ?? '-') + '\n');
-  if (!repo.repo) {
-    stdout.write('warning\t' + repo.reason + '\t-\t' + GIT_WARNINGS[repo.reason] + '\n');
+  stdout.write(prefix + excludeAction + '\texclude\t' + (exclude?.path ?? '-') + '\t' + (location.pattern ?? '-') + '\n');
+  if (!location.repo) {
+    stdout.write('warning\tnot-git\t-\t' + NOT_GIT + '\n');
+  }
+  if (visible) {
+    writeBlocked(stdout, 'not-ignored', folder.path);
   }
   stdout.write(prefix + 'summary\tfolder=' + folderAction + '\texclude=' + excludeAction + '\n');
+  if (visible) {
+    stderr.write(MESSAGES['not-ignored']);
+    return EXIT.NEEDS_DECISION;
+  }
   return EXIT.OK;
 }
 
-async function status(root, { stdout, stderr, git }) {
+async function status(start, { stdout, stderr, git }) {
+  const { location, root } = await locate(start, { stdout, git });
+  if (location.blocked) {
+    stdout.write('summary\tblocked\n');
+    stderr.write(MESSAGES.blocked);
+    return EXIT.NEEDS_DECISION;
+  }
   const folder = await inspectFolder(root);
-  const documents = folder.state === 'present' ? await countDocuments(folder.path) : 0;
-  const repo = await inspectGit(root, { git });
-  const exclude = repo.repo ? await readExclude(repo.excludePath, repo.pattern) : null;
-  const ignored = repo.repo ? await isIgnored(root, { git }) : null;
-  const tracked = repo.repo ? await trackedFiles(root, { git }) : [];
+  const count = folder.state === 'present' ? await countFiles(folder.path) : { files: 0, documents: 0 };
+  const exclude = location.repo ? await readExclude(location.excludePath, location.pattern) : null;
+  // git refuses paths beyond a symbolic link, so a blocked folder skips the git checks.
+  const askGit = location.repo && folder.state !== 'blocked';
+  const ignored = askGit ? await isIgnored(root, { git }) : null;
+  const tracked = askGit ? await trackedFiles(root, { git }) : null;
   const state = folder.state === 'blocked' || exclude?.blocked ? 'blocked'
-    : tracked.length ? 'tracked'
-      : !repo.repo ? 'not-git'
-        : !ignored && documents ? 'exposed'
-          : documents ? 'ok' : 'empty';
+    : tracked?.length ? 'tracked'
+      : !location.repo ? 'not-git'
+        : !ignored && count.files ? 'exposed'
+          : count.files ? 'ok' : 'empty';
   stdout.write('folder\t' + folder.state + '\t' + folder.path + '\n');
-  stdout.write('documents\t' + documents + '\n');
-  stdout.write('git\t' + (repo.repo ? 'repo' : repo.reason) + '\t' + (repo.top ?? '-') + '\n');
-  stdout.write('exclude\t' + (!repo.repo ? 'skip' : exclude.blocked ? 'blocked' : exclude.present ? 'present' : 'missing') + '\t' +
-    (exclude?.path ?? '-') + '\t' + (repo.pattern ?? '-') + '\n');
+  stdout.write('documents\t' + count.documents + '\n');
+  stdout.write('files\t' + count.files + '\n');
+  stdout.write('git\t' + (location.repo ? 'repo' : 'not-git') + '\t' + (location.root ?? '-') + '\n');
+  stdout.write('exclude\t' + (!location.repo ? 'skip' : exclude.blocked ? 'blocked' : exclude.present ? 'present' : 'missing') + '\t' +
+    (exclude?.path ?? '-') + '\t' + (location.pattern ?? '-') + '\n');
   stdout.write('ignored\t' + (ignored === null ? '-' : ignored ? 'yes' : 'no') + '\n');
-  stdout.write('tracked\t' + tracked.length + '\n');
+  stdout.write('tracked\t' + (tracked ? tracked.length : '-') + '\n');
+  if (folder.state === 'blocked') writeBlocked(stdout, folder.reason, folder.blocker);
+  if (exclude?.blocked) writeBlocked(stdout, exclude.blocked, exclude.blocker);
   stdout.write('summary\t' + state + '\n');
+  if (state === 'exposed' && exclude.present) {
+    stderr.write(MESSAGES['not-ignored']);
+    return EXIT.NEEDS_DECISION;
+  }
   if (['blocked', 'tracked', 'exposed'].includes(state)) {
-    stderr.write({
-      blocked: 'A private path is a symbolic link or has the wrong type. Show this to the user.\n',
-      tracked: 'git tracks files in .docatlas/private/. Show this to the user before anything else.\n',
-      exposed: 'Private documents are not hidden from git. Run docatlas private init.\n'
-    }[state]);
+    stderr.write(MESSAGES[state]);
     return EXIT.NEEDS_DECISION;
   }
   return EXIT.OK;
@@ -170,16 +222,16 @@ export async function runPrivate(args, { stdout = process.stdout, stderr = proce
   if (command === 'status' && values['dry-run']) {
     return usage('--dry-run applies only to init.');
   }
-  let root;
+  let start;
   try {
-    root = await directory(path.resolve(cwd, values.root ?? '.'));
+    start = await directory(path.resolve(cwd, values.root ?? '.'));
   } catch {
-    return usage('Project root not found: ' + path.resolve(cwd, values.root ?? '.'));
+    return usage('Folder not found: ' + path.resolve(cwd, values.root ?? '.'));
   }
   try {
     return command === 'init'
-      ? await init(root, { stdout, stderr, git, dryRun: values['dry-run'] === true })
-      : await status(root, { stdout, stderr, git });
+      ? await init(start, { stdout, stderr, git, dryRun: values['dry-run'] === true })
+      : await status(start, { stdout, stderr, git });
   } catch (error) {
     stderr.write('docatlas private ' + command + ' failed: ' + error.message + '\n');
     return EXIT.FAILED;
