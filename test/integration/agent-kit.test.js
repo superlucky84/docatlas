@@ -103,7 +103,7 @@ test('F-09: a packaged install manages agent skills globally and per project wit
   // and explains client rules. Only the three items installed globally get same-name warnings.
   const local = await agents(['install', '--project', '--all']);
   const localLines = lines(local.stdout);
-  assert.equal(localLines.filter(line => line[0] === 'create').length, 16);
+  assert.equal(localLines.filter(line => line[0] === 'create').length, 21);
   assert.equal(localLines.filter(line => line[0] === 'create' && line[4] === 'doc-driven-private-v1').length, 4);
   assert.deepEqual(localLines.filter(line => line[0] === 'warning').map(line => line[1]),
     [...Array(12).fill('same-name'), 'codex-trust']);

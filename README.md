@@ -76,9 +76,11 @@ You need Node.js 22+ and npm.
 | `doc-driven-implementer-v1` | Implements one phase at a time with test evidence, synced documents, and a handoff |
 | `doc-driven-reviewer-v1` | Reviews uncommitted changes read-only and returns a severity-ranked report |
 | `doc-driven-private-v1` | Keeps documents only you see in `.docatlas/private/`, written like the designer's, with backups |
+| `doc-driven-backup-v1` | Helps with requested cloud backup and restore of private documents, with names, tags and path selection |
 
 The first three are installed by default. The private documents skill needs the designer and is
-installed with `--all` ([details](agent-kit/README.md#install)).
+installed with `--all`. The optional backup role has no skill dependency and runs only when
+you request cloud management ([details](agent-kit/README.md#install), [backup guide](guide/cloud-backups.md)).
 
 Install options, update behavior, and the exact rules are in [agent-kit/](agent-kit/).
 

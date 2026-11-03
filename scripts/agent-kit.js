@@ -14,12 +14,12 @@ const SHA256 = /^[0-9a-f]{64}$/;
 const NAME_LIMIT = 64;
 const DESCRIPTION_LIMIT = 1024;
 const MANIFEST_KEYS = ['schema', 'kitVersion', 'items'];
-const ITEM_KEYS = ['name', 'version', 'default', 'requires', 'skill', 'agent', 'previous'];
+const ITEM_KEYS = ['name', 'version', 'default', 'requires', 'skill', 'agent', 'previous', 'invocationPolicy'];
 const PREVIOUS_KEYS = ['version', 'kind', 'part', 'sha256', 'source'];
 const SKILL_KEYS = ['name', 'description', 'metadata'];
 const SKILL_METADATA_KEYS = ['short-description', 'version'];
 const AGENT_KEYS = ['name', 'description'];
-const KINDS = ['skill', 'agent', 'codex-agent'];
+const KINDS = ['skill', 'agent', 'codex-agent', 'skill-policy'];
 const EXTRA_FILES = ['README.md', 'manifest.json'];
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
@@ -139,7 +139,7 @@ function checkPrevious(item, current, fail) {
     if (!KINDS.includes(entry.kind)) {
       fail(label + '.kind must be one of ' + KINDS.join(', '));
     }
-    const parts = entry.kind === 'codex-agent' ? ['file'] : ['file', 'body'];
+    const parts = ['codex-agent', 'skill-policy'].includes(entry.kind) ? ['file'] : ['file', 'body'];
     if (!parts.includes(entry.part)) {
       fail(label + '.part must be one of ' + parts.join(', '));
     }
@@ -217,6 +217,25 @@ export async function checkAgentKit(kitDir) {
       skill: await checkSource(kitDir, item, 'skill', fail),
       agent: await checkSource(kitDir, item, 'agent', fail)
     };
+    if (item.invocationPolicy !== undefined) {
+      const expected = 'skills/' + item.name + '/agents/openai.yaml';
+      const policy = item.invocationPolicy;
+      listed.add(expected);
+      if (!isRecord(policy) || unknownKeys(policy, ['path', 'sha256']).length || policy.path !== expected) {
+        fail(item.name + ': invocationPolicy needs the exact skill agents/openai.yaml path and sha256');
+      } else {
+        try {
+          const text = await readText(path.join(kitDir, ...expected.split('/')));
+          current['skill-policy'] = { file: hashText(text) };
+          if (hashText(text) !== policy.sha256) fail(expected + ': sha256 is ' + hashText(text));
+          if (!/^policy:\r?\n {2}allow_implicit_invocation: (true|false)\s*$/.test(text)) {
+            fail(expected + ': expected only policy.allow_implicit_invocation');
+          }
+        } catch (error) {
+          fail(expected + ': ' + error.message);
+        }
+      }
+    }
     checkPrevious(item, current, fail);
   }
   if (items.length && !items.some(item => item?.default === true)) {

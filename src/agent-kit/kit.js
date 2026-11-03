@@ -55,6 +55,17 @@ export async function loadKit(kitDir = KIT_DIRECTORY) {
   for (const item of manifest.items) {
     const skill = await readSource(kitDir, item.skill);
     const agent = await readSource(kitDir, item.agent);
+    let policy;
+    if (item.invocationPolicy) {
+      if (item.invocationPolicy.path !== 'skills/' + item.name + '/agents/openai.yaml') {
+        throw new AgentKitError('Invalid skill invocation policy path.');
+      }
+      const text = await readSource(kitDir, item.invocationPolicy);
+      if (!/^policy:\n {2}allow_implicit_invocation: (true|false)\s*$/.test(text)) {
+        throw new AgentKitError('Invalid skill invocation policy.');
+      }
+      policy = { text, sha256: hashText(text) };
+    }
     let fields;
     let body;
     try {
@@ -71,7 +82,8 @@ export async function loadKit(kitDir = KIT_DIRECTORY) {
       files: {
         skill: { text: skill, sha256: hashText(skill) },
         agent: { text: agent, sha256: hashText(agent) },
-        codexAgent: { text: codexAgent, sha256: hashText(codexAgent) }
+        codexAgent: { text: codexAgent, sha256: hashText(codexAgent) },
+        ...(policy ? { policy } : {})
       },
       previous: Array.isArray(item.previous) ? item.previous : []
     });

@@ -39,14 +39,15 @@ function hasError(errors, pattern) {
   assert.ok(errors.some(error => pattern.test(error)), 'expected ' + pattern + ' in ' + JSON.stringify(errors));
 }
 
-test('the repository kit lists four valid pairs; the private pair is not default and needs the designer', async () => {
+test('the repository kit keeps the default roles and adds optional private and backup pairs', async () => {
   const { errors, manifest } = await checkAgentKit(repositoryKit);
   assert.deepEqual(errors, []);
   assert.deepEqual(manifest.items.map(item => [item.name, item.default, item.requires]), [
     ['doc-driven-designer-v1', true, undefined],
     ['doc-driven-implementer-v1', true, undefined],
     ['doc-driven-reviewer-v1', true, undefined],
-    ['doc-driven-private-v1', false, ['doc-driven-designer-v1']]
+    ['doc-driven-private-v1', false, ['doc-driven-designer-v1']],
+    ['doc-driven-backup-v1', false, undefined]
   ]);
 });
 
@@ -59,6 +60,33 @@ test('requires must name other items in the manifest', async t => {
   ]) {
     hasError((await checkAgentKit(await createKit(t, { item: { requires } }))).errors, pattern);
   }
+});
+
+test('invocation policies are hashed, restricted to their own skill, and contain a boolean policy', async t => {
+  const policy = 'policy:\n  allow_implicit_invocation: false\n';
+  const policyPath = 'skills/sample-skill/agents/openai.yaml';
+  const root = await createKit(t, {
+    item: { invocationPolicy: { path: policyPath, sha256: hashText(policy) } }, files: { [policyPath]: policy }
+  });
+  assert.deepEqual((await checkAgentKit(root)).errors, []);
+  await fs.writeFile(path.join(root, policyPath), 'policy:\n  allow_implicit_invocation: "false"\n');
+  const invalid = (await checkAgentKit(root)).errors;
+  hasError(invalid, /sha256/);
+  hasError(invalid, /expected only policy.allow_implicit_invocation/);
+  const escaped = await createKit(t, {
+    item: { invocationPolicy: { path: '../outside.yaml', sha256: hashText(policy) } }
+  });
+  hasError((await checkAgentKit(escaped)).errors, /exact skill agents\/openai.yaml/);
+});
+
+test('the original four pairs retain their published versions and source hashes', async () => {
+  const { manifest } = await checkAgentKit(repositoryKit);
+  assert.deepEqual(manifest.items.slice(0, 4).map(item => [item.name, item.version, item.skill.sha256, item.agent.sha256]), [
+    ['doc-driven-designer-v1', '1.3.0', 'c22d7f737ad7c6bc41096048236c01651a1be8b99063312bb885e1961477c9d4', 'da1c557ab7e62affe05753af95ffd36adc1d83d05bcfb7d35f8a7e7e53216378'],
+    ['doc-driven-implementer-v1', '1.3.0', '7ed64b2e34812379b5ddb133423c317e9207f54193f5d532457b299927ef15a0', '3b38acafd4d244db808af94e791aae6f6841b32f3bc39798c04de40652b691af'],
+    ['doc-driven-reviewer-v1', '1.5.0', 'a14f4d210e42c5d1d8b299feb515208a702cdfc14781cce2ded00cd34b6c6a71', 'fbbd578703a28031636aad66e64c40da0c907c877d9c7d444cafb366f6649ebd'],
+    ['doc-driven-private-v1', '1.0.0', '6f6cb31afdc0ffd84aff345d3ec71e642fdb053f7bb0efeffb768a848b590461', '36e549f3ef9991d6c25f5343cbf924f329879f2acf515aa5e0904d03c14559d0']
+  ]);
 });
 
 test('a valid kit passes and hashes ignore line endings, a BOM and trailing blank lines', async t => {

@@ -26,6 +26,9 @@
 - 완료: RQ-20·DC-30 구현 계획의 Refs·Files 표기. METHOD 두 언어판과 kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0).
   0.4.2로 게시했다.
 - 완료: RQ-21·DC-31 npm 게시 자동화. 0.4.2를 v0.4.2 태그 푸시로 GitHub Actions가 Trusted Publishing으로 게시했다.
+- 완료(2026-11-03, 게시 전): RQ-24~29 선택 백업 스킬/룰과 private-cloud 보조 명령. 전체/선택 경로, 이름/태그/ID, 새 PC 복구, 상태/잠금을 구현했다.
+- 자동 검증 완료: 문법 92개·kit 1.4.0 다섯 쌍, Node 231개, production tarball 통합 7개와 독립 에이전트 합성 왕복. 실제 클라우드·Windows·일반 작업의 에이전트 인수는 남아 있다.
+- 확정 정책: 클라우드는 명시적 요청에만 실행하고 일반 작업에서 권유하지 않는다. 기존 네 쌍과 기본 세 쌍, 로컬 phase 백업은 유지한다.
 
 기술 선택은 각 단계에서 근거와 검증을 기록해 DC/IC를 해소한다.
 상세 계약을 바꾸면 요구사항·설계·단계·수동 기준을 같은 작업에서 갱신한다.
@@ -2016,6 +2019,166 @@ npx --yes docatlas@0.5.0 private help
 Publish to npm workflow가 태그 커밋이 main에 있는지, 태그가 package.json 버전과 같은지 확인한 뒤 검사·테스트를 거쳐 게시한다.
 2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
 
+## 클라우드 백업과 새 컴퓨터 복구 — 구현·자동 검증 완료(게시 전)
+
+Refs: RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-34, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, DC-43, DC-44, M-22, M-23, M-24, M-25, M-26, M-27, M-28, M-29
+
+### 방식 검토 — 완료(2026-11-03)
+
+Refs: RQ-24, RQ-25, RQ-26, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, M-23, M-24, M-25, M-26
+
+진입: private·백업 기능이 구현된 0.5.0과 사용자의 클라우드 연동 검토 요청. 시작 변경 목록: 없음. 기준 커밋 23f6de8.
+기준 검증: 기준 4종·private 저장/복구/키·개인 문서 스킬의 실제 계약, 공식 전송·인증 문서를 확인한다.
+
+- [x] 용도 확인: 사용자는 클라우드 백업 후 새 컴퓨터에서 필요할 때 복구하기를 선택했다.
+- [x] 동기화 폴더·rclone·직접 API·개인 비공개 Git의 부담과 적용 가능성을 비교했다.
+- [x] 기존 백업 저장소를 유지하고 별도 사본을 전송하는 안, 미완성 사본·기기 간 이름 충돌·재시도·보관·암호화의 미정 사항을 기록했다.
+- [x] REQUIREMENTS의 확인된 용도/정책, DESIGN의 DC-37~42, M-23~26의 미실행 인수 후보를 맞췄다.
+- [x] 후속 질문의 공간 절약 선호를 기록하고 여러 백업 tar 묶음·해시별 공유 저장을 비교했다.
+  현재 백업 코드와 설치된 tar의 합성 10개 백업 실험에서 묶음 내 데이터 공유와 풀기 후 하드 링크 복원을 확인했다(DESIGN 결과).
+- [x] npx의 설치 후 크기와 압축 전송·캐시 재사용을 구분하고, tar 의존성을 추가하는 CLI 안과 시스템 tar를 사용하는 선택 스킬 안을 비교했다.
+  스킬·룰 텍스트는 기존 설치기로 배포 가능하지만 보조 스크립트 동반 설치는 현재 계약에 없음을 확인했다. 전용 스킬/룰 중심으로 방향을 확인했고 원본 작성은 미착수다.
+- [x] RQ-25의 OS/설치 환경 안내와 기존 상태 우려를 기록했다. 현재 status/list로 알 수 있는 로컬 상태와,
+  연결 기록·실제 사본 대조·실행 잠금·원격 상태 확인의 추가 설계 범위를 DC-41/M-24에 나눴다.
+- [x] 새 컴퓨터에서는 코드만으로 백업 위치를 알 수 없다는 최초 연결의 한계를 명시했다.
+  사용자에게 위치 단서만 받고 작은 복구 목록으로 나머지 방식·프로젝트·시점을 확인하는 안내를 DC-38·41/M-24 후보로 보완했다.
+- [x] 사용자가 클라우드는 명시적 요청에만 실행하고 권유하지 않는 것으로 정했다(RQ-26/DC-42). phase 끝 자동 연결이라는 초기 제안을 관련 문서에서 대체했다.
+- [x] Google Drive/Dropbox의 Windows/macOS 지원을 공식 문서로 확인하고, 집/회사 PC 교대의 명시적 백업·복구/충돌 보호를 M-26 후보로 정리했다. 서비스 선택은 미정이다.
+
+종료 기준: 비교·추천과 미정 사항이 기준 4종에 남고, 구현된 동작으로 오해할 명령 안내가 없다. 문서 확인 결과는 현재 인계를 따른다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 선택 백업 역할과 보조 명령 — 완료(2026-11-03)
+
+Refs: RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, DC-43, DC-44, M-23, M-24, M-25, M-26, M-27, M-28, M-29
+
+진입: 사용자가 구현과 전체 단계 진행을 승인했다. 새 선택 쌍 doc-driven-backup-v1, 외부 의존성 없는 private-cloud 보조 명령과 제한 USTAR 계약을 기준 4종에 먼저 기록했다.
+시작 변경은 이 대화에서 만든 기준 4종뿐이다. 기준 커밋 23f6de8. 기준 검증은 문법 86개·기존 테스트 213/213 통과다.
+첫 서버 테스트는 샌드박스 loopback 제한에 막혀 종료했고 승인된 환경에서 전체 재실행했다.
+
+- [x] 새 스킬/룰 1.0.0과 Codex 명시적 호출 정책을 kit 1.4.0에 선택 항목으로 등록했다. 기존 네 쌍의 본문/버전/해시와 기본 세 쌍을 유지했다.
+- [x] 사용자 지정 동기화 폴더에 tar/복구 목록을 준비하고, 검증한 내용만 기존 로컬 저장소로 가져와 미리보기/복구한다. 로컬 하드 링크 공유를 재구성한다.
+- [x] 이름별 연결/상태와 태그/불변 ID 선택을 제공한다. 기기별 UUID와 부모 관계로 분기를 구분하며 기존 태그를 덮어쓰지 않는다.
+- [x] 사용자 확인에 따라 경로 범위를 `.docatlas/private/`로 확정했다. 백업/복구 모두 반복 --path와 생략 시 전체를 지원하고 다른 로컬 파일을 보존한다.
+- [x] connections/status/projects/list로 기존 연결·현재 파일·실제 사본을 확인한다. 연결/정상 기록과 원격 unknown을 구분하고 로컬 잠금은 ID/프로세스로 보호한다.
+- [x] OS/클라우드 앱/최초 위치 단서 안내를 스킬에 기록했다. 기존 스킬·phase·서버에는 클라우드 호출/알림을 추가하지 않았다.
+
+종료 기준 충족: 합성 두 HOME의 백업/새 PC 복구와 선택 경로 보존이 동작한다. 문법·기능·기존 스킬 보존 검증을 통과했다.
+이 구현 단계에는 게시·실제 계정 연결·사용자 환경 설치를 포함하지 않았다. 이후 사용자 배포 요청은 아래 0.6.0 배포 단계에서 진행한다.
+
+Files:
+- `CHANGELOG.md` (modified)
+- `METHOD.ko.md` (modified)
+- `METHOD.md` (modified)
+- `README.md` (modified)
+- `agent-kit/README.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `package.json` (modified)
+- `scripts/agent-kit.js` (modified)
+- `src/agent-kit/command.js` (modified)
+- `src/agent-kit/kit.js` (modified)
+- `src/agent-kit/plan.js` (modified)
+- `src/cli.js` (modified)
+- `agent-kit/agents/doc-driven-backup-v1.md` (added)
+- `agent-kit/skills/doc-driven-backup-v1/SKILL.md` (added)
+- `agent-kit/skills/doc-driven-backup-v1/agents/openai.yaml` (added)
+- `guide/cloud-backups.md` (added)
+- `src/private-cloud/archive.js` (added)
+- `src/private-cloud/command.js` (added)
+- `src/private-cloud/repository.js` (added)
+- `src/private-cloud/state.js` (added)
+
+### Test Hardening — 자동 검증 완료(2026-11-03)
+
+Refs: RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, DC-43, DC-44, M-23, M-24, M-25, M-26, M-27, M-28, M-29
+
+진입: 기본 왕복/읽기 전용 미리보기와 상태/잠금 구현. 기준 검증은 구현 중 기능/설치 테스트 33개 통과다.
+
+- [x] 합성 두 HOME/프로젝트/동기화 폴더로 전체/다중/단일 선택과 추가 복구, 이름/태그/중복 태그/정확한 ID 선택을 검증했다. 선택 일부만 존재할 때도 누락을 보고하고 준비/복구를 중단한다.
+- [x] 내용 중복 제거와 로컬 하드 링크 재구성, 미완료 전송·해시 변조·잘못된 tar 체크섬/종류/경로/확장/잘림을 검증했다.
+- [x] tar 부재·오프라인 경로·기호 링크·손상된 설정/상태·실행 중/중단된 잠금과 잠금 경로 교체에서 기존 자료 보존을 검증했다.
+- [x] 서로 반대인 기기 시계·부모 관계·분기·동일 내용 재실행을 검증했다. 시각만으로 최신을 선택하지 않는다.
+- [x] 기존 네 쌍의 공개 해시와 설치된 바이트 보존, 새 정책의 해시/경로/불리언 검증과 반복 설치를 확인했다.
+- [x] 시스템 tar/Node 기본 기능만 사용한다. 첫 형식은 평문이라 암호화 키/API 인증 테스트는 적용하지 않는다.
+- [x] 새 스킬 quick_validate 통과. 별도 에이전트가 스킬을 읽고 합성 환경에서 a만 personal/v1로 백업 → 새 PC 미리보기 → 호출자 승인 후 복구했다. a,c만 남고 c 바이트·git 숨김·이름별 상태가 보존됐다.
+
+종료 기준 충족: `npm run check`(문법 92개·kit 다섯 쌍), `npm test` 231/231 통과. 잘못된 사본으로 현재 문서를 바꾸거나 원격 완료로 보고하지 않는다.
+스킬의 일반 작업 무권유·실제 OS 안내는 텍스트 정책/호출 경계와 합성 요청 흐름을 확인했으며 장기 실제 에이전트 세션 인수는 M-25에 남긴다.
+
+Files:
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `package.json` (modified)
+- `src/private-cloud/command.js` (added)
+- `test/agent-kit-plan.test.js` (modified)
+- `test/agent-kit.test.js` (modified)
+- `test/private-cloud.test.js` (added)
+
+### Integration Test — 자동 검증 완료·실제 서비스 인수 대기(2026-11-03)
+
+Refs: RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, DC-43, DC-44, M-23, M-24, M-25, M-26, M-27, M-28, M-29
+
+진입: Test Hardening 통과. 기준은 기존 F-07·09·10과 Node 전체 테스트 결과다.
+
+- [x] F-11: production tarball을 offline 설치한 뒤 선택 쌍/Codex 정책 설치, 이름 personal/태그 v1/a 선택 백업, 새 HOME의 후보 발견·미리보기·복구를 실행했다. 기존 c와 git 숨김을 보존하고 b는 가져오지 않았다.
+- [x] F-09의 --all 계약을 다섯 쌍+Codex 정책 21파일로 맞췄다. 기본 설치는 12파일이다.
+- [x] `DOCMAP_BROWSER_CHANNEL=chrome npm run test:integration` 7/7 통과(F-07·09·10·11). 기본 실행은 캐시된 Chromium 부재로 F-07만 실패했으며 설치된 Chrome으로 전체를 재실행했다.
+- [x] macOS arm64 / Node 24.22.1 / Chrome 156.0.8078.80에서 확인했다. test:platform에 cloud 기능 테스트를 등록했다. UI 소스 변경은 없다.
+- [x] 기준 4종·README·METHOD 두 언어판·kit README·새 가이드의 로컬 링크/앵커 67개(9문서), git diff --check 통과.
+- [x] `npm pack --dry-run --json --ignore-scripts`: 62파일, 압축 97,722바이트·해제 338,415바이트. 기준 79,226/272,358 대비 각각 +18,496/+66,057바이트이며 런타임 의존성 변화는 없다.
+- [ ] 실제 클라우드 앱의 업로드/다운로드와 Windows CI·콘솔, 일반 작업/새 세션의 실제 에이전트 인수(M-23~26). 이번 합성 결과로 대체하지 않는다.
+
+종료 기준: 패키지 설치/두 HOME 왕복의 자동 범위는 충족했다. 실제 서비스/다른 OS 결과는 미실행으로 기록해 별도 인수로 남긴다. 기존 지도 회귀는 F-07·10으로 확인했다.
+
+Files:
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `test/integration/agent-kit.test.js` (modified)
+- `test/integration/private-cloud.test.js` (added)
+
+## 0.6.0 배포 — 진행 중
+
+Refs: RQ-21, RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-31, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, DC-43, DC-44, M-20, M-23, M-24, M-25, M-26, M-27, M-28, M-29
+
+진입: 사용자가 커밋·푸시·배포를 명시적으로 요청했다(2026-11-03). 시작은 위 구현 단계의 미커밋 변경 29파일이며 origin/main과 HEAD는 23f6de8로 일치했다.
+기준 검증: check 92 JS/다섯 쌍, Node 231개·통합 7개, skill 검증·독립 합성 에이전트 왕복 통과. npm latest는 0.5.0이고 0.6.0은 미게시다.
+새 기능을 담는 마이너 버전 0.6.0으로 진행한다. 게시·GitHub 릴리스 생성 권한은 이번 사용자 요청에 포함된다.
+
+- [x] package.json/lockfile을 0.6.0으로 올리고 CHANGELOG/가이드를 맞췄다.
+- [x] Test Hardening: 버전 변경 뒤 check 92 JS/다섯 쌍, Node 231/231, npm publish --dry-run 통과. 62파일, 압축 97,723바이트·해제 338,415바이트, latest/public 설정이다.
+- [x] Integration Test(로컬): 0.6.0 production tarball 설치/백업·복구 통합 7/7 통과.
+- [ ] main의 macOS/Windows × Node 22/24 Platform checks 통과.
+- [ ] main 커밋/푸시 후 CI를 확인하고 같은 커밋에 v0.6.0 태그를 푸시한다. Publish to npm 성공·latest/gitHead/provenance를 확인한다.
+- [ ] 게시된 0.6.0을 임시 캐시에 설치해 --version·private-cloud help를 확인하고 영문 GitHub 릴리스를 만든다.
+
+종료 기준: main과 태그가 검사된 커밋을 가리키고 npm에서 0.6.0을 설치/실행할 수 있으며 게시·릴리스 결과가 인계에 남는다.
+실제 클라우드 계정 연결과 업로드/다운로드 인수는 이 배포의 자동 검증 결과로 대체하지 않는다.
+
+배포 준비 변경(시작 상태와 현재 git diff/status에서 확인):
+
+Files:
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+- `guide/cloud-backups.md` (added)
+- `package.json` (modified)
+- `package-lock.json` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -2298,8 +2461,14 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): main CI(run 41325036270) 통과 뒤 사용자가 `v0.5.0` 태그(75c7e62)를 푸시했고 Publish to npm(run 41325911232)이 0.5.0을 게시했다.
   npm latest 0.5.0, gitHead 75c7e62, provenance 있음. GitHub 릴리스 v0.5.0의 영문 노트를 미리 채운 작성 링크로 건넸다.
 - 완료(2026-11-01): 사용자가 GitHub 릴리스 v0.5.0(영문 노트)을 만들었다. 게시·릴리스 기록을 main에 fast-forward로 반영했다.
+- 완료(2026-11-03, RQ-24~29): 사용자 구현 승인에 따라 선택 백업 스킬/룰 1.0.0과 private-cloud 보조 명령을 구현했다. kit 1.4.0, 기존 네 쌍/기본 세 쌍/로컬 phase 백업 유지, 외부 의존성 추가 없음.
+  전체/선택 경로는 private 내부만 대상이며 이름/태그/ID, 새 PC 발견/미리보기/추가 복구, 로컬 상태/잠금, 내용 중복 제거와 하드 링크 재구성을 제공한다. DC-37~44는 확정 계약을 따른다.
+- 검증 완료: check(92 JS·다섯 쌍), npm test 231개, 설치된 Chrome의 integration 7개, skill quick_validate, 독립 에이전트 합성 a→새 PC a,c 왕복. 자세한 실패/재실행과 Files는 클라우드 단계 절에 있다.
+  패키지 압축 +18,496바이트(약18.5KB), 해제 +66,057바이트(약66KB). tar/클라우드 SDK를 추가하지 않았다.
+- 다음(선택 인수): M-23~29의 실제 클라우드 앱 전송·Windows/콘솔·일반 작업의 에이전트 무권유 확인. 실제 계정이나 클라우드를 연결하지 않았고 게시/사용자 환경 설치도 하지 않았다.
+  새 구현/문서는 현재 미커밋이며 사용자의 요청으로 0.6.0 커밋·푸시·배포를 진행 중이다. ctxbin·wiki 사본 갱신은 별도 요청이 있을 때만 한다.
 - 다음: 사람 확인 M-21·M-22(실제 에이전트 세션에서 doc-driven-private-v1과 백업·복구가 규칙대로 움직이는지, 실제 GitLab 원격·Windows 콘솔).
-  원하면 ctxbin·Confluence 사본 갱신(kit 1.3.0, 요청할 때만). 이전 남은 확인 M-16~M-19는 아래 줄을 따른다.
+  원하면 ctxbin·Confluence 사본 갱신(현재 원본 kit 1.4.0, 요청할 때만). 이전 남은 확인 M-16~M-19는 아래 줄을 따른다.
   백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
 - 완료(2026-11-01): 사용자 요청으로 2단계~파일 공유를 리뷰했다(REQUEST_CHANGES, critical 2). 모두 반영했다. 결과는 "2단계~파일 공유 리뷰 반영"에 있다.
   리뷰 반영은 Platform checks run 41324166410(2ab6639)으로 macOS·Windows에서 통과했다(test/private-map.test.js 포함).
@@ -2315,7 +2484,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 0.5.0 게시본은 75c7e62(태그 v0.5.0, GitHub 릴리스 v0.5.0)이다. main은 이 인계 커밋(게시·릴리스 기록)이다.
+- 최신 확인 커밋: 23f6de8(main, 0.5.0 GitHub 릴리스 기록). RQ-24~29 구현·문서는 미커밋이다.
+  0.5.0 게시본은 75c7e62(태그 v0.5.0, GitHub 릴리스 v0.5.0)이다.
   0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
   6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 27c02c8(백업 시점과 파일 공유), 5e015e0(Windows 기록),
   2ab6639(리뷰 반영), 1814833(Windows 기록), 그리고 이 인계 커밋(0.5.0 배포 준비, main에 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.

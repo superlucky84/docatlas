@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "kitVersion": "1.3.0",
+  "kitVersion": "1.4.0",
   "items": [
     {
       "name": "doc-driven-designer-v1",
@@ -208,6 +208,24 @@
       "agent": {
         "path": "agents/doc-driven-private-v1.md",
         "sha256": "36e549f3ef9991d6c25f5343cbf924f329879f2acf515aa5e0904d03c14559d0"
+      },
+      "previous": []
+    },
+    {
+      "name": "doc-driven-backup-v1",
+      "version": "1.0.0",
+      "default": false,
+      "skill": {
+        "path": "skills/doc-driven-backup-v1/SKILL.md",
+        "sha256": "4bbb96a9fe0aaddec5674df3e7ad9b20f011cbbc818c0c8d72a363470ddfbd17"
+      },
+      "agent": {
+        "path": "agents/doc-driven-backup-v1.md",
+        "sha256": "56477119e8c830e619ca9792d9c8d50f2d7075fb57e5299c41eb0989eea2dd4a"
+      },
+      "invocationPolicy": {
+        "path": "skills/doc-driven-backup-v1/agents/openai.yaml",
+        "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
       },
       "previous": []
     }

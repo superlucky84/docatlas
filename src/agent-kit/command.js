@@ -60,6 +60,7 @@ export function agentsHelp(kit, kitDir = KIT_DIRECTORY) {
     'Where files go (global by default):',
     '  Claude Code  ~/.claude/skills/<name>/SKILL.md  ~/.claude/agents/<name>.md',
     '  Codex        ~/.agents/skills/<name>/SKILL.md  ~/.codex/agents/<name>.toml',
+    '  Codex        An item with invocationPolicy also installs skills/<name>/agents/openai.yaml.',
     '  --project puts the same paths under the project root instead of the home folder.',
     '  Claude Code uses a global skill before a project skill with the same name.',
     '  Codex reads project agents only in trusted projects and then prefers them over global ones.', '',

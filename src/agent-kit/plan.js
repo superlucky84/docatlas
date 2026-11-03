@@ -15,7 +15,8 @@ const LAYOUT = {
   },
   codex: {
     skill: name => ['.agents', 'skills', name, 'SKILL.md'],
-    agent: name => ['.codex', 'agents', name + '.toml']
+    agent: name => ['.codex', 'agents', name + '.toml'],
+    'skill-policy': name => ['.agents', 'skills', name, 'agents', 'openai.yaml']
   }
 };
 
@@ -181,6 +182,7 @@ async function decide({ base, parts, scope, item, client, kind, sha256, key, rec
 }
 
 function desiredFile(item, client, kind) {
+  if (kind === 'skill-policy') return item.files.policy;
   if (kind === 'skill') {
     return item.files.skill;
   }
@@ -208,7 +210,8 @@ export async function planInstall({ kit, items, scope, home, root, clients, forc
   const actions = [];
   for (const item of items) {
     for (const client of clients) {
-      for (const kind of KINDS) {
+      const kinds = client === 'codex' && item.files.policy ? [...KINDS, 'skill-policy'] : KINDS;
+      for (const kind of kinds) {
         const parts = LAYOUT[client][kind](item.name);
         const key = client + '/' + kind + '/' + item.name;
         const { text, sha256 } = desiredFile(item, client, kind);
@@ -223,7 +226,7 @@ export async function planInstall({ kit, items, scope, home, root, clients, forc
         if (counterpart && await lstatOrNull(counterpart)) {
           warnings.push({
             code: 'same-name', client, kind, name: item.name, path: counterpart,
-            message: SAME_NAME[client + ':' + kind]
+            message: SAME_NAME[client + ':' + (kind === 'skill-policy' ? 'skill' : kind)]
           });
         }
       }

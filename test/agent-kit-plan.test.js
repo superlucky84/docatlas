@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
-  AgentKitError, detectClients, hashText, loadKit, normalizeText, planInstall, selectItems, toCodexAgentToml
+  AgentKitError, applyPlan, detectClients, hashText, loadKit, normalizeText, planInstall, selectItems, toCodexAgentToml
 } from '../src/agent-kit/index.js';
 import { OLD_RULE_BODY, OLD_SKILL, createWorkspace, snapshot, writeKit } from './helpers/agent-kit.js';
 
@@ -33,12 +33,12 @@ async function trySymlink(t, target, link) {
 
 test('the packaged kit loads verified sources and renders Codex agents', async t => {
   const kit = await loadKit();
-  assert.equal(kit.kitVersion, '1.3.0');
+  assert.equal(kit.kitVersion, '1.4.0');
   assert.deepEqual(selectItems(kit).map(item => item.name),
     ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1']);
   assert.deepEqual(selectItems(kit, { all: true }).map(item => item.name),
-    ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1', 'doc-driven-private-v1']);
-  assert.deepEqual(kit.items.map(item => item.requires), [[], [], [], ['doc-driven-designer-v1']]);
+    ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1', 'doc-driven-private-v1', 'doc-driven-backup-v1']);
+  assert.deepEqual(kit.items.map(item => item.requires), [[], [], [], ['doc-driven-designer-v1'], []]);
   const toml = kit.items[0].files.codexAgent.text;
   assert.ok(toml.startsWith('name = "doc-driven-designer-v1"\ndescription = "Documentation-first design partner.'));
   assert.match(toml, /\ndeveloper_instructions = '''\n# Doc-Driven Designer \(Agent Rule\)\n/);
@@ -56,6 +56,26 @@ test('selection uses default items unless all or named items are requested', asy
   assert.deepEqual(selectItems(kit, { only: ['sample-reviewer'] }).map(item => item.name), ['sample-reviewer']);
   assert.throws(() => selectItems(kit, { only: ['missing'] }), /Unknown agent kit item: missing\. Available: sample-designer, sample-reviewer/);
   assert.throws(() => selectItems(kit, { all: true, only: ['sample-reviewer'] }), AgentKitError);
+});
+
+test('adding the backup pair installs only its files and Codex invocation policy, preserving existing roles', async t => {
+  const workspace = await createWorkspace(t);
+  const kit = await loadKit();
+  const options = { scope: 'global', home: workspace.home, root: workspace.project, clients: ['claude', 'codex'] };
+  const oldKit = { ...kit, kitVersion: '1.3.0', items: kit.items.slice(0, 4) };
+  const oldPlan = await planInstall({ ...options, kit: oldKit, items: oldKit.items });
+  await applyPlan(oldPlan, { home: workspace.home });
+  const before = await Promise.all(oldPlan.actions.map(action => fs.readFile(action.path, 'utf8')));
+  const plan = await planInstall({ ...options, kit, items: selectItems(kit, { only: ['doc-driven-backup-v1'] }) });
+  assert.equal(plan.actions.length, 5);
+  const policy = plan.actions.find(action => action.kind === 'skill-policy');
+  assert.equal(policy.client, 'codex');
+  assert.match(policy.path, /doc-driven-backup-v1[/\\]agents[/\\]openai.yaml$/);
+  await applyPlan(plan, { home: workspace.home });
+  assert.equal(await fs.readFile(policy.path, 'utf8'), 'policy:\n  allow_implicit_invocation: false\n');
+  assert.deepEqual(await Promise.all(oldPlan.actions.map(action => fs.readFile(action.path, 'utf8'))), before);
+  const repeated = await planInstall({ ...options, kit, items: selectItems(kit, { only: ['doc-driven-backup-v1'] }) });
+  assert.ok(repeated.actions.every(action => action.action === 'unchanged'));
 });
 
 test('client detection follows the home folders that exist', async t => {

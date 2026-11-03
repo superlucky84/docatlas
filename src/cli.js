@@ -22,6 +22,7 @@ const help = [
   '  docatlas private backup|list|restore',
   '                                     Copy them to ~/.docatlas/private-backups/ and back.',
   '  docatlas private help              Steps for people and AI agents using private documents.', '',
+  '  docatlas private-cloud help        Explicit cloud backup/restore skill helpers; no background sync.', '',
   'Compatibility aliases: docmap, ddd-docmap', '',
   'Options:',
   '  --root <directory>  Read this project instead of the current directory.',
@@ -53,6 +54,10 @@ export async function run(args, {
   }
   if (args[0] === 'private') {
     return runPrivate(args.slice(1), { stdout, stderr, cwd, home, now });
+  }
+  if (args[0] === 'private-cloud') {
+    const { runCloud } = await import('./private-cloud/command.js');
+    return runCloud(args.slice(1), { stdout, stderr, cwd, home, now });
   }
   let values;
   try {

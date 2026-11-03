@@ -5,6 +5,19 @@ changes on main that are not published yet.
 Agent skill and rule versions are tracked separately in
 [agent-kit/manifest.json](agent-kit/manifest.json).
 
+## Unreleased
+
+## 0.6.0 — 2026-11-03
+
+- Optional `doc-driven-backup-v1` 1.0.0 in kit 1.4.0 helps with explicitly requested cloud
+  backup and restore of private documents. Existing four skill/rule sources and default
+  installation remain unchanged; `--all` adds the fifth pair and its Codex explicit-call policy.
+- Zero-dependency `docatlas private-cloud` helpers connect to an existing sync folder,
+  prepare plain tar/recovery lists, verify restore previews and apply through the existing
+  local restore. Backup names, immutable tags/IDs, and selective paths keep other local
+  documents. Equal contents are stored once per archive and local hard-link sharing is rebuilt.
+  No background tasks, automatic prompts, cloud APIs, remote cleanup, or Git checkout are added.
+
 ## 0.5.0 — 2026-11-01
 
 - Private documents: `docatlas private init|status|backup|list|restore|help` keeps documents that

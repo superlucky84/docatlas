@@ -209,6 +209,8 @@ repo/
   않는 한 덮어쓰지 않습니다.
 - `doc-driven-private-v1` 스킬은 designer를 따르면서 이 규칙들을 더합니다. 기본 설치에는 들어가지 않으므로
   `docatlas agents install --all`로 설치합니다.
+- 선택 항목 `doc-driven-backup-v1`은 요청한 때에만 클라우드 백업·복구를 돕습니다. 기존 워크플로우와 역할은 바꾸지 않습니다.
+  이름·태그·경로 선택은 [백업 가이드](guide/cloud-backups.md)를 참고하세요.
 
 ## 문서 관리하기
 
@@ -292,7 +294,7 @@ Codex는 `AGENTS.md`를, Claude Code는 `CLAUDE.md`를 읽습니다. 둘 다 쓴
 ## 이 저장소의 도구
 
 - **에이전트 킷:** `npx docatlas agents install`이 Claude Code와 Codex용 designer·implementer·reviewer
-  스킬과 룰을 설치합니다. `--all`을 주면 개인 문서 스킬도 설치합니다.
+  스킬과 룰을 설치합니다. `--all`을 주면 개인 문서와 백업 스킬도 설치합니다.
 - **문서 지도:** `npx docatlas`가 프로젝트의 모든 문서를 보여 주는 로컬 지도를 엽니다.
 
 둘 다 필수는 아닙니다. 방법론은 Markdown과 위의 습관이 전부입니다.

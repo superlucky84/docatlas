@@ -10,8 +10,9 @@ docatlas installs them for Claude Code and Codex.
 | doc-driven-implementer-v1 | 1.3.0 | [SKILL.md](skills/doc-driven-implementer-v1/SKILL.md) | [rule](agents/doc-driven-implementer-v1.md) | Yes |
 | doc-driven-reviewer-v1 | 1.5.0 | [SKILL.md](skills/doc-driven-reviewer-v1/SKILL.md) | [rule](agents/doc-driven-reviewer-v1.md) | Yes |
 | doc-driven-private-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-private-v1/SKILL.md) | [rule](agents/doc-driven-private-v1.md) | No; needs the designer |
+| doc-driven-backup-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-backup-v1/SKILL.md) | [rule](agents/doc-driven-backup-v1.md) | No; explicit cloud requests only |
 
-Kit version 1.3.0. [manifest.json](manifest.json) records each item's version and hashes, and
+Kit version 1.4.0. [manifest.json](manifest.json) records each item's version and hashes, and
 `requires` names the items another item needs.
 
 ## Install
@@ -22,7 +23,7 @@ Claude Code and Codex read automatically.
 ```sh
 npx docatlas agents install --dry-run   # preview; writes nothing
 npx docatlas agents install             # designer, implementer, and reviewer
-npx docatlas agents install --all       # also the private documents skill
+npx docatlas agents install --all       # also private documents and requested cloud backups
 npx docatlas agents install --only doc-driven-designer-v1   # only the designer
 ```
 
@@ -37,6 +38,14 @@ used only when you ask for private documents, so it is not installed by default.
 designer is not installed yet. `docatlas agents help` tells an AI agent to preview, show you the result, and apply only
 after you agree. The same help tells it to report any skipped files and to use `--force` only
 when you say so.
+
+`doc-driven-backup-v1` helps only with requested private cloud backup, restore, connection or
+inspection. It uses an existing cloud folder and system tar through `docatlas private-cloud`.
+Choose backup names, tags and paths; preserve other local folders during restore. It never
+hooks into another role's phase completion or changes its instructions. See the
+[cloud backup guide](../guide/cloud-backups.md). Select it with `--only doc-driven-backup-v1`;
+it has no other skill dependency. Codex also receives its `agents/openai.yaml` with
+`allow_implicit_invocation: false`. Other items have no additional policy file.
 
 The command installs for Claude Code and Codex only. Other agents can still use the kit: the
 skills and rules are plain Markdown in this folder, and `docatlas agents help` prints their
@@ -73,3 +82,9 @@ updating docatlas.
 5. Update the versions in the table above.
 6. Check that METHOD.md, METHOD.ko.md, and the summary at the top of the repository README still match the rules.
 7. Run `npm run check`.
+
+An item may declare `invocationPolicy` with the exact
+`skills/<name>/agents/openai.yaml` path and hash. It contains only the boolean
+`policy.allow_implicit_invocation` and is installed only for Codex as `skill-policy`.
+Keep its hash current with the same hash command. No arbitrary script/resource installation
+is added by this field.

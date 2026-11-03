@@ -230,6 +230,9 @@ instead of beside the code. The same documents and writing rules apply, and the 
   of the same repository. It never overwrites a file that differs unless you ask.
 - The `doc-driven-private-v1` skill follows the designer with these rules added. It is not
   installed by default; install it with `docatlas agents install --all`.
+- The optional `doc-driven-backup-v1` role helps with cloud backups and restores only when
+  requested. It leaves this workflow and the existing roles unchanged; see the
+  [backup guide](guide/cloud-backups.md) for named, tagged and selected-path backups.
 
 ## Keep the documents healthy
 
@@ -320,7 +323,7 @@ A few prompts that fit the flow:
 ## Tools in this repository
 
 - **Agent kit:** `npx docatlas agents install` installs the designer, implementer, and reviewer
-  skills and rules for Claude Code and Codex. `--all` adds the private documents skill.
+  skills and rules for Claude Code and Codex. `--all` adds the private documents and backup skills.
 - **Document map:** `npx docatlas` opens a local map of every document in a project.
 
 Neither is required. The method is Markdown plus the habits above.
