@@ -389,7 +389,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 저장소 비밀값에 npm 토큰이 없다. 에이전트는 비밀값 목록을 볼 수 없어 사용자가 저장소 Settings의 Secrets에서 확인한다.
 
 통과: 사람이 npm publish를 직접 실행하지 않고 태그 푸시만으로 검사된 버전이 게시된다.
-상태: 0.4.2를 이 방식으로 게시했다. 잘못된 태그의 실제 실패 실행과 비밀값 확인은 남아 있다.
+상태: 0.4.2·0.5.0에 이어 0.6.0도 같은 방식으로 게시했다(run 41592640829, 2026-11-03). latest/gitHead/provenance와 게시본 실행을 확인했다. 잘못된 태그의 실제 실패 실행과 비밀값 확인은 남아 있다.
 
 ### M-21 — 개인 문서 위치와 문서 지도
 
@@ -448,16 +448,16 @@ Integration Test 자동 근거: F-10이 production tarball로 백업 → 작업 
 대응: RQ-21, RQ-24~29 / DC-31, DC-37~44, M-20, M-23~29. 커밋·푸시·배포는 사용자가 요청했다.
 
 - [x] package.json/lockfile·CLI 버전 0.6.0, kit 1.4.0과 기존 네 쌍 해시 유지. check 92 JS/다섯 쌍, Node 231/231·설치 통합 7/7, publish dry-run 통과.
-- [ ] 0.6.0 tarball의 check·Node/통합·pack/publish dry-run과 main의 macOS/Windows CI 통과.
-  첫 CI는 macOS 통과/Windows 실패다(run 41591482958). 한글 HOME 아래 tar 절대 출력 경로를 상대 경로로 수정 후 네 조합을 다시 확인한다.
-- [ ] v0.6.0 태그의 Publish to npm 성공, npm latest/gitHead/provenance와 게시본 --version/private-cloud help 확인.
-- [ ] 같은 태그의 영문 GitHub 릴리스와 최종 인계 기록 확인.
+- [x] 0.6.0 tarball의 check·Node 231/231·설치 통합 7/7·pack/publish dry-run 통과. main의 macOS/Windows × Node 22/24 CI run 41591966422 전체 성공.
+  첫 CI는 macOS 통과/Windows 실패다(run 41591482958). 한글 HOME 아래 tar 절대 출력 경로를 상대 경로로 수정했고 재실행 run 41591966422의 네 조합이 통과했다.
+- [x] v0.6.0(26e30de) 태그의 Publish to npm run 41592640829 성공. npm latest 0.6.0·gitHead 일치·SLSA provenance 확인. 빈 임시 캐시의 게시본 --version/private-cloud help 종료 0.
+- [x] 영문 GitHub 릴리스 docatlas 0.6.0(v0.6.0, 정식 Latest, 06:54:45 UTC) 공개 조회와 최종 인계 기록 확인.
 
 실제 클라우드 전송·일반 작업의 에이전트 인수는 아래 미체크 항목을 유지한다.
 
 ### M-23 — 클라우드 백업과 새 컴퓨터 복구(자동 근거 있음·실제 서비스 인수 대기)
 
-대응: RQ-24, RQ-26, RQ-27 / DC-37·38·39·40·42. 기존 동기화 폴더·제한 USTAR·선택 스킬/룰과 보조 명령 계약을 구현했다(게시 전).
+대응: RQ-24, RQ-26, RQ-27 / DC-37·38·39·40·42. 기존 동기화 폴더·제한 USTAR·선택 스킬/룰과 보조 명령 계약을 0.6.0으로 게시했다.
 
 - [x] 요청한 backup이 기존 로컬 백업 후 별도 tar/복구 목록을 준비한다. 실패/오프라인/tar 부재에도 로컬 백업과 이전 정상 사본이 남는다.
 - [x] 새 HOME/clone에서 발견 → 내용 검증 → 읽기 전용 미리보기 → 적용 후 git 숨김을 확인했다. 일반 파일·이미지 바이트를 기능 테스트로 왕복했다.
@@ -466,7 +466,7 @@ Integration Test 자동 근거: F-10이 production tarball로 백업 → 작업 
 - [x] 기기/UUID로 이름 충돌을 피하고 원격 사본은 자동 정리하지 않는다. origin 변경/없는 프로젝트는 복구 목록의 키로 연결한다.
 - [x] 평문 형식임을 안내하며 인증·원래 절대 경로·호스트 사용자명을 원격 목록에 넣지 않는다. tar/클라우드 런타임 의존성은 늘지 않는다.
 - [ ] 실제 사용하는 클라우드 앱에서 업로드 → 다른 컴퓨터 다운로드 → 복구를 확인한다. 준비 성공만으로 원격 완료를 주장하지 않는다.
-- [ ] 실제 Windows/macOS 환경에서 tar/파일 다운로드 상태/권한 안내와 왕복을 확인한다. macOS 합성 자동 검증을 OS 전체 인수로 확대하지 않는다.
+- [ ] 실제 Windows/macOS 환경에서 tar/파일 다운로드 상태/권한 안내와 왕복을 확인한다. Windows/macOS 합성 자동 검증을 실제 클라우드 앱·콘솔 인수로 확대하지 않는다.
 
 자동 근거: test/private-cloud.test.js와 F-11, 기존 F-10. 전체/선택·실패·공유·충돌·두 HOME 왕복 통과. 원격 상태는 unknown이다.
 

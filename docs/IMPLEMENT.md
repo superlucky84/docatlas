@@ -26,8 +26,8 @@
 - 완료: RQ-20·DC-30 구현 계획의 Refs·Files 표기. METHOD 두 언어판과 kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0).
   0.4.2로 게시했다.
 - 완료: RQ-21·DC-31 npm 게시 자동화. 0.4.2를 v0.4.2 태그 푸시로 GitHub Actions가 Trusted Publishing으로 게시했다.
-- 완료(2026-11-03, 게시 전): RQ-24~29 선택 백업 스킬/룰과 private-cloud 보조 명령. 전체/선택 경로, 이름/태그/ID, 새 PC 복구, 상태/잠금을 구현했다.
-- 자동 검증 완료: 문법 92개·kit 1.4.0 다섯 쌍, Node 231개, production tarball 통합 7개와 독립 에이전트 합성 왕복. 실제 클라우드·Windows·일반 작업의 에이전트 인수는 남아 있다.
+- 완료(2026-11-03, 0.6.0 게시): RQ-24~29 선택 백업 스킬/룰과 private-cloud 보조 명령. 전체/선택 경로, 이름/태그/ID, 새 PC 복구, 상태/잠금을 구현했다.
+- 자동 검증 완료: 문법 92개·kit 1.4.0 다섯 쌍, Node 231개, production tarball 통합 7개와 독립 에이전트 합성 왕복. 실제 클라우드 앱·Windows 콘솔·일반 작업의 에이전트 인수는 남아 있다. Windows/macOS CLI·브라우저 CI는 통과했다.
 - 확정 정책: 클라우드는 명시적 요청에만 실행하고 일반 작업에서 권유하지 않는다. 기존 네 쌍과 기본 세 쌍, 로컬 phase 백업은 유지한다.
 
 기술 선택은 각 단계에서 근거와 검증을 기록해 DC/IC를 해소한다.
@@ -2019,7 +2019,7 @@ npx --yes docatlas@0.5.0 private help
 Publish to npm workflow가 태그 커밋이 main에 있는지, 태그가 package.json 버전과 같은지 확인한 뒤 검사·테스트를 거쳐 게시한다.
 2026-11-02(UTC) 이후에 게시하면 CHANGELOG의 날짜를 고친다.
 
-## 클라우드 백업과 새 컴퓨터 복구 — 구현·자동 검증 완료(게시 전)
+## 클라우드 백업과 새 컴퓨터 복구 — 구현·자동 검증 완료(0.6.0 게시)
 
 Refs: RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-34, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, DC-43, DC-44, M-22, M-23, M-24, M-25, M-26, M-27, M-28, M-29
 
@@ -2137,7 +2137,8 @@ Refs: RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-37, DC-38, DC-39, DC-40, DC-4
 - [x] macOS arm64 / Node 24.22.1 / Chrome 156.0.8078.80에서 확인했다. test:platform에 cloud 기능 테스트를 등록했다. UI 소스 변경은 없다.
 - [x] 기준 4종·README·METHOD 두 언어판·kit README·새 가이드의 로컬 링크/앵커 67개(9문서), git diff --check 통과.
 - [x] `npm pack --dry-run --json --ignore-scripts`: 62파일, 압축 97,722바이트·해제 338,415바이트. 기준 79,226/272,358 대비 각각 +18,496/+66,057바이트이며 런타임 의존성 변화는 없다.
-- [ ] 실제 클라우드 앱의 업로드/다운로드와 Windows CI·콘솔, 일반 작업/새 세션의 실제 에이전트 인수(M-23~26). 이번 합성 결과로 대체하지 않는다.
+- [x] 후속 배포 단계에서 Windows/macOS × Node 22/24 CI를 통과했다(run 41591966422).
+- [ ] 실제 클라우드 앱의 업로드/다운로드와 Windows 콘솔, 일반 작업/새 세션의 실제 에이전트 인수(M-23~26). 이번 합성 결과로 대체하지 않는다.
 
 종료 기준: 패키지 설치/두 HOME 왕복의 자동 범위는 충족했다. 실제 서비스/다른 OS 결과는 미실행으로 기록해 별도 인수로 남긴다. 기존 지도 회귀는 F-07·10으로 확인했다.
 
@@ -2149,7 +2150,7 @@ Files:
 - `test/integration/agent-kit.test.js` (modified)
 - `test/integration/private-cloud.test.js` (added)
 
-## 0.6.0 배포 — 진행 중
+## 0.6.0 배포 — 완료(2026-11-03)
 
 Refs: RQ-21, RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-31, DC-37, DC-38, DC-39, DC-40, DC-41, DC-42, DC-43, DC-44, M-20, M-23, M-24, M-25, M-26, M-27, M-28, M-29
 
@@ -2160,13 +2161,13 @@ Refs: RQ-21, RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-31, DC-37, DC-38, DC-3
 - [x] package.json/lockfile을 0.6.0으로 올리고 CHANGELOG/가이드를 맞췄다.
 - [x] Test Hardening: 버전 변경 뒤 check 92 JS/다섯 쌍, Node 231/231, npm publish --dry-run 통과. 62파일, 압축 97,723바이트·해제 338,415바이트, latest/public 설정이다.
 - [x] Integration Test(로컬): 0.6.0 production tarball 설치/백업·복구 통합 7/7 통과.
-- [ ] main의 macOS/Windows × Node 22/24 Platform checks 통과.
+- [x] main의 macOS/Windows × Node 22/24 Platform checks 통과(run 41591966422, 26e30de).
   첫 run 41591482958(a2ab079): macOS 두 조합 통과, Windows 두 조합에서 한글 홈 아래 긴 절대 출력 경로를 시스템 tar가 열지 못해 새 cloud 테스트 10개 실패.
   tar 출력 인자를 staging 기준 상대 경로로 바꾼다. 기존 한글 HOME 합성 테스트가 회귀 검증이며, 로컬/CI 재검증 후 태그를 푸시한다.
-- [ ] main 커밋/푸시 후 CI를 확인하고 같은 커밋에 v0.6.0 태그를 푸시한다. Publish to npm 성공·latest/gitHead/provenance를 확인한다.
-- [ ] 게시된 0.6.0을 임시 캐시에 설치해 --version·private-cloud help를 확인하고 영문 GitHub 릴리스를 만든다.
+- [x] a2ab079(기능/버전)와 26e30de(Windows tar 경로 수정)를 main에 커밋·푸시했다. 네 CI 조합 통과 후 26e30de에 v0.6.0을 푸시했다. Publish to npm run 41592640829 성공, npm latest 0.6.0·gitHead 26e30de·SLSA provenance 확인(게시 시각 06:54:06 UTC).
+- [x] 별도 임시 작업 폴더·빈 캐시에서 npm exec --yes --ignore-scripts --package=docatlas@0.6.0으로 --version(0.6.0)·private-cloud help(종료 0)를 확인했다. 사용자 프로젝트/계정에 연결하지 않았다. GitHub 릴리스 docatlas 0.6.0(v0.6.0)을 정식 Latest로 게시·조회했다(06:54:45 UTC).
 
-종료 기준: main과 태그가 검사된 커밋을 가리키고 npm에서 0.6.0을 설치/실행할 수 있으며 게시·릴리스 결과가 인계에 남는다.
+종료 기준 충족: 검사된 26e30de가 main에 있고 v0.6.0이 같은 커밋을 가리킨다. npm에서 0.6.0 설치/실행을 확인했으며 이후 main에는 배포 기록 문서만 추가한다.
 실제 클라우드 계정 연결과 업로드/다운로드 인수는 이 배포의 자동 검증 결과로 대체하지 않는다.
 
 배포 준비 변경(시작 상태와 현재 git diff/status에서 확인):
@@ -2181,7 +2182,7 @@ Files:
 - `package.json` (modified)
 - `package-lock.json` (modified)
 
-### Windows tar 출력 경로 보정 — 검증 중
+### Windows tar 출력 경로 보정 — 완료
 
 Refs: RQ-24, RQ-25, DC-38, DC-41, M-23, M-24
 
@@ -2192,7 +2193,7 @@ Refs: RQ-24, RQ-25, DC-38, DC-41, M-23, M-24
 - [x] Windows 시스템 tar에 전달하는 출력 인자를 상대 경로로 바꿨다.
 - [x] Test Hardening: check 92 JS/다섯 쌍, Node 231/231, publish dry-run 통과. 보정 후 패키지는 62파일, 압축 97,784바이트·해제 338,525바이트다.
 - [x] Integration Test(로컬): 보정 후 production tarball 통합 7/7 통과.
-- [ ] macOS/Windows × Node 22/24 CI 재검증 통과.
+- [x] macOS/Windows × Node 22/24 CI 재검증 통과(run 41591966422, 26e30de). Node 24 로그의 플랫폼 테스트는 macOS 73/73, Windows 67통과·6개 OS별 제외·실패0이다. 브라우저는 각각 42개 통과했으며 네 작업 모두 pack까지 통과했다.
 
 종료 기준: 같은 한글 HOME fixture가 네 CI 조합에서 통과하고 기존 로컬 백업/복구·다른 스킬 동작을 유지한다.
 
@@ -2486,10 +2487,14 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 완료(2026-11-01): 사용자가 GitHub 릴리스 v0.5.0(영문 노트)을 만들었다. 게시·릴리스 기록을 main에 fast-forward로 반영했다.
 - 완료(2026-11-03, RQ-24~29): 사용자 구현 승인에 따라 선택 백업 스킬/룰 1.0.0과 private-cloud 보조 명령을 구현했다. kit 1.4.0, 기존 네 쌍/기본 세 쌍/로컬 phase 백업 유지, 외부 의존성 추가 없음.
   전체/선택 경로는 private 내부만 대상이며 이름/태그/ID, 새 PC 발견/미리보기/추가 복구, 로컬 상태/잠금, 내용 중복 제거와 하드 링크 재구성을 제공한다. DC-37~44는 확정 계약을 따른다.
-- 검증 완료: check(92 JS·다섯 쌍), npm test 231개, 설치된 Chrome의 integration 7개, skill quick_validate, 독립 에이전트 합성 a→새 PC a,c 왕복. 자세한 실패/재실행과 Files는 클라우드 단계 절에 있다.
-  패키지 압축 +18,496바이트(약18.5KB), 해제 +66,057바이트(약66KB). tar/클라우드 SDK를 추가하지 않았다.
-- 다음(선택 인수): M-23~29의 실제 클라우드 앱 전송·Windows/콘솔·일반 작업의 에이전트 무권유 확인. 실제 계정이나 클라우드를 연결하지 않았고 게시/사용자 환경 설치도 하지 않았다.
-  새 구현/문서는 현재 미커밋이며 사용자의 요청으로 0.6.0 커밋·푸시·배포를 진행 중이다. ctxbin·wiki 사본 갱신은 별도 요청이 있을 때만 한다.
+- 검증 완료: check(92 JS·다섯 쌍), npm test 231개, 설치된 Chrome의 integration 7개, skill quick_validate, 독립 에이전트 합성 a→새 PC a,c 왕복.
+  첫 Windows CI의 tar 출력 경로 문제를 26e30de에서 수정했다. 재실행 run 41591966422가 macOS/Windows × Node 22/24에서 모두 통과했고 브라우저 42개씩 통과했다.
+  게시 패키지는 62파일, 압축 97,784바이트·해제 338,525바이트다. 0.5.0 대비 +18,558/+66,167바이트이며 외부 의존성 변화는 없다.
+- 배포 완료(2026-11-03): 사용자 요청으로 a2ab079·26e30de를 main에 커밋/푸시했다. v0.6.0 태그는 검사된 26e30de다.
+  Publish to npm run 41592640829 성공, latest 0.6.0·gitHead 26e30de·SLSA provenance 확인. 빈 임시 npm 캐시의 게시본 --version/private-cloud help도 성공했다.
+  정식 GitHub 릴리스: https://github.com/superlucky84/docatlas/releases/tag/v0.6.0 (06:54:45 UTC, Latest).
+- 다음(선택 인수): M-23~29의 실제 클라우드 앱 전송·Windows 콘솔·일반 작업의 에이전트 무권유 확인. Windows/macOS CLI 자동 검증은 끝났지만 실제 계정 연결/업로드·다운로드는 하지 않았다.
+  사용자 환경의 스킬 설치·ctxbin/wiki 사본 갱신은 별도 요청이 있을 때만 한다. 배포 후 기록은 기준 4종 문서만 바꿔 커밋/푸시한다.
 - 다음: 사람 확인 M-21·M-22(실제 에이전트 세션에서 doc-driven-private-v1과 백업·복구가 규칙대로 움직이는지, 실제 GitLab 원격·Windows 콘솔).
   원하면 ctxbin·Confluence 사본 갱신(현재 원본 kit 1.4.0, 요청할 때만). 이전 남은 확인 M-16~M-19는 아래 줄을 따른다.
   백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
@@ -2507,7 +2512,7 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 커밋: 23f6de8(main, 0.5.0 GitHub 릴리스 기록). RQ-24~29 구현·문서는 미커밋이다.
+- 최신 확인 구현·게시 커밋: 26e30de(main에 포함, 태그 v0.6.0). 기능/버전 커밋은 a2ab079다. 이 기록 커밋은 그 뒤의 문서 변경만 포함한다.
   0.5.0 게시본은 75c7e62(태그 v0.5.0, GitHub 릴리스 v0.5.0)이다.
   0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
   6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 27c02c8(백업 시점과 파일 공유), 5e015e0(Windows 기록),
