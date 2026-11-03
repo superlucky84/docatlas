@@ -2161,6 +2161,8 @@ Refs: RQ-21, RQ-24, RQ-25, RQ-26, RQ-27, RQ-28, RQ-29, DC-31, DC-37, DC-38, DC-3
 - [x] Test Hardening: 버전 변경 뒤 check 92 JS/다섯 쌍, Node 231/231, npm publish --dry-run 통과. 62파일, 압축 97,723바이트·해제 338,415바이트, latest/public 설정이다.
 - [x] Integration Test(로컬): 0.6.0 production tarball 설치/백업·복구 통합 7/7 통과.
 - [ ] main의 macOS/Windows × Node 22/24 Platform checks 통과.
+  첫 run 41591482958(a2ab079): macOS 두 조합 통과, Windows 두 조합에서 한글 홈 아래 긴 절대 출력 경로를 시스템 tar가 열지 못해 새 cloud 테스트 10개 실패.
+  tar 출력 인자를 staging 기준 상대 경로로 바꾼다. 기존 한글 HOME 합성 테스트가 회귀 검증이며, 로컬/CI 재검증 후 태그를 푸시한다.
 - [ ] main 커밋/푸시 후 CI를 확인하고 같은 커밋에 v0.6.0 태그를 푸시한다. Publish to npm 성공·latest/gitHead/provenance를 확인한다.
 - [ ] 게시된 0.6.0을 임시 캐시에 설치해 --version·private-cloud help를 확인하고 영문 GitHub 릴리스를 만든다.
 
@@ -2178,6 +2180,27 @@ Files:
 - `guide/cloud-backups.md` (added)
 - `package.json` (modified)
 - `package-lock.json` (modified)
+
+### Windows tar 출력 경로 보정 — 검증 중
+
+Refs: RQ-24, RQ-25, DC-38, DC-41, M-23, M-24
+
+진입/기준: 첫 배포 CI run 41591482958, a2ab079. macOS 두 조합 성공, Windows 두 조합의 cloud 테스트가 절대 출력 경로 열기 실패로 중단됐다.
+시작 변경 없음. tar를 실행하는 staging cwd 기준 상대 출력 경로를 사용하도록 보정한다. 홈/문서의 한글 이름은 유지한다.
+기존 한글 HOME 합성 fixture의 전체 백업/복구·실패 보존·상태 테스트가 회귀 검증이다.
+
+- [x] Windows 시스템 tar에 전달하는 출력 인자를 상대 경로로 바꿨다.
+- [x] Test Hardening: check 92 JS/다섯 쌍, Node 231/231, publish dry-run 통과. 보정 후 패키지는 62파일, 압축 97,784바이트·해제 338,525바이트다.
+- [x] Integration Test(로컬): 보정 후 production tarball 통합 7/7 통과.
+- [ ] macOS/Windows × Node 22/24 CI 재검증 통과.
+
+종료 기준: 같은 한글 HOME fixture가 네 CI 조합에서 통과하고 기존 로컬 백업/복구·다른 스킬 동작을 유지한다.
+
+Files:
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+- `src/private-cloud/archive.js` (modified)
 
 ## 검증 예제와 기록
 

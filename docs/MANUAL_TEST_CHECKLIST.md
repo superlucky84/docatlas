@@ -449,6 +449,7 @@ Integration Test 자동 근거: F-10이 production tarball로 백업 → 작업 
 
 - [x] package.json/lockfile·CLI 버전 0.6.0, kit 1.4.0과 기존 네 쌍 해시 유지. check 92 JS/다섯 쌍, Node 231/231·설치 통합 7/7, publish dry-run 통과.
 - [ ] 0.6.0 tarball의 check·Node/통합·pack/publish dry-run과 main의 macOS/Windows CI 통과.
+  첫 CI는 macOS 통과/Windows 실패다(run 41591482958). 한글 HOME 아래 tar 절대 출력 경로를 상대 경로로 수정 후 네 조합을 다시 확인한다.
 - [ ] v0.6.0 태그의 Publish to npm 성공, npm latest/gitHead/provenance와 게시본 --version/private-cloud help 확인.
 - [ ] 같은 태그의 영문 GitHub 릴리스와 최종 인계 기록 확인.
 

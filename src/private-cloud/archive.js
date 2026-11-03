@@ -197,7 +197,8 @@ export async function readBundle(filename, recovery) {
 
 function tarCreate(executable, cwd, filename) {
   return new Promise((resolve, reject) => {
-    const child = spawn(executable, ['--format=ustar', '-cf', filename, '--', 'manifest.json', 'objects'],
+    // Windows tar can reject a long absolute output path containing a Unicode home name.
+    const child = spawn(executable, ['--format=ustar', '-cf', path.relative(cwd, filename), '--', 'manifest.json', 'objects'],
       { cwd, windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
     let stderr = '';
     const interrupted = signal => {
