@@ -7,7 +7,7 @@ Agent skill and rule versions are tracked separately in
 
 ## Unreleased
 
-Planned version: **0.7.0**.
+## 0.7.0 — 2026-11-04
 
 - Read phase `Files:` records from your documents in the new **Related files** panel.
   See unique paths, the phases and IDs behind each change, and follow a phase back to its

@@ -12,6 +12,8 @@ test.beforeEach(async ({ page }) => {
   app = await startServer({ root: project.root });
   await page.goto(app.url + '?doc=docs%2Fcheckout%2FDESIGN.md');
   await expect(page.locator('#document-title')).toHaveText('Checkout — Design');
+  // Initial position and focus are applied on the frame after the content is rendered.
+  await expect(page.locator('#document-content h1')).toBeFocused();
 });
 test.afterEach(async () => {
   await app?.close();

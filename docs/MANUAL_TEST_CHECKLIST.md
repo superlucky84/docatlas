@@ -629,12 +629,17 @@ DC-49 초기 비교는 DESIGN에 범위별 수치를 기록했다. npm 라이브
 
 ### 0.7.0 버전·커밋·푸시 준비
 
-대응: RQ-21, RQ-30, RQ-31, RQ-32 / DC-51, M-20, M-33, M-34. 사용자 요청은 main 푸시까지다.
+대응: RQ-21, RQ-30, RQ-31, RQ-32 / DC-51, M-20, M-33, M-34. main 푸시 완료 뒤 사용자가 태그·npm 게시까지 승인했다.
 
 - [x] manifest/lockfile·CLI·설치 tarball 버전 0.7.0, kit 1.4.0·런타임 의존성 7개 유지.
 - [x] CHANGELOG Unreleased·README·문서 지도 가이드에 실제 파일 기록/파일명 검색·빌드된 배포물의 동작을 반영했다.
 - [x] 0.7.0 후보 check 100 JS·Node 236·별도 production 설치 통합 8개 통과, pack 61파일·압축 100,532바이트.
-- [ ] main의 Platform checks 결과를 확인한다. 실제 npm 게시는 사용자의 이후 v0.7.0 태그 푸시로 구분한다.
+- [x] a34bc8c를 main에 푸시했다. 첫 Platform checks 41779890262는 세 조합 성공·macOS/Node 24의 브라우저 1개 실패다.
+- [x] 초기 렌더 지연 재현에서 제목/개수 표시만 기다리면 스크롤 0, 초기 제목 초점 완료를 기다리면 300을 확인했다.
+- [x] 테스트 준비 조건 보완 뒤 로컬 전체 Chrome 54/54·check 100 JS·kit 다섯 쌍·pack dry-run 통과.
+- [ ] 새 main의 macOS/Windows × Node 22/24 플랫폼 네 조합이 통과한다.
+- [ ] v0.7.0 태그의 Publish to npm이 성공하고 npm latest/version·gitHead·provenance가 일치한다.
+- [ ] 빈 임시 캐시의 npx --yes docatlas@0.7.0 --version이 0.7.0으로 종료한다.
 
 main 반영 대상은 위 검증 소스이며 실행 커밋은 IMPLEMENT의 0.7.0 절을 포함한 커밋으로 식별한다.
 푸시/플랫폼 실행 결과는 해당 커밋의 origin/main과 GitHub Actions 기록에서 확인한다.
