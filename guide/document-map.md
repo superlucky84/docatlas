@@ -130,6 +130,12 @@ code and attachment paths can be copied. External http/https links open in a sep
 
 ## Search and live updates
 
+The same search box also finds file names and paths recorded in phase `Files:` blocks,
+including previous names from rename records. Results show the matching paths and whether
+they were recorded in that document or its feature's implementation plan. Existing document
+text search still finds older documents without these records; source file contents are
+not searched.
+
 Search titles, feature names, paths, descriptions, and document text, including code.
 Space-separated terms use AND matching; English is case-insensitive and Korean text
 is Unicode-normalized. Results include context and highlight matches. Press / to
@@ -150,6 +156,22 @@ Navigation state stays in each tab's memory.
 
 To keep an old path working after moving a document, register it in
 [`redirects`](configuration.md#configuration-file) in the project-root configuration.
+
+## Related files
+
+Open **Related files** below a document's path to inspect its phase records. If that document
+has none, the panel uses implementation documents in the same feature group and labels the
+source. Files are listed once with all their phase records. Filter by path, phase name, or
+requirement/decision ID; copy a path, open an indexed Markdown document, or follow a record
+to its implementation heading. Markdown files are grouped under **Documentation**.
+
+Changes such as added, modified, deleted, or renamed describe the recorded phase, not the
+current working tree. These records may be incomplete, especially in older documents.
+The panel supports narrow screens and preserves focus during automatic updates. Press
+Escape or use the close button to return to reading.
+
+Installed packages include the built browser assets. `npx docatlas` does not require the
+target project to build the UI or install a build tool.
 
 ## Collector API
 

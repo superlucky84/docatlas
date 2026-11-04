@@ -1,6 +1,6 @@
 {
   "name": "docatlas",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Doc-Driven Development toolkit: agent skills for Claude Code and Codex, and a local map of your project documents.",
   "license": "MIT",
   "author": "superlucky84",
@@ -16,10 +16,16 @@
     "src/"
   ],
   "scripts": {
-    "check": "node scripts/check.js",
+    "build:web": "node scripts/build-web.js",
+    "prepare": "node scripts/build-web.js",
+    "check": "npm run build:web && node scripts/check.js",
+    "pretest": "npm run build:web",
     "test": "node --test --test-reporter=spec test/*.test.js",
+    "pretest:browser": "npm run build:web",
     "test:browser": "playwright test",
+    "pretest:integration": "npm run build:web",
     "test:integration": "node --test --test-reporter=spec test/integration/*.test.js",
+    "pretest:platform": "npm run build:web",
     "test:platform": "node --test --test-reporter=spec test/platform.test.js test/language-projects.test.js test/private.test.js test/private-map.test.js test/private-backup.test.js test/private-hardening.test.js test/private-cloud.test.js",
     "benchmark": "node scripts/benchmark.js"
   },
@@ -62,6 +68,7 @@
     ".": "./src/collector/index.js"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1"
+    "@playwright/test": "1.64.1",
+    "esbuild": "0.28.2"
   }
 }

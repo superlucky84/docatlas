@@ -1,17 +1,25 @@
+import { relatedFilesFor } from './related-files.js';
+
 const normalize = text => text.normalize('NFC').toLowerCase();
 export const queryTerms = query => [...new Set(normalize(query).trim().split(/\s+/).filter(Boolean))];
 
-export function createSearchIndex({ snapshot, searchTexts }) {
+export function createSearchIndex({ snapshot, searchTexts, metadataCache = new Map() }) {
   const groups = new Map(snapshot.groups.map(group => [group.id, group]));
+  const generation = { metadataCache, documents: new Map(snapshot.documents.map(document => [document.id, document])) };
   return snapshot.documents.filter(document => !document.canonicalId).map(document => {
     const groupTitle = groups.get(document.groupId).title;
+    const related = relatedFilesFor(document, generation);
+    const filePaths = [...new Set(related.files.flatMap(file =>
+      [file.path, ...file.records.map(record => record.oldPath).filter(Boolean)]))]
+      .map(text => ({ text, value: normalize(text) }));
     const fields = [
       ['title', document.title, 100], ['feature', groupTitle, 80],
       ['path', document.relativePath, 60],
       ['previous path', snapshot.redirects.filter(entry => entry.targetId === document.id).map(entry => entry.source).join(' '), 50],
+      ['related file', filePaths.map(file => file.text).join(' '), related.scope === 'document' ? 45 : 25],
       ['summary', document.summary, 20], ['body', searchTexts.get(document.id) || '', 1]
     ].map(([name, text, weight]) => ({ name, text: text.normalize('NFC'), value: normalize(text), weight }));
-    return { document, groupTitle, fields };
+    return { document, groupTitle, fields, filePaths, fileScope: related.scope };
   });
 }
 
@@ -19,15 +27,21 @@ export function searchDocuments(index, query) {
   const terms = queryTerms(query);
   if (!terms.length) return { query, total: 0, results: [] };
   const matches = [];
-  for (const { document, groupTitle, fields } of index) {
+  for (const { document, groupTitle, fields, filePaths, fileScope } of index) {
     if (!terms.every(term => fields.some(field => field.value.includes(term)))) continue;
     const score = terms.reduce((sum, term) => sum + Math.max(...fields.map(field => field.value.includes(term) ? field.weight : 0)), 0);
-    const context = [...fields].reverse().find(field => terms.some(term => field.value.includes(term)));
+    const matchedFiles = filePaths.filter(file => terms.some(term => file.value.includes(term)));
+    const context = matchedFiles.length
+      ? fields.find(field => field.name === 'related file')
+      : [...fields].reverse().find(field => terms.some(term => field.value.includes(term)));
     const offset = Math.min(...terms.map(term => context.value.indexOf(term)).filter(value => value >= 0));
     const start = Math.max(0, offset - 45);
     const snippet = (start ? '…' : '') + context.text.slice(start, start + 160) + (start + 160 < context.text.length ? '…' : '');
     matches.push({ id: document.id, title: document.title, relativePath: document.relativePath,
-      groupTitle, matchedField: context.name, snippet, score, ...(document.isPrivate ? { isPrivate: true } : {}) });
+      groupTitle, matchedField: context.name, snippet, score,
+      ...(matchedFiles.length ? { matchedFiles: matchedFiles.slice(0, 3).map(file => file.text),
+        matchedFileCount: matchedFiles.length, fileScope } : {}),
+      ...(document.isPrivate ? { isPrivate: true } : {}) });
   }
   matches.sort((left, right) => right.score - left.score || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0));
   return { query, total: matches.length, results: matches.slice(0, 50).map(({ score, ...result }) => result) };

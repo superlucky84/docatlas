@@ -25,7 +25,7 @@
         <p id="map-count" class="muted" role="status">Reading documentation</p>
         <form id="search-form" class="search-form" role="search">
           <label class="sr-only" for="doc-search">Search documentation</label>
-          <input id="doc-search" type="search" placeholder="Search docs…" maxlength="200" autocomplete="off" spellcheck="false" aria-controls="search-results">
+          <input id="doc-search" type="search" placeholder="Search docs or files…" maxlength="200" autocomplete="off" spellcheck="false" aria-controls="search-results">
           <button id="clear-search" type="button" aria-label="Clear search" hidden>×</button>
         </form>
         <p id="live-status" class="live-status" role="status">Connecting to updates…</p>
@@ -61,6 +61,7 @@
           <div class="document-breadcrumb"><span id="document-area"></span><span id="document-private" class="private-badge" hidden>Private</span><span id="document-mode" class="source-label">Reading</span><button id="view-toggle" class="view-toggle" type="button">View source</button></div>
           <h1 id="document-title" tabindex="-1"></h1>
           <p id="document-path" class="document-path"></p>
+          <button id="related-files-toggle" class="related-files-toggle" type="button" aria-haspopup="dialog" aria-controls="related-files-dialog">Related files <span id="related-files-count">0</span></button>
         </header>
         <div id="link-notice" class="reader-notice" role="status" hidden>
           <span id="link-message"></span><code id="link-path" hidden></code>
@@ -80,5 +81,19 @@
       </div>
     </section>
   </main>
+  <dialog id="related-files-dialog" class="related-files-dialog" aria-labelledby="related-files-title">
+    <header class="files-heading">
+      <div><span class="eyebrow">DOCUMENT CONNECTIONS</span><h2 id="related-files-title">Related files <span id="files-total"></span></h2></div>
+      <button id="related-files-close" class="files-close" type="button" aria-label="Close related files">×</button>
+    </header>
+    <div class="files-context"><p id="files-scope"></p><p id="files-origin"></p></div>
+    <div class="files-search-wrap">
+      <label class="sr-only" for="files-search">Filter related files</label>
+      <input id="files-search" class="files-search" type="search" placeholder="Filter by path, phase, or ID…" autocomplete="off" spellcheck="false">
+      <p id="files-result-count" class="files-result-count" role="status"></p>
+    </div>
+    <div id="files-list" class="files-list"></div>
+    <footer class="files-footer">Paths recorded in completed work. Records may be partial and do not describe the current Git status.</footer>
+  </dialog>
 </body>
 </html>

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { checkAgentKit } from './agent-kit.js';
+import { buildWeb } from './build-web.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 let count = 0;
@@ -30,6 +31,7 @@ for (const directory of ['bin', 'src', 'scripts', 'test']) {
   await check(path.join(root, directory));
 }
 if (!process.exitCode) {
+  await buildWeb({ check: true });
   console.log('Syntax checked ' + count + ' JavaScript files.');
   const { errors, manifest } = await checkAgentKit(path.join(root, 'agent-kit'));
   for (const error of errors) {

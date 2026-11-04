@@ -1,0 +1,5 @@
+/*.js
+/styles.css
+/dist/*
+!/dist/app.js
+!/dist/styles.css

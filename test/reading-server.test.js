@@ -30,7 +30,8 @@ test('document API returns formatted content, navigation data, and a registered 
   const head = await fetch(url, { method: 'HEAD' });
   assert.equal(head.status, 200);
   assert.equal(await head.text(), '');
-  assert.equal((await fetch(app.url + 'reader.js')).status, 200);
+  assert.equal((await fetch(app.url + 'app.js')).status, 200);
+  assert.equal((await fetch(app.url + 'reader.js')).status, 404);
 });
 
 test('asset routes accept only image references actually registered by a document', async t => {

@@ -7,14 +7,12 @@ import { HttpError, readDocument } from './documents.js';
 import { createFileAccess } from './files.js';
 import { createReferenceResolver } from './references.js';
 import { renderMarkdown } from './render.js';
+import { relatedFilesFor } from '../collector/related-files.js';
 
 const ASSETS = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
-  ['/app.js', ['app.js', 'text/javascript; charset=utf-8']],
-  ['/reader.js', ['reader.js', 'text/javascript; charset=utf-8']],
-  ['/search.js', ['search.js', 'text/javascript; charset=utf-8']],
-  ['/live.js', ['live.js', 'text/javascript; charset=utf-8']],
-  ['/styles.css', ['styles.css', 'text/css; charset=utf-8']]
+  ['/app.js', ['dist/app.js', 'text/javascript; charset=utf-8']],
+  ['/styles.css', ['dist/styles.css', 'text/css; charset=utf-8']]
 ]);
 const HEADERS = {
   'Cache-Control': 'no-store',
@@ -40,6 +38,9 @@ export async function startServer({ root = process.cwd(), port = 0, collectionOp
     }
   } catch (cause) {
     await store.close();
+    if (cause.code === 'ENOENT') {
+      throw new Error('Web assets are missing. In a development checkout, run npm run build:web.', { cause });
+    }
     throw cause;
   }
   const server = http.createServer((request, response) => {
@@ -113,7 +114,8 @@ export async function startServer({ root = process.cwd(), port = 0, collectionOp
           registerAsset: (relative, type) => registerAsset(relative, type, sequence)
         }));
         send(request, response, 200, JSON.stringify({
-          sequence, revision: snapshot.revision, id: document.id, title: document.title, relativePath: document.relativePath, markdown, ...rendered
+          sequence, revision: snapshot.revision, id: document.id, title: document.title, relativePath: document.relativePath,
+          markdown, ...rendered, relatedFiles: relatedFilesFor(document, generation)
         }));
       } else if (url.pathname === '/api/asset') {
         if (url.searchParams.getAll('id').length !== 1) throw new HttpError(400, 'Provide one image id.');

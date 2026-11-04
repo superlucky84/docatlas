@@ -33,6 +33,16 @@ node bin/docatlas.js --version
 npm pack --dry-run
 ```
 
+Edit the readable browser sources in `src/web/`. `npm run build:web` bundles and minifies
+the JavaScript and CSS into `src/web/dist/`; do not edit or commit these generated files.
+Normal installation, checks, npm test commands, and packing rebuild them. If installation
+used `--ignore-scripts`, run `npm run build:web` or `npm run check` before starting the CLI
+or running tests directly with Node. After editing UI source, rebuild and restart the CLI.
+
+The npm package contains `index.html` and the generated assets; browser source modules,
+source maps, and build scripts are excluded. esbuild is a development dependency, so
+installed production packages and `npx docatlas` serve the assets without building them.
+
 Which checks to run:
 
 | Change | Checks |

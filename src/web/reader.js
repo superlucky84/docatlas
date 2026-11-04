@@ -1,3 +1,5 @@
+import { createRelatedFiles } from './related-files.js';
+
 const $ = id => document.getElementById(id);
 const node = (tag, className, text) => {
   const value = document.createElement(tag);
@@ -16,6 +18,7 @@ export function createReader({ projectId, getDocument, getGroup, onSelect, captu
     documents: new Map(), restorePosition: null, sequence: 0, refreshAttempt: 0, missingId: null
   };
   history.scrollRestoration = 'manual';
+  const relatedFiles = createRelatedFiles({ openDocument: open });
 
   function remember() {
     if (state.current) {
@@ -166,6 +169,7 @@ export function createReader({ projectId, getDocument, getGroup, onSelect, captu
       $('document-content').innerHTML = data.html;
       $('document-status').textContent = '';
       renderToc(data);
+      relatedFiles.update(data);
       applyMode();
       document.body.dataset.view = options.restore?.view || 'document';
       onSelect(id, !options.restore);
@@ -228,6 +232,8 @@ export function createReader({ projectId, getDocument, getGroup, onSelect, captu
       $('document-status').textContent = 'This document was removed from the map. Choose another document.';
       $('document-status').classList.add('is-error');
       clearNotice();
+      relatedFiles.close();
+      relatedFiles.update({ id, relatedFiles: null });
       onSelect(null, false);
       return;
     }
@@ -236,6 +242,7 @@ export function createReader({ projectId, getDocument, getGroup, onSelect, captu
   }
 
   function showMap({ cancelPending = false } = {}) {
+    relatedFiles.close();
     remember();
     if (cancelPending && state.request && !state.requestLive) {
       state.request.abort();
@@ -309,6 +316,7 @@ export function createReader({ projectId, getDocument, getGroup, onSelect, captu
     const entryId = event.state?.docmap === projectId ? event.state.entryId : crypto.randomUUID();
     const saved = state.positions.get(entryId);
     if (!route.id) {
+      relatedFiles.close();
       state.entryId = entryId;
       state.current = null;
       state.missingId = null;

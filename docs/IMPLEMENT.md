@@ -1,6 +1,6 @@
 # docatlas 구현 계획
 
-문서 기준: 2026-10-28.
+문서 기준: 2026-11-04.
 [요구사항](./REQUIREMENTS.md) · [설계](./DESIGN.md) · [수동 검증](./MANUAL_TEST_CHECKLIST.md)
 
 ## 현재 상태와 작업 순서
@@ -29,6 +29,11 @@
 - 완료(2026-11-03, 0.6.0 게시): RQ-24~29 선택 백업 스킬/룰과 private-cloud 보조 명령. 전체/선택 경로, 이름/태그/ID, 새 PC 복구, 상태/잠금을 구현했다.
 - 자동 검증 완료: 문법 92개·kit 1.4.0 다섯 쌍, Node 231개, production tarball 통합 7개와 독립 에이전트 합성 왕복. 실제 클라우드 앱·Windows 콘솔·일반 작업의 에이전트 인수는 남아 있다. Windows/macOS CLI·브라우저 CI는 통과했다.
 - 확정 정책: 클라우드는 명시적 요청에만 실행하고 일반 작업에서 권유하지 않는다. 기존 네 쌍과 기본 세 쌍, 로컬 phase 백업은 유지한다.
+- 프로토타입 구현·자동 회귀 완료(2026-11-04): RQ-30·31 관련 파일 표시와 왼쪽 파일명 검색.
+  기준 4종 문서를 사후 동기화했다. Node 236개·Chrome 48개 통과이며 추가 Test Hardening·원격 플랫폼·최종 UX는 남아 있다.
+  후속 요청으로 버전은 0.7.0 후보로 올려 main에 커밋·푸시한다. 실제 게시는 아직 수행하지 않는다. Lithent/ftags 검토(DC-49)는 전환 구현과 구분한다.
+- 후속 완료: RQ-32/DC-50 UI 번들링·최소화, esbuild 없는 일반 production-only 설치와 통합 8개 통과.
+  현재 pack은 61파일·압축 100,227·해제 342,299바이트다.
 
 기술 선택은 각 단계에서 근거와 검증을 기록해 DC/IC를 해소한다.
 상세 계약을 바꾸면 요구사항·설계·단계·수동 기준을 같은 작업에서 갱신한다.
@@ -2203,6 +2208,262 @@ Files:
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 - `src/private-cloud/archive.js` (modified)
 
+## 관련 파일 표시와 파일명 검색 — 프로토타입 구현·문서 동기화
+
+Refs: RQ-20, RQ-30, RQ-31, PR-11, DC-45, DC-46, DC-47, DC-48, DC-49, M-30, M-31, M-32, M-33
+
+2026-11-04 사용자가 빠른 프로토타입을 먼저 요청했고 파일명 검색과 npx 용량 확인 후 기준 문서 작성을 요청했다.
+과거 구현을 문서 선행 개발로 기록하지 않는다. 이번 문서 작업 시작 상태는 HEAD `ddf6e54`, 기존 프로토타입 변경 14파일이다.
+`git status --porcelain -uall`, `git diff --name-status`, 미추적 목록으로 확인했다. 이번 작업은 그 파일들을 추가 수정하지 않고 기준 4종만 갱신한다.
+단계별 커밋이 없어 프로토타입을 하나의 구현 단계로 기록한다. Files에는 현재 git에서 확인한 최종 경로·변경 종류를 쓴다.
+중간에 잠깐 존재한 미추적 `src/server/related-files.js`는 최종 산출물이나 git rename으로 기록하지 않는다.
+
+### 1단계 — 기록 추출·파일 패널·파일명 검색: 프로토타입 구현 완료
+
+Refs: RQ-30, RQ-31, DC-45, DC-46, DC-47, DC-48, M-30, M-31, M-32, M-33
+
+진입: 기존 RQ-20 기록 형식과 0.6.0 위에서 사용자가 로컬 페이지의 빠른 시제품을 요청했다.
+기준: 구현 전 새 baseline 실행은 따로 보관하지 않았다. 기존 0.6.0 검증 기록은 Node 231/Chrome 42이며,
+이 세션 첫 패널 프로토타입은 Node 234개, 파일명 검색 추가 후 최종은 Node 236개·Chrome 48개다. 서로 다른 시점의 수치를 섞지 않는다.
+
+- [x] Markdown 코드 예시 제외, Refs 상속·none, 파일/폴더·이름 변경·삭제 기록, 안전한 경로와 중복 제목 앵커를 추출했다.
+- [x] 수집기의 내용 해시 캐시와 직접/같은 그룹의 구현 기록 연결 함수를 문서 API·검색이 공유한다.
+- [x] 닫힌 Related files 버튼, 출처 표시, 폴더/문서 묶음, 경로/단계/ID 필터, 복사·문서/단계 이동을 구현했다.
+- [x] 모바일·Esc 초점 복귀·읽기/원문·스크롤/이력 보존과 자동 갱신 시 패널 필터/펼침 유지를 구현했다.
+- [x] 왼쪽 검색에 현재/변경 전 파일 경로와 출처별 가중치를 추가하고 일치 경로·강조·추가 개수를 표시했다.
+- [x] 원본 문서·스킬·룰·package.json/lockfile을 변경하지 않고 런타임 의존성을 유지했다.
+
+기준 테스트: `node --test test/phase-records.test.js test/search.test.js` 7개,
+`npm test` 236개, `DOCMAP_BROWSER_CHANNEL=chrome npm run test:browser` 48개, `npm run check` 98 JS·kit 1.4.0 다섯 쌍 통과.
+첫 브라우저 실행의 sandbox 차단은 허용된 실행으로 확인했고, 단계명 Guest session도 필터에 맞는다는 점을 반영해
+파일명을 좁히는 테스트 입력을 session.js로 고쳤다. 최종 전체 브라우저 실행은 48/48이다.
+
+종료 기준: 합성 F-12와 실제 저장소 페이지에서 목록·검색·복사·단계 이동을 사용할 수 있고 기존 회귀가 통과한다. 프로토타입 범위에서 충족했다.
+실제 페이지의 에이전트 Chrome 확인은 JS 오류 0·가로 넘침 없음이었다. 사용자의 최종 수동 UX 인수를 통과로 대신하지 않는다.
+
+Files:
+- `src/collector/phase-records.js` (added)
+- `src/collector/related-files.js` (added)
+- `src/collector/scan.js` (modified)
+- `src/collector/search.js` (modified)
+- `src/server/index.js` (modified)
+- `src/web/index.html` (modified)
+- `src/web/reader.js` (modified)
+- `src/web/related-files.js` (added)
+- `src/web/search.js` (modified)
+- `src/web/styles.css` (modified)
+- `test/browser/related-files.spec.js` (added)
+- `test/helpers/phase-records.js` (added)
+- `test/phase-records.test.js` (added)
+- `test/search.test.js` (modified)
+
+### 2단계 — 기준 문서 동기화: 완료
+
+Refs: RQ-30, RQ-31, PR-11, DC-45, DC-46, DC-47, DC-48, DC-49, M-30, M-31, M-32, M-33
+
+진입: 사용자가 `doc-driven-designer-v1` 기반으로 문서를 채우도록 요청했다.
+기준: 네 문서에는 RQ-20의 수집·검색이 후속으로 남아 있었고, 시작 때 문서 변경은 없었다.
+로컬 designer 1.3.0을 사용하며 ctxbin 동기화는 실행하지 않는다.
+
+- [x] RQ-30·31, DC-45~49, M-30~33, F-12와 현재 구현 범위를 네 문서에 연결했다.
+- [x] 직접 기록과 기능 기록, 단계 기록과 현재 Git 상태, 프로토타입과 정식 인수/게시를 구분했다.
+- [x] 별도 Test Hardening·Integration Test 단계와 진입·baseline·종료 기준을 남겼다.
+- [x] 실제 Files 목록·현재 인계·최신 커밋·검증 시점과 용량 비교를 기록했다.
+- [x] 사용자 추가 질문인 로컬 Lithent/ftags 비교를 DC-49 TBD로 기록했다. 도입/번들링 코드는 변경하지 않았다.
+  임시 비교는 현재 JS 합계 42,888/gzip 10,706바이트, 최소화 번들 26,426/8,691바이트,
+  ftags 최소 예제 12,060/5,059바이트, 로컬 Lithent npm 전체 압축 405,028·해제 1,602,731바이트다.
+  측정 범위·로컬 버전은 DESIGN에 기록했다. 실제 뷰어 이식/배포물과 동작 동등성을 확인한 결과는 아니다.
+
+검증: 문서 링크·ID/Refs·단계 기록·git 변경 목록의 정합성과 문서 수집 예제를 확인한다. 결과는 아래 문서 검증 기록을 따른다.
+종료 기준: 네 문서가 구현·미정·다음 작업을 같은 의미로 설명하고 문서만으로 작업을 이어갈 수 있다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 3단계 — Test Hardening: 추가 검증 대기
+
+Refs: RQ-30, RQ-31, DC-45, DC-46, DC-47, DC-48, M-30, M-31, M-32, M-33
+
+진입: 위 프로토타입과 기준 문서가 동기화되고 DC-45·47·48의 현재 동작이 기준으로 남는다.
+baseline: 1단계의 Node 236개·Chrome 48개·문법 98개. 제품 코드가 바뀌면 해당 검사부터 다시 실행한다.
+
+- [x] 기존 자동 근거: 코드 펜스/들여쓴 예시·CRLF·경로 이탈·Refs 상속·중복 앵커·이름 변경/삭제/폴더·중복 제거·캐시 재사용.
+- [x] 기존 자동 근거: 직접/기능 검색·본문 fallback·대소문자·이전 이름·독립/중첩 그룹·저장 후 검색 갱신·패널/스크롤 보존.
+- [ ] 명시 none의 상속 차단, 비정상 첫 목록 항목의 블록 종료, 여러 구현 문서·Private/공개 출처 격리를 별도 사례로 확인한다.
+- [ ] 일치 파일 3개 초과와 추가 개수, 긴/한글 경로, 삭제/이동 중 패널 초점·클립보드 실패 fallback의 누락 사례만 보강한다.
+- [ ] F-08의 기존 300문서 검증과 별도로 단계/파일 기록이 많은 입력의 API·검색 결과 크기와 갱신 시간을 측정한다.
+  현재 속도·기록 수 상한은 보장하지 않는다. 문제가 드러나면 측정 근거와 함께 설계를 갱신한다.
+
+종료 기준: 새 기능의 경계 사례를 자동/명시적 수동 근거로 확인하고, 같은 소스에서 check·Node·Chrome 회귀를 통과한다.
+새 성능 보장은 측정 전 확정하지 않는다. 아직 종료하지 않아 예정 Files 목록은 쓰지 않는다.
+
+### 4단계 — Integration Test: 설치 근거 확보·플랫폼/수동 인수 대기
+
+Refs: RQ-30, RQ-31, DC-45, DC-46, DC-47, DC-48, M-30, M-31, M-32, M-33
+
+진입: Test Hardening 종료와 최종 UI 인수 범위(DC-46)가 정리된다.
+baseline: 기존 `npm run test:integration` 7개는 0.6.0 게시 코드의 과거 근거이며 이번 기능 검증으로 대체하지 않는다.
+당시 baseline은 개발 소스 Chrome 48/48과 pack dry-run까지였다. 후속 RQ-32에서 번들 tarball 설치 근거를 추가했다.
+
+- [x] 개발 소스의 파일명 → 관련 문서 → 파일 기록 → 중복 제목의 단계 → 뒤로 가기와 자동 갱신 흐름을 F-12/Chrome에서 확인했다.
+- [x] 0.6.0 태그와 현재 프로토타입을 같은 npm으로 pack 비교했다. 62→65파일,
+  압축 97,784→103,835바이트, 해제 338,525→361,841바이트, 새 런타임 의존성 0개다.
+- [x] 후속 RQ-32에서 production tarball을 별도 위치에 설치해 새 관련 파일 코드가 든 번들·문서 API·파일명 검색을 검증했다.
+- [ ] 기존 integration 7개와 macOS/Windows × Node 22/24의 새 코드 검증을 수행하고 버전별/OS별 근거를 기록한다.
+- [ ] M-30~33의 사람 인수와 DC-46 최종 UX를 확인한다. 미실행은 실패와 구분해 남긴다.
+
+종료 기준: 설치본의 전체 흐름·기존 통합 회귀·대상 플랫폼 검증과 원본 보존을 확인하고, 남은 수동 인수/미지원 조건을 명시한다.
+실제 게시 버전·시점은 별도 결정이다. Lithent 전환(DC-49)은 이 단계 완료의 조건이 아니다.
+
+### 문서 검증 기록 — 2026-11-04
+
+- [x] 기준 4종의 상대 파일/앵커 링크 29개 문제 0. 새 ID 12개(RQ 2·PR 1·DC 5·M 4) 정의와 새 절의 Refs 5줄이 일치한다.
+- [x] 새 Files 블록 두 개가 git의 최종 변경 목록과 일치한다. 기존 프로토타입 14파일, 이번 문서 4파일이며 kind도 일치한다.
+- [x] 두 기록 단계의 앵커가 실제 서버 렌더러의 제목 id와 일치한다. 새 문서를 스캔해 문서 5개·경고 0개를 확인했다.
+- [x] `node --test test/examples.test.js` 2/2와 `git diff --check` 통과.
+- [x] 이번 작업은 기준 4종만 수정했다. 제품 코드·스킬·룰·의존성·버전·배포 상태를 바꾸지 않았다.
+
+프로토타입의 236/48은 1단계 실행 결과이며 문서만 수정한 작업에서 제품 전체 테스트를 재실행했다고 표시하지 않는다.
+
+## UI 번들링·최소화 — 구현·자동 검증 완료
+
+Refs: RQ-32, DC-48, DC-50, M-33, M-34
+
+2026-11-04 사용자가 현행 DOM UI의 번들링·최소화부터 승인했다. 시작 HEAD ddf6e54,
+기존 프로토타입 14파일·문서 4파일 변경을 보존하고 이 작업에서 다시 바꾼 파일만 단계 Files에 포함한다.
+
+### 1단계 — 개발 빌드와 배포 자산: 완료
+
+Refs: RQ-32, DC-50, M-34
+
+진입: DC-50 사용자 승인과 네 문서의 계약 반영. baseline은 번들 전 check 98 JS·Node 236·Chrome 48,
+pack 65파일·압축 103,835·해제 361,841바이트다. 같은 UI 원본을 그대로 입력으로 쓴다.
+
+- [x] esbuild 0.28.2를 devDependency로 고정하고 build:web·prepare·check·pretest 계열·prepack을 연결했다.
+- [x] 서버 고정 경로를 번들 자산으로 바꾸고 nested .npmignore로 개발 원본/기타 생성 파일을 npm에서 제외했다.
+- [x] CONTRIBUTING에 빌드·원본 편집·배포 자산과 ignore-scripts의 선행 조건을 안내했다.
+- [x] 생성 자산은 git 제외, 변경 시 원자적 교체, 동일 바이트 재사용과 --check를 적용했다.
+
+결과/종료: 두 자산 생성·검사 통과, 런타임 의존성 7개 유지. 소비자 실행 경로에 esbuild import가 없다.
+
+Files:
+- `.gitignore` (modified)
+- `CONTRIBUTING.md` (modified)
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `scripts/build-web.js` (added)
+- `scripts/check.js` (modified)
+- `src/server/index.js` (modified)
+- `src/web/.npmignore` (added)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### Test Hardening: 완료
+
+Refs: RQ-32, DC-50, M-34
+
+진입: 1단계 자산/서버 경로 연결. baseline은 위 Node 236·Chrome 48이다.
+
+- [x] 서버 테스트에서 실제 응답과 번들 바이트의 일치·원본 모듈 URL 404를 확인했다.
+- [x] npm run check 100 JS·kit 1.4.0, npm test 236/236, Chrome 전체 48/48 통과.
+- [x] 임시 보관한 dist로 누락/오래된 자산 거부·깨끗한 재생성과 원래 바이트 일치를 확인하고 복원했다.
+- [x] 첫 Node 실행의 reader.js 200 기대 1개를 새 app.js 200/reader.js 404 계약에 맞췄다. 수정 뒤 전체 236/236이다.
+- [x] pack --json에서 빌드 stdout 로그가 JSON에 섞이는 것을 확인하고 로그를 stderr로 옮겨 설치 테스트의 파싱을 보존했다.
+
+종료 기준 충족: 원문/마크다운·안전 경계·이력·선택/초점·파일 검색/패널이 최소화 자산으로 회귀를 통과했다.
+
+Files:
+- `test/server.test.js` (modified)
+- `test/reading-server.test.js` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### Integration Test: 자동 검증 완료
+
+Refs: RQ-32, DC-48, DC-50, M-33, M-34
+
+진입: 빌드/서버/브라우저 검사 통과. baseline은 기존 integration 7개이며 현재 새 tarball은 아직 설치 검증하지 않았다.
+
+- [x] production-only tarball 설치에 esbuild가 없고 원본 UI JS/CSS와 소스맵도 제외됐다. 소비자 설치는 --ignore-scripts 없이도 성공했다.
+- [x] 설치본에서 새 파일 검색 → 관련 문서 → 파일 기록 → 구현 앵커 흐름을 추가 검증했다.
+- [x] DOCMAP_BROWSER_CHANNEL=chrome npm run test:integration 8/8 통과. 기존 7개에 설치 번들 흐름 1개가 추가됐다.
+- [x] npm pack dry-run/prepack/prepare와 JSON 파싱을 확인했다. 61파일·압축 100,227·해제 342,299바이트다.
+- [x] JS 42,888→26,253바이트, CSS 24,076→20,940바이트. 생성 JS/CSS gzip9은 8,657/5,415바이트다.
+- [x] 기준 문서·수동 체크·인계·Files를 동기화하고 기존 127.0.0.1:54878에서 최소화 자산 서버를 다시 실행했다.
+- [x] 최종 문서 정합성: 상대 링크/앵커 29개, 새 ID 15개, Refs 9줄, 단계 기록/현재 git 변경 28파일의 일치와 문서 5개·경고 0개를 확인했다.
+
+종료 기준 충족: 설치된 번들 화면이 빌드 도구 없이 동작하고 용량 측정·회귀 근거가 남았다.
+원격 플랫폼 CI·실제 게시와 Lithent 도입은 별도다.
+
+Files:
+- `test/integration/package.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 리뷰 반영 — 구현·검증 완료
+
+Refs: RQ-30, RQ-32, DC-46, DC-50, M-31, M-34
+
+진입: 사용자가 읽기 전용 리뷰 뒤 지적의 타당성/가치를 판단해 적용하도록 승인했다.
+baseline: check 100 JS·Node 236·Chrome 48·설치 통합 8, pack 61파일·100,227/342,299바이트(압축/해제).
+시작 변경 28파일을 보존하고 이 단계에서 다시 수정한 파일만 기록한다.
+
+- [x] warning을 적용했다. 단계/문서 링크·Documentation 펼침·복사 대체 입력에 초점 키를 추가하고 대상이 사라지면 패널 검색창으로 이동한다.
+  복사 대체 입력은 갱신 뒤 다시 생성해 선택 범위도 보존한다. 관련 Chrome 4개와 대상 삭제 fallback 1개가 통과했다.
+- [x] suggestion을 적용했다. 닫힌 패널은 데이터·개수·출처만 갱신하고 목록은 열 때 생성한다. 변경 없는 재열기는 DOM을 재사용한다.
+  처음 열기 전/닫힌 중 갱신의 DOM 부재·캐시 재사용·최신 데이터 재생성을 Chrome 1개로 확인했다.
+- [x] suggestion을 적용했다. prepack 중복 연결을 없애고 prepare에서 직접 빌드한다. npm pack --json의 stderr 빌드 완료가 1회인지 설치 통합에서 확인했다.
+- [x] check 100 JS·Node 236/236·설치 통합 8/8·pack 통과. 관련 파일 Chrome 12/12·전체 Chrome 54/54 통과.
+- [x] 현재 pack 61파일·압축 100,464·해제 342,932바이트, JS 26,922/gzip9 8,889바이트다. 런타임 의존성 변화는 없다.
+- [x] 사용자 추가 질문에 따라 최소화 후 Lithent/ftags를 같은 esbuild 설정으로 재비교했다. DC-49에 최소 예제 비용과 비교 한계를 기록했고 전환은 하지 않았다.
+
+종료 기준: 초점이 열린 모달 안에 남고 남아 있는 대상은 복원되며, 지연 생성과 단일 빌드가 새 회귀 검사/설치본에서 확인된다.
+
+Files:
+- `package.json` (modified)
+- `src/web/related-files.js` (added)
+- `test/browser/related-files.spec.js` (added)
+- `test/integration/package.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+## 0.7.0 배포 준비 — 버전·커밋·main 푸시
+
+Refs: RQ-21, RQ-30, RQ-31, RQ-32, DC-51, M-20, M-33, M-34
+
+진입: 사용자가 버전 올림과 커밋·푸시를 요청했다. 시작 HEAD와 origin/main은 ddf6e54로 일치하고 기존 변경은 28파일이다.
+기능 추가이므로 0.7.0을 선택한다. 이번 범위는 main 반영까지이며 게시 태그·npm publish·GitHub 릴리스는 실행하지 않는다.
+baseline은 check 100 JS·Node 236·Chrome 54·설치 통합 8개와 0.6.0 이름의 미게시 후보 pack이다.
+
+- [x] package.json/lockfile·CLI 버전 0.7.0, CHANGELOG Unreleased와 README/문서 지도 가이드를 갱신했다.
+- [x] Test Hardening: 버전 변경 뒤 check 100 JS·kit 1.4.0 다섯 쌍, Node 236/236, git diff --check 통과.
+  UI 소스가 바뀌지 않아 같은 자산의 앞선 Chrome 54/54 근거를 유지하며 main CI에서 다시 검증한다.
+- [x] Integration Test: 0.7.0 production tarball 설치 통합 8/8과 빌드 도구 없는 실행·CLI 버전을 확인했다.
+  실제 pack은 61파일·압축 100,532바이트다. README/버전 변경을 포함하므로 앞선 0.6.0 후보 측정과 구분한다.
+
+종료 기준: 검증한 후보의 소스/문서가 main 커밋에 포함되고 origin/main에 같은 커밋을 푸시한다.
+최신 작업 기준 커밋은 ddf6e54이며 실행 커밋은 이 절을 포함한 main 커밋으로 식별한다. 태그/게시 상태는 별도로 남긴다.
+
+Files:
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `CHANGELOG.md` (modified)
+- `README.md` (modified)
+- `guide/document-map.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -2422,6 +2683,25 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 이 프로젝트의 현재 인계는 이 블록 하나다. 작업을 멈출 때 이 블록을 바꾸며 이전 내용은 git 이력에 남는다.
 2026-10-28 이전의 인계와 검증 기록은 [인계 이력](./handoff/HISTORY.md#구현-계획에서-옮긴-기록)에 있다.
 
+- 현재 작업(2026-11-04): RQ-30·31의 관련 파일·왼쪽 파일명 검색 프로토타입과 기준 4종 문서 동기화.
+  사용자 순서는 프로토타입 → 파일명 검색 → npx 용량 확인 → 문서 작성 → 번들링/리뷰 보완 → 0.7.0 버전/커밋/푸시 요청이다.
+- 현재 후속 완료: 사용자 승인한 RQ-32/DC-50 현행 UI 번들링·최소화. build:web와 배포 필터, 고정 자산 제공,
+  개발 전용 esbuild 0.28.2와 빌드/pack 진입을 추가했다. 앱은 현재 같은 로컬 주소에서 최소화 자산을 제공한다.
+- 리뷰 후속: warning 1·suggestion 2 모두 타당하다고 판단해 적용했다. 모달 초점 복구/대상 삭제 fallback,
+  목록 지연 생성/재열기 캐시, pack prepare 단일 빌드와 회귀 검사를 추가했다. 최신 pack은 61파일·100,464/342,932바이트다.
+- 최신 검증: check 100 JS·Node 236/236·Chrome 54/54·설치 통합 8/8. 리뷰의 초점 재현을 새 회귀 6개로 보강했다.
+- 최초 번들링 검증: check 100 JS·Node 236/236·Chrome 48/48·설치 통합 8/8. pack 61파일·압축 100,227·해제 342,299바이트.
+  번들 전보다 -3,608/-19,542바이트이며 소비자 일반 설치에 esbuild가 없다. 원격 Windows/Node 22 재검증은 미실행이다.
+- 번들링 전 근거: macOS 15.6.1 / Node 24.22.1 / npm 11.19.1, 문법 98·kit 1.4.0 다섯 쌍·Node 236/236·Chrome 48/48·pack 65파일.
+  기존 0.6.0 대비 압축 +6,051바이트·해제 +23,316바이트, 런타임 의존성 변화 없음. 문서 수정 이후 개수/기록 수는 고정하지 않는다.
+- 다음(새 기능): 위 Test Hardening의 추가 경계 확인과 Integration Test의 원격 플랫폼/수동 인수. 별도 tarball 설치는 RQ-32에서 확인했다.
+  DC-46 최종 UX는 TBD다. 배포 후보는 DC-51의 0.7.0이며 실제 태그/게시 시점은 사용자 단계다. 리뷰와 후속 수정은 승인받아 수행했다.
+- 검토만 수행: 사용자 질문에 따라 로컬 Lithent/ftags의 패키지/최소 번들·현재 UI 최소화 효과를 비교했다(DC-49).
+  프레임워크 전환은 없고 실제 이식 후 효과는 미검증이다. 현행 UI 빌드만 별도 승인된 DC-50으로 구현했다.
+- 현재 차단: 기술적 차단 없음. 사용자 UX 인수와 Lithent 도입/게시 시점은 미정으로 남는다.
+- 최신 작업 기준 커밋: `ddf6e54`(0.6.0 게시 기록). 현재 작업은 위 0.7.0 절을 포함하는 main 커밋으로 반영하며 실제 SHA는 git log로 확인한다.
+  버전 태그를 생성/푸시하지 않으며 0.7.0은 미게시다.
+
 - 완료: 0.3.1을 npm에 게시했다(gitHead 8f6bc69). 저장소 소개(DC-20~25), .conda 기본 제외(DC-24), 에이전트용 도움말 보강(DC-26·27) 포함.
 - 완료(2026-10-29): README·METHOD 두 언어판·예제 README의 clone 실행 안내에 npm install 선행 단계를 추가했다(e1f3976).
 - 완료(2026-10-29, 배포 전): DC-28. agents install의 기본 대상을 세 쌍으로 바꾸고 도움말의 포함 여부 질문 단계를 없앴다.
@@ -2504,15 +2784,16 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   Integration Test 커밋은 통합 테스트와 문서만 바꿨고 test:integration은 Platform checks에 없어 CI를 다시 돌리지 않았다.
   원하면 main 반영 전에 2단계~Integration Test 리뷰.
   ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
-- 다음: M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과, 원하면 ctxbin·Confluence 사본 갱신은 그 뒤다.
-  docatlas의 Refs·Files 수집·검색 기능은 별도 요구사항으로 시작한다(DC-30 c).
+- 다음(기존): M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과 요청 시 사본 갱신.
+  당시 후속이던 docatlas의 기록 수집·검색은 현재 RQ-30·31의 프로토타입으로 시작했다(DC-30 c).
 - 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
   사용자 환경은 0.4.1부터 docatlas 기록이 생겨 다음 kit 변경 때 확인할 수 있다.
   M-18의 DC-29 항목(위치 절 읽기, 구조가 불분명한 프로젝트에서 designer 1.2.0이 위치를 묻는지),
   M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
   M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
 - 차단: 없음.
-- 최신 확인 구현·게시 커밋: 26e30de(main에 포함, 태그 v0.6.0). 기능/버전 커밋은 a2ab079다. 이 기록 커밋은 그 뒤의 문서 변경만 포함한다.
+- 최신 확인 게시 구현 커밋: 26e30de(main에 포함, 태그 v0.6.0). 기능/버전 커밋은 a2ab079다.
+  0.7.0 작업 시작 HEAD는 ddf6e54이며 새 구현/버전은 위 0.7.0 준비 절을 포함한 main 커밋으로 식별한다.
   0.5.0 게시본은 75c7e62(태그 v0.5.0, GitHub 릴리스 v0.5.0)이다.
   0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
   6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 27c02c8(백업 시점과 파일 공유), 5e015e0(Windows 기록),

@@ -7,6 +7,20 @@ Agent skill and rule versions are tracked separately in
 
 ## Unreleased
 
+Planned version: **0.7.0**.
+
+- Read phase `Files:` records from your documents in the new **Related files** panel.
+  See unique paths, the phases and IDs behind each change, and follow a phase back to its
+  document. Documents without their own records use the implementation plan in the same
+  feature group, with its source clearly labeled. Records are historical hints, not a
+  complete inventory or the current Git status.
+- Search recorded file names, paths, and previous names in the map's existing search box.
+  Results show matching paths and distinguish direct records from feature records, while
+  preserving text search for older documents without phase records.
+- Bundle and minify browser JavaScript and CSS before packaging. Build tools remain
+  development dependencies; installed packages run without a UI build. The panel preserves
+  keyboard focus during updates, defers closed lists, and reuses unchanged lists on reopen.
+
 ## 0.6.0 — 2026-11-03
 
 - Optional `doc-driven-backup-v1` 1.0.0 in kit 1.4.0 helps with explicitly requested cloud

@@ -90,6 +90,9 @@ Documents live beside the code they describe and keep growing. Agents can write 
 but to tell an agent what to keep, merge, or remove, you need to know where the documents are and
 what they say. The document map shows them all on one local page, for people.
 
+Search by a recorded file name or path to find related documents. While reading, open
+**Related files** to inspect the paths and implementation phases recorded for that feature.
+
 Run it from a project root. The project needs no build or package installation:
 
 ~~~sh

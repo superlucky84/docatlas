@@ -11,6 +11,7 @@ import {
 
 import { resolveRedirects } from './redirects.js';
 import { readRegularFile } from './read.js';
+import { extractPhaseRecords } from './phase-records.js';
 
 const compare = (left, right) => left < right ? -1 : left > right ? 1 : 0;
 const hash = value => createHash('sha256').update(value).digest('hex');
@@ -173,7 +174,7 @@ export async function scanProject(directory = process.cwd(), { previous, collect
       const contentHash = hash(markdown);
       const cached = previous?.snapshot.project.id === project.id ? previous.metadataCache?.get(relative) : null;
       const metadata = cached?.contentHash === contentHash
-        ? cached : { ...extractMetadata(markdown, name), contentHash };
+        ? cached : { ...extractMetadata(markdown, name), phaseRecords: extractPhaseRecords(markdown), contentHash };
       metadataCache.set(relative, metadata);
       headings.set(relative, metadata.headingTitle);
       contents.set(relative, markdown);

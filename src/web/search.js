@@ -79,8 +79,24 @@ export function createSearch({ open, reveal, showMap, getSequence, getSelected }
         button.dataset.documentId = result.id;
         button.dataset.action = 'open';
         button.append(highlighted('span', 'result-title', result.title, terms),
-          highlighted('span', 'result-group', result.groupTitle, terms),
-          highlighted('span', 'result-snippet', result.snippet, terms));
+          highlighted('span', 'result-group', result.groupTitle, terms));
+        if (result.matchedFiles?.length) {
+          const files = document.createElement('span');
+          files.className = 'result-files';
+          const label = document.createElement('span');
+          label.className = 'result-file-label';
+          label.textContent = result.fileScope === 'document' ? 'File recorded here' : 'File recorded for this feature';
+          files.append(label, ...result.matchedFiles.map(file => highlighted('span', 'result-file-path', file, terms)));
+          if (result.matchedFileCount > result.matchedFiles.length) {
+            const more = document.createElement('span');
+            more.className = 'result-file-more';
+            more.textContent = '+ ' + (result.matchedFileCount - result.matchedFiles.length) + ' more matching paths';
+            files.append(more);
+          }
+          button.append(files);
+        } else {
+          button.append(highlighted('span', 'result-snippet', result.snippet, terms));
+        }
         if (result.isPrivate) {
           const badge = document.createElement('span');
           badge.className = 'private-badge';

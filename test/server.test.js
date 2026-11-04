@@ -24,7 +24,10 @@ test('serves the static UI and a body-free map from loopback', async t => {
   for (const asset of ['app.js', 'styles.css']) {
     const response = await fetch(app.url + asset);
     assert.equal(response.status, 200);
-    assert.ok((await response.text()).length > 0);
+    assert.equal(await response.text(), await fs.readFile(new URL('../src/web/dist/' + asset, import.meta.url), 'utf8'));
+  }
+  for (const source of ['reader.js', 'search.js', 'live.js', 'related-files.js', 'dist/app.js', 'app.js.map']) {
+    assert.equal((await fetch(app.url + source)).status, 404, 'Source route must not be served: ' + source);
   }
   const map = await (await fetch(app.url + 'api/map')).json();
   assert.equal(map.documents.length, 8);

@@ -53,24 +53,27 @@ test('F-07: a production tarball runs independently and preserves both target pr
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'ddd-docmap-install-'));
   const installRoot = await fs.realpath(temporary);
   scope.after(() => fs.rm(installRoot, { recursive: true, force: true }));
-  const { stdout } = await npm(['pack', '--json', '--pack-destination', installRoot], repository);
+  const { stdout, stderr } = await npm(['pack', '--json', '--pack-destination', installRoot], repository);
+  assert.equal((stderr.match(/^Built web assets:/gm) || []).length, 1, 'Packing builds the web assets exactly once');
   const [pack] = JSON.parse(stdout);
   assert.equal(pack.name, 'docatlas');
   assert.equal(pack.version, JSON.parse(await fs.readFile(path.join(repository, 'package.json'), 'utf8')).version);
   const packedFiles = new Set(pack.files.map(file => file.path));
   for (const filename of ['LICENSE', 'README.md', 'bin/docatlas.js', 'bin/ddd-docmap.js', 'src/collector/read.js', 'src/collector/index.js',
     'src/server/index.js', 'src/server/project-store.js', 'src/server/render.js',
-    'src/web/index.html', 'src/web/app.js', 'src/web/reader.js', 'src/web/search.js', 'src/web/live.js', 'src/web/styles.css']) {
+    'src/web/index.html', 'src/web/dist/app.js', 'src/web/dist/styles.css']) {
     assert.ok(packedFiles.has(filename), 'Missing runtime file: ' + filename);
   }
   assert.ok(!pack.files.some(file => /^(?:node_modules|test|docs|scripts)\//.test(file.path) || file.path === 'AGENTS.md'));
+  assert.ok(!pack.files.some(file => /^src\/web\/[^/]+\.(?:js|css)$/.test(file.path) || /\.map$/.test(file.path)));
   await fs.writeFile(path.join(installRoot, 'package.json'), '{"private":true,"type":"module"}\n');
-  await npm(['install', '--offline', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund',
+  await npm(['install', '--offline', '--omit=dev', '--no-audit', '--no-fund',
     path.join(installRoot, pack.filename)], installRoot);
   const installed = path.join(installRoot, 'node_modules', pack.name);
   const executable = path.join(installed, 'bin/docatlas.js');
   assert.ok(!(await fs.lstat(installed)).isSymbolicLink());
   await assert.rejects(fs.access(path.join(installRoot, 'node_modules/@playwright/test')), { code: 'ENOENT' });
+  await assert.rejects(fs.access(path.join(installRoot, 'node_modules/esbuild')), { code: 'ENOENT' });
   assert.equal((await execute(process.execPath, [executable, '--version'], { cwd: installRoot })).stdout.trim(), pack.version);
   const installedMetadata = JSON.parse(await fs.readFile(path.join(installed, 'package.json'), 'utf8'));
   assert.equal(installedMetadata.license, 'MIT');
@@ -95,6 +98,7 @@ test('F-07: a production tarball runs independently and preserves both target pr
   const js = await createReadingProject(scope, {
     'package.json': '{"private":true,"scripts":{"build":"exit 99","docatlas":"docatlas"}}',
     'docs/catalog/REQUIREMENTS.md': BASIC_FILES['docs/catalog/REQUIREMENTS.md'] + '\nJavaScriptOnlyToken.\n',
+    'docs/catalog/IMPLEMENT.md': '# Catalog — Implementation\n\n## Bundled file records\n\nRefs: RQ-1\n\nFiles:\n- `src/catalog/bundle-search.js` (added)\n',
     'documentation/intro.md': '# Additional directory\n\nAdditionalDirectoryToken.',
     'docatlas.config.json': JSON.stringify({ version: 1, redirects: { 'docs/old/DESIGN.md': READING_ID } })
   });
@@ -149,7 +153,7 @@ test('F-07: a production tarball runs independently and preserves both target pr
     assert.equal(map.project.rootLabel, js.root);
     assert.equal(otherMap.project.rootLabel, nonJs.root);
     assert.notEqual(map.project.id, otherMap.project.id);
-    for (const asset of ['', 'app.js', 'reader.js', 'search.js', 'live.js', 'styles.css']) {
+    for (const asset of ['', 'app.js', 'styles.css']) {
       const response = await fetch(first.url + asset);
       assert.equal(response.status, 200);
       assert.ok((await response.text()).length > 0);
@@ -203,6 +207,23 @@ test('F-07: a production tarball runs independently and preserves both target pr
     await page.goto(first.url + '?doc=docs/old/DESIGN.md');
     await expect(page.locator('#document-title')).toHaveText('Catalog — Design');
     await expect.poll(() => new URL(page.url()).searchParams.get('doc')).toBe(READING_ID);
+  });
+
+  await t.test('installed bundle finds file records and follows their implementation anchor without build tools', async () => {
+    await page.getByRole('searchbox', { name: 'Search documentation' }).fill('bundle-search.js');
+    await expect(page.locator('#search-status')).toHaveText('4 documents');
+    await expect(page.locator('.result-file-path')).toHaveText(Array(4).fill('src/catalog/bundle-search.js'));
+    await page.locator('.search-result').first().click();
+    await expect(page.locator('#document-title')).toHaveText('Catalog — Implementation');
+    await page.locator('#related-files-toggle').click();
+    await expect(page.locator('#related-files-count')).toHaveText('1');
+    await page.locator('.file-summary').click();
+    await page.locator('.file-phase-link').click();
+    await expect(page.locator('#related-files-dialog')).not.toBeVisible();
+    assert.equal(new URL(page.url()).hash, '#bundled-file-records');
+    assert.equal((await fetch(first.url + 'reader.js')).status, 404);
+    await page.goto(first.url + '?doc=' + encodeURIComponent(READING_ID));
+    await expect(page.locator('#document-title')).toHaveText('Catalog — Design');
   });
 
   await t.test('installed watcher preserves source state and closes only its own server', async () => {
