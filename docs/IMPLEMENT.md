@@ -2464,7 +2464,7 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 0.7.0 태그 게시 — 진행 중
+## 0.7.0 태그 게시 — 완료
 
 Refs: RQ-21, RQ-30, RQ-31, RQ-32, DC-51, M-20, M-31, M-33, M-34
 
@@ -2489,14 +2489,23 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### Integration Test·게시 — 대기
+### Integration Test·게시 — 완료
 
-- [ ] 수정한 main 커밋의 macOS/Windows × Node 22/24 CI 네 조합이 통과한다.
-- [ ] 같은 main 커밋에 v0.7.0 태그를 만들고 그 태그만 명시적으로 푸시한다.
-- [ ] Publish to npm 성공과 registry의 0.7.0/latest·gitHead·provenance, 게시본 npx 실행을 확인한다.
-- [ ] 결과·실제 Files·현재 인계를 동기화한다. 게시한 태그는 이동하지 않는다.
+- [x] fd12146의 macOS/Windows × Node 22/24 CI 네 조합이 모두 통과했다(run 41786014563).
+- [x] 같은 main 커밋에 v0.7.0 태그를 만들고 그 태그만 명시적으로 푸시했다.
+- [x] Publish to npm run 41786794590 성공. 2026-11-04 06:38:19 UTC에 + docatlas@0.7.0, provenance 투명성 로그 등록을 확인했다.
+  npm은 처리에 몇 분 걸릴 수 있다고 안내했고 직후 버전 조회는 404였다. 실제 registry 반영과 게시본 실행은 별도로 확인한다.
+- [x] registry의 0.7.0/latest·gitHead fd12146·SLSA provenance를 확인했다. 61파일·해제 343,111바이트로 후보 pack과 같다.
+- [x] 저장소 밖 독립 폴더·빈 임시 캐시의 npx --yes docatlas@0.7.0 --version이 0.7.0으로 종료했다.
+- [x] 결과·실제 Files·현재 인계를 동기화했다. 게시한 태그는 이동하지 않는다. 후속 문서 커밋만 main에 푸시한다.
 
 종료 기준: 태그의 커밋과 npm gitHead가 일치하고 새 버전의 실제 CLI가 실행된다. GitHub 릴리스 생성은 이번 범위 밖이다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ## 검증 예제와 기록
 
@@ -2724,18 +2733,21 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 - 리뷰 후속: warning 1·suggestion 2 모두 타당하다고 판단해 적용했다. 모달 초점 복구/대상 삭제 fallback,
   목록 지연 생성/재열기 캐시, pack prepare 단일 빌드와 회귀 검사를 추가했다. 최신 pack은 61파일·100,464/342,932바이트다.
 - 최신 검증: check 100 JS·Node 236/236·Chrome 54/54·설치 통합 8/8. 리뷰의 초점 재현을 새 회귀 6개로 보강했다.
+  첫 macOS/Node 24 CI의 초기 렌더 경합을 테스트 대기로 보완한 뒤 네 플랫폼 조합 CI 41786014563이 모두 통과했다.
 - 최초 번들링 검증: check 100 JS·Node 236/236·Chrome 48/48·설치 통합 8/8. pack 61파일·압축 100,227·해제 342,299바이트.
   번들 전보다 -3,608/-19,542바이트이며 소비자 일반 설치에 esbuild가 없다. 원격 Windows/Node 22 재검증은 미실행이다.
 - 번들링 전 근거: macOS 15.6.1 / Node 24.22.1 / npm 11.19.1, 문법 98·kit 1.4.0 다섯 쌍·Node 236/236·Chrome 48/48·pack 65파일.
   기존 0.6.0 대비 압축 +6,051바이트·해제 +23,316바이트, 런타임 의존성 변화 없음. 문서 수정 이후 개수/기록 수는 고정하지 않는다.
-- 다음(새 기능): 위 Test Hardening의 추가 경계 확인과 Integration Test의 원격 플랫폼/수동 인수. 별도 tarball 설치는 RQ-32에서 확인했다.
-  DC-46 최종 UX는 TBD다. DC-51의 0.7.0 태그·npm 게시는 승인됐으며 플랫폼 CI 보완 후 진행한다. 리뷰와 후속 수정은 승인받아 수행했다.
+- 다음(새 기능): 위 Test Hardening의 추가 경계 확인과 Integration Test의 남은 수동 인수. 별도 tarball 설치와 원격 플랫폼 CI는 확인했다.
+  DC-46 최종 UX는 TBD다. DC-51의 0.7.0 태그·npm 게시는 완료했다. 리뷰와 후속 수정은 승인받아 수행했다.
 - 검토만 수행: 사용자 질문에 따라 로컬 Lithent/ftags의 패키지/최소 번들·현재 UI 최소화 효과를 비교했다(DC-49).
   프레임워크 전환은 없고 실제 이식 후 효과는 미검증이다. 현행 UI 빌드만 별도 승인된 DC-50으로 구현했다.
-- 현재 배포 전 확인: 첫 CI 41779890262의 macOS/Node 24 브라우저 실패. 초기 렌더 대기를 보완하고 네 플랫폼 조합 통과 후 태그를 푸시한다.
-  초기 프레임 지연으로 원인을 재현했고 대기 보완 후 로컬 Chrome 54/54·check·pack 통과. 제품 소스 변경 없음.
+- 배포 완료: 초기 프레임 지연으로 CI 실패를 재현했고 대기 보완 후 로컬 Chrome 54/54·check·pack 통과. 제품 소스 변경 없음.
+  fd12146의 네 플랫폼 조합 CI 41786014563 통과 후 v0.7.0 푸시, Publish to npm 41786794590 성공.
+  npm latest 0.7.0·gitHead·SLSA provenance, 빈 임시 캐시의 게시본 npx 실행을 확인했다. pack 61파일·100,532/343,111바이트다.
   사용자 UX 인수와 Lithent 도입은 미정으로 남는다.
-- 최신 작업 기준 커밋: `a34bc8c`(0.7.0 main 반영). 태그 게시 단계는 진행 중이며 현재 0.7.0은 미게시다.
+- 최신 게시 커밋: `fd12146`(CI 대기 보완·v0.7.0/npm gitHead). 후속 배포 기록은 이 인계를 포함한 문서 커밋으로 main에 반영한다.
+  게시한 태그는 이동하지 않는다. 배포 차단 없음, GitHub 릴리스 생성은 이번 요청 범위 밖이다.
 
 - 완료: 0.3.1을 npm에 게시했다(gitHead 8f6bc69). 저장소 소개(DC-20~25), .conda 기본 제외(DC-24), 에이전트용 도움말 보강(DC-26·27) 포함.
 - 완료(2026-10-29): README·METHOD 두 언어판·예제 README의 clone 실행 안내에 npm install 선행 단계를 추가했다(e1f3976).

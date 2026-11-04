@@ -392,7 +392,7 @@ DOCMAP_BROWSER_CHANNEL=chrome으로 설치 Chrome을 선택한다. 지원 환경
 - [ ] 저장소 비밀값에 npm 토큰이 없다. 에이전트는 비밀값 목록을 볼 수 없어 사용자가 저장소 Settings의 Secrets에서 확인한다.
 
 통과: 사람이 npm publish를 직접 실행하지 않고 태그 푸시만으로 검사된 버전이 게시된다.
-상태: 0.4.2·0.5.0에 이어 0.6.0도 같은 방식으로 게시했다(run 41592640829, 2026-11-03). latest/gitHead/provenance와 게시본 실행을 확인했다. 잘못된 태그의 실제 실패 실행과 비밀값 확인은 남아 있다.
+상태: 0.4.2·0.5.0·0.6.0에 이어 0.7.0도 같은 방식으로 게시했다(run 41786794590, 2026-11-04). latest/gitHead/provenance와 게시본 실행을 확인했다. 잘못된 태그의 실제 실패 실행과 비밀값 확인은 남아 있다.
 
 ### M-21 — 개인 문서 위치와 문서 지도
 
@@ -637,9 +637,10 @@ DC-49 초기 비교는 DESIGN에 범위별 수치를 기록했다. npm 라이브
 - [x] a34bc8c를 main에 푸시했다. 첫 Platform checks 41779890262는 세 조합 성공·macOS/Node 24의 브라우저 1개 실패다.
 - [x] 초기 렌더 지연 재현에서 제목/개수 표시만 기다리면 스크롤 0, 초기 제목 초점 완료를 기다리면 300을 확인했다.
 - [x] 테스트 준비 조건 보완 뒤 로컬 전체 Chrome 54/54·check 100 JS·kit 다섯 쌍·pack dry-run 통과.
-- [ ] 새 main의 macOS/Windows × Node 22/24 플랫폼 네 조합이 통과한다.
-- [ ] v0.7.0 태그의 Publish to npm이 성공하고 npm latest/version·gitHead·provenance가 일치한다.
-- [ ] 빈 임시 캐시의 npx --yes docatlas@0.7.0 --version이 0.7.0으로 종료한다.
+- [x] fd12146의 macOS/Windows × Node 22/24 플랫폼 네 조합이 통과했다(run 41786014563).
+- [x] v0.7.0 태그를 푸시했고 Publish to npm run 41786794590 성공, 06:38:19 UTC에 + docatlas@0.7.0을 확인했다.
+- [x] npm latest/version 0.7.0, gitHead fd12146, dist.attestations의 SLSA provenance v1을 확인했다. 배포물 61파일·해제 343,111바이트다.
+- [x] 저장소 밖 독립 폴더·빈 임시 캐시의 npx --yes docatlas@0.7.0 --version이 0.7.0으로 종료했다.
 
 main 반영 대상은 위 검증 소스이며 실행 커밋은 IMPLEMENT의 0.7.0 절을 포함한 커밋으로 식별한다.
 푸시/플랫폼 실행 결과는 해당 커밋의 origin/main과 GitHub Actions 기록에서 확인한다.

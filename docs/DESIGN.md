@@ -534,6 +534,9 @@ docatlas로 설치한 사용자는 문서 지도 시작 시 업데이트 안내 
 기존 네 쌍의 버전/해시·기본 세 쌍·로컬 phase 백업을 유지하고 --all은 다섯 쌍과 새 Codex 정책을 포함한다.
 main의 macOS/Windows × Node 22/24 검사 통과 후 v0.6.0을 푸시해 npm Trusted Publishing을 실행한다. 이미 게시한 태그는 이동하지 않는다.
 실행 결과: run 41591966422 네 조합 통과, v0.6.0은 26e30de, Publish to npm run 41592640829 성공. npm latest/gitHead/provenance와 게시본 실행·GitHub 릴리스를 확인했다.
+0.7.0(2026-11-04): RQ-30·31 파일 기록 탐색/검색과 RQ-32 최소화 UI를 담는다. fd12146의 플랫폼 CI 41786014563 네 조합 통과 후
+v0.7.0을 푸시했고 게시 run 41786794590 성공. npm latest 0.7.0·gitHead fd12146·SLSA provenance와 빈 캐시 npx 실행을 확인했다.
+배포물은 61파일·압축 100,532·해제 343,111바이트다. GitHub 릴리스 생성과 최종 UX 인수는 이번 게시와 구분한다.
 
 
 배포 패키지에 CLI·수집기·서버·빌드된 화면을 함께 포함한다.
@@ -1424,6 +1427,7 @@ backup과 restore 모두 반복 --path를 지원하고 생략하면 전체다. �
   kit 1.4.0과 런타임 의존성은 유지한다. a34bc8c main 푸시 뒤 사용자가 태그 푸시·실제 게시 진행을 승인했다.
   macOS/Windows × Node 22/24 CI를 통과한 main 커밋에 v0.7.0을 걸고 기존 publish.yml로 게시한다.
   첫 CI에서 드러난 테스트의 초기 렌더 대기를 보완하며 제품 UI 계약은 바꾸지 않는다. M-20, M-33, M-34.
+  실행 완료: fd12146의 네 조합 CI와 태그 게시가 성공했고 npm latest/gitHead/provenance·게시본 실행을 확인했다.
 
 - [x] DC-50: 2026-11-04 사용자 승인. 현재 DOM UI를 esbuild로 번들링·최소화하고 생성 자산만 배포한다.
   빌드 도구는 개발 의존성이며 runtime build와 프레임워크 전환을 추가하지 않는다. 236/48/8 회귀·설치와 실제 pack 감소를 확인했다. M-34.
