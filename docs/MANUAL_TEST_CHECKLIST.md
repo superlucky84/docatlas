@@ -641,6 +641,8 @@ DC-49 초기 비교는 DESIGN에 범위별 수치를 기록했다. npm 라이브
 - [x] v0.7.0 태그를 푸시했고 Publish to npm run 41786794590 성공, 06:38:19 UTC에 + docatlas@0.7.0을 확인했다.
 - [x] npm latest/version 0.7.0, gitHead fd12146, dist.attestations의 SLSA provenance v1을 확인했다. 배포물 61파일·해제 343,111바이트다.
 - [x] 저장소 밖 독립 폴더·빈 임시 캐시의 npx --yes docatlas@0.7.0 --version이 0.7.0으로 종료했다.
+- [x] 추가 사용자 요청으로 [docatlas 0.7.0 릴리스](https://github.com/superlucky84/docatlas/releases/tag/v0.7.0)를 영문으로 게시했다.
+  기존 태그·제목·본문 일치와 정식 Latest 상태(draft/prerelease 아님)를 조회해 확인했다.
 
 main 반영 대상은 위 검증 소스이며 실행 커밋은 IMPLEMENT의 0.7.0 절을 포함한 커밋으로 식별한다.
 푸시/플랫폼 실행 결과는 해당 커밋의 origin/main과 GitHub Actions 기록에서 확인한다.

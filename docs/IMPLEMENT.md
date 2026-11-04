@@ -2507,6 +2507,24 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+### GitHub 릴리스 노트 — 완료
+
+Refs: RQ-21, RQ-30, RQ-31, RQ-32, DC-51, M-20, M-33, M-34
+
+진입: npm 게시 뒤 사용자가 태그의 릴리스 노트도 요청했다. baseline: main 3c9ec9c, v0.7.0은 fd12146, GitHub Latest는 0.6.0.
+
+- [x] CHANGELOG·실제 검증 결과를 바탕으로 기존 릴리스와 같은 영문 형식의 변경점·실행 안내·검증 링크를 작성했다.
+- [x] 기존 v0.7.0 태그에 `docatlas 0.7.0`을 정식 Latest로 게시했다. 공개 조회와 본문 원본 일치를 확인했다.
+- [x] 기준 4종·현재 인계·실제 Files를 동기화했다. 제품 코드와 게시 태그는 바꾸지 않았다.
+
+종료 기준: https://github.com/superlucky84/docatlas/releases/tag/v0.7.0 에서 본문을 확인하고 draft/prerelease 없이 Latest로 조회된다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -2747,7 +2765,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   npm latest 0.7.0·gitHead·SLSA provenance, 빈 임시 캐시의 게시본 npx 실행을 확인했다. pack 61파일·100,532/343,111바이트다.
   사용자 UX 인수와 Lithent 도입은 미정으로 남는다.
 - 최신 게시 커밋: `fd12146`(CI 대기 보완·v0.7.0/npm gitHead). 후속 배포 기록은 이 인계를 포함한 문서 커밋으로 main에 반영한다.
-  게시한 태그는 이동하지 않는다. 배포 차단 없음, GitHub 릴리스 생성은 이번 요청 범위 밖이다.
+  게시한 태그는 이동하지 않는다. 배포 차단 없음. 추가 요청으로 정식 Latest [GitHub 릴리스](https://github.com/superlucky84/docatlas/releases/tag/v0.7.0)도 게시했다.
+  최신 기록 기준 커밋은 `3c9ec9c`이며 이번 릴리스 노트 확인 기록을 후속 문서 커밋으로 main에 반영한다.
 
 - 완료: 0.3.1을 npm에 게시했다(gitHead 8f6bc69). 저장소 소개(DC-20~25), .conda 기본 제외(DC-24), 에이전트용 도움말 보강(DC-26·27) 포함.
 - 완료(2026-10-29): README·METHOD 두 언어판·예제 README의 clone 실행 안내에 npm install 선행 단계를 추가했다(e1f3976).
