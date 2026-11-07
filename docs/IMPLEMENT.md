@@ -2680,6 +2680,33 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+## 0.8.0 배포 버전 준비와 PR — 로컬 검증 완료, PR 작성 대기
+
+Refs: RQ-21, RQ-33, RQ-34, RQ-35, RQ-36, RQ-37, DC-57, M-41
+
+진입: 구현 커밋 `9026fc2`, 인계 기록 `e3e328f`, 깨끗한 작업 트리. 사용자 요청으로 버전 올림·브랜치 푸시·PR 작성을 진행한다.
+
+- [x] 새 선택 역할을 반영해 npm 0.8.0 마이너 후보로 정하고 DC-57과 M-41을 기준 문서에 기록한다.
+- [x] package.json·package-lock.json·CHANGELOG를 0.8.0 후보로 맞춘다. kit 1.5.0과 의존성은 유지한다.
+- [x] check·Node 테스트·별도 설치 통합·pack/CLI 버전 검증을 실행하고 실제 결과를 기록한다.
+- [ ] 버전 변경을 커밋하고 현재 브랜치를 푸시한 뒤 main 대상 PR을 만든다.
+
+기준 검증: 기존 구현의 check·Node 238개·설치 통합 8개 통과. 새 버전의 결과는 별도로 기록한다.
+종료: 0.8.0 metadata/CLI/tarball 일치와 PR URL·head SHA를 확인한다. 실제 npm 게시·태그·main 병합은 수행하지 않는다.
+
+검증(2026-11-08, Linux/Node 24.19.0): npm run check(100 JS·kit 1.5.0 여섯 쌍), npm test 238/238,
+설치 통합 8/8(Chromium 포함)과 pack dry-run 통과. package.json·lockfile 두 위치·CLI·tarball 모두 0.8.0이며
+런타임/개발 의존성은 main과 동일하다. 자체 tarball은 64파일·압축 104,063·해제 354,518바이트다.
+
+Files:
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -2898,8 +2925,9 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 
 이 프로젝트의 현재 인계는 이 블록 하나다. 이전 내용은 git 이력에 남는다.
 
-- 현재 작업(2026-11-08): RQ-33~37 구현·자동/합성 검증 완료. 브랜치는 `docs/document-maintenance-plan`이다.
-- 계획 커밋: `09fd3e8`, 구현 커밋: `9026fc2`. designer 1.3.1·maintainer 1.0.0·kit 1.5.0을 구현했고 npm 버전은 0.7.0으로 유지했다.
+- 현재 작업(2026-11-08): 사용자 요청으로 npm 0.8.0 배포 후보와 main 대상 PR을 준비한다.
+  브랜치는 `docs/document-maintenance-plan`이며 로컬 검증은 완료했다.
+- 계획 커밋: `09fd3e8`, 구현 커밋: `9026fc2`. designer 1.3.1·maintainer 1.0.0·kit 1.5.0을 구현했다. DC-57 후속 요청으로 npm 버전을 0.8.0 후보로 올렸다.
   정비자는 기본 설치에서 제외하며 --all/--only로만 설치한다. 비designer 네 역할과 설치기·런타임 의존성은 그대로다.
 - 검증: check 100 JS/kit 여섯 쌍, Node 238/238, kit 49/49, production tarball 설치 통합 8/8 통과.
   최종 designer 문구 보완 뒤 check·kit 49개·F-09를 다시 통과했다. 단계별 Files는 위 작업 절에서 Git 변경과 대응한다.
@@ -2907,9 +2935,10 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   일반 점검 13파일은 무변경이고 D1 적용 후 DESIGN.md만 바뀌었다. M1은 중복 문서 삭제와 README 링크만 반영했다.
   full Git의 Phase 2 누락 Files 복원 제안도 확인했다. 실제 클라이언트 인수와 합성 결과는 구분한다.
 - 용량: 계획 커밋 대비 압축 +3,533/해제 +11,407바이트, 파일 61→64. 기본 지시 증가는 designer 두 문장뿐이다.
-- 다음: M-39·40의 실제 Claude Code/Codex 세션 발견·명시 호출·일반 작업 미호출을 확인한다.
+- 다음: 검증한 버전 준비를 커밋·푸시하고 main 대상 PR을 만든다.
+  별도 인수는 M-39·40의 실제 Claude Code/Codex 세션 발견·명시 호출·일반 작업 미호출이다.
   Codex 0.159.0-alpha.3 prompt-input의 일반 본문 미포함만 관찰했고 Claude Code는 설치돼 있지 않다.
 - 기존 후속: DC-46 최종 UX·DC-49 프레임워크 검토와 기존 플랫폼/클라우드 인수는 각 작업 절의 상태를 유지한다.
-- 커밋: 계획과 구현을 위 두 커밋으로 분리했고 인계 확인은 후속 문서 커밋에 남긴다.
-  npm 게시·main 병합·푸시·전역 설치·외부 사본 갱신은 하지 않았다.
+- 커밋: 계획 `09fd3e8`, 구현 `9026fc2`, 인계 `e3e328f`다. 버전 준비 커밋과 PR 결과는 완료 후 기록한다.
+  태그·npm 게시·main 병합·전역 설치·외부 사본 갱신은 하지 않았다.
 - 차단: 구현의 기술적 차단 없음. 실제 클라이언트 인수는 위 환경 한계에 따라 남겨둔다.

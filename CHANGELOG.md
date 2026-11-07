@@ -7,6 +7,8 @@ Agent skill and rule versions are tracked separately in
 
 ## Unreleased
 
+## 0.8.0 — 2026-11-08 (planned)
+
 - Agent kit 1.5.0 adds optional `doc-driven-maintainer-v1` 1.0.0 for requested document
   inspection and repair, including code/document drift, historical records, and merge/move
   recommendations. Default installs keep the same three roles; use `--all` or
