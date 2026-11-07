@@ -186,6 +186,9 @@ Files:
 
 ## Where documents live
 
+Read documents the user specifies first. When they do not establish the existing requirements
+or design for the change, inspect linked documents and documentation near the relevant code.
+
 Documents start beside the code they describe, the way tests often sit beside the module
 they cover, so whoever changes that code finds them first:
 
@@ -236,6 +239,12 @@ instead of beside the code. The same documents and writing rules apply, and the 
 
 ## Keep the documents healthy
 
+For a requested inspection, use `doc-driven-maintainer-v1` directly or as a subagent. It compares
+existing documents with code and decisions, reports evidence and merge/move recommendations,
+and applies only requested document repairs. It preserves historical records and distinguishes
+document errors from implementation errors or unfinished plans. Install it with `--all` or
+`--only doc-driven-maintainer-v1`; it is optional and does not run during ordinary development.
+
 Documents grow with the project, and not all of them keep paying off. A document for every
 small change buries the ones that matter, so small fixes can go without one (see
 [Apply it to a project](#apply-it-to-a-project)).
@@ -251,7 +260,7 @@ you need to know where the documents are and what they say. Typical requests:
 
 That is why this repository ships **docatlas**, a document viewer for people. It shows on one
 local map where every document lives and what it says, so you can see the whole picture and tell
-your agent what to tidy. docatlas itself never edits the documents.
+your agent what to tidy. the document map itself never edits the documents.
 
 ## Roles
 
@@ -261,6 +270,7 @@ your agent what to tidy. docatlas itself never edits the documents.
 | Designer | Turns the conversation into the four documents and their decision checklists | `doc-driven-designer-v1` |
 | Implementer | Implements one phase at a time with test evidence, synced documents, and a handoff | `doc-driven-implementer-v1` |
 | Reviewer | Reviews uncommitted changes read-only against the phase, project rules, or stated intent | `doc-driven-reviewer-v1` |
+| Maintainer (optional) | Inspects existing documents and recommends repairs, merges and moves; applies only requested document changes | `doc-driven-maintainer-v1` |
 
 - The designer runs in the agent that talks to you. As a subagent, it drafts the documents,
   marks open questions `TBD`, and returns the questions instead of waiting.
@@ -318,6 +328,7 @@ A few prompts that fit the flow:
 - "Before we start coding, check whether any decisions or documents are missing."
 - "Use doc-driven-implementer-v1 to implement Phase 1."
 - "Review this phase with doc-driven-reviewer-v1."
+- "Use doc-driven-maintainer-v1 to inspect the checkout documents against the code and propose repairs."
 - "Use doc-driven-private-v1. Write private documents for *X*; they stay out of git."
 
 ## Tools in this repository

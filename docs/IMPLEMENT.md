@@ -1,12 +1,12 @@
 # docatlas 구현 계획
 
-문서 기준: 2026-11-07.
+문서 기준: 2026-11-08.
 [요구사항](./REQUIREMENTS.md) · [설계](./DESIGN.md) · [수동 검증](./MANUAL_TEST_CHECKLIST.md)
 
 ## 현재 상태와 작업 순서
 
-- 현재 작업(2026-11-07): RQ-33~37의 기존 문서 활용·문서 정비 역할을 새 브랜치에서 문서로 계획한다.
-  기준 4종만 갱신하며 스킬·룰·설치·제품 구현과 배포는 후속이다. 상세 순서와 TBD는 아래 새 작업 절을 따른다.
+- 현재 작업(2026-11-08): RQ-33~37 구현·자동/합성 검증 완료. 계획 커밋 `09fd3e8` 뒤 designer 1.3.1과
+  선택 maintainer 1.0.0을 kit 1.5.0으로 구현했다. 실제 클라이언트 인수와 게시는 별도다.
 - 완료: 독립 패키지 뼈대, 공개 저장소, 도움말·버전 CLI, 초기 패키징 검증.
 - 완료: Phase 1 문서 수집 API, 기능 계층, 선택 설정과 자동 검증.
 - 완료: Phase 2 CLI·로컬 서버·카드 지도·Markdown source 표시.
@@ -2527,12 +2527,13 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-## 기존 문서 활용과 문서 정비 역할 — 문서 계획
+## 기존 문서 활용과 문서 정비 역할 — 구현·검증
 
 Refs: RQ-33, RQ-34, RQ-35, RQ-36, RQ-37, DC-52, DC-53, DC-54, DC-55, DC-56, M-35, M-36, M-37, M-38, M-39, M-40
 
-상태: 2026-11-07 사용자 요청에 따른 문서 계획. 브랜치는 `docs/document-maintenance-plan`, 시작 HEAD는
-`6b155fc`다. 구현 단계는 아래 순서로 예정하며 미구현 단계에 Files를 미리 쓰지 않는다.
+상태: 2026-11-08 구현·자동/합성 검증 완료. 브랜치는 `docs/document-maintenance-plan`, 시작 HEAD는
+`6b155fc`, 계획 커밋은 `09fd3e8`이다. 구현 전 Node 24.19.0/Linux에서 check와 기존 kit 테스트 47개를 통과했다.
+실제 Claude Code/Codex 세션의 발견·명시 호출·장기 미호출 인수는 별도로 남긴다.
 
 ### 기준 문서 — 작성·검증 완료
 
@@ -2559,57 +2560,125 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-### 1단계 — designer 조건부 탐색: 미구현
+### 1단계 — designer 조건부 탐색: 구현·합성 검증 완료
 
 진입: 기준 문서 정리 완료. 기존 탐색·배치 규칙을 유지하는 영문 두 문장 후보로 시작한다.
 
-- [ ] 기존 designer 스킬과 룰의 탐색 항목을 최소한으로 보완하고 변경 전후 문장·행·바이트 수를 비교한다.
-- [ ] 충분한 지정 문서에서는 추가 탐색을 요구하지 않고, 부족할 때 링크·코드 주변과 본문으로 찾게 한다.
-- [ ] 파일 기록이 없는 문서도 발견하며 매 작업 보고서·질문·정비자 자동 호출은 추가하지 않는다.
-- [ ] designer 버전·이전 해시·새 해시를 정리하고 METHOD 두 언어판의 관련 설명을 필요한 만큼 맞춘다.
+- [x] 기존 designer 스킬과 룰의 탐색 항목을 최소한으로 보완하고 변경 전후 문장·행·바이트 수를 비교한다.
+- [x] 충분한 지정 문서에서는 추가 탐색을 요구하지 않고, 부족할 때 링크·코드 주변과 본문으로 찾게 한다.
+- [x] 파일 기록이 없는 문서도 발견하며 매 작업 보고서·질문·정비자 자동 호출은 추가하지 않는다.
+- [x] designer 버전·이전 해시·새 해시를 정리하고 METHOD 두 언어판의 관련 설명을 필요한 만큼 맞춘다.
 
 기준 검증: 기존 `npm run check`와 agent-kit 관련 테스트. 파일을 고치기 전 실행 환경과 결과를 기록한다.
 종료: M-35의 충분/부족/Files 없음 시나리오를 대조하고 추가 지시 분량을 확인한다. 행동 인수와 파일 검사를 구분한다.
 
-### 2단계 — 문서 정비 스킬·룰과 선택 설치: 미구현
+검증: 충분한 두 문서를 지정한 독립 합성 재검증은 두 문서만 읽었고, 링크·코드 주변 문서 탐색 사례도 통과했다.
+기존 두 문장 안에서 충분한 문서가 있으면 추가 탐색하지 않도록 명확히 했다. 스킬 +1행/+224바이트, 룰 +0행/+222바이트다.
 
-진입: DC-56의 선택 설치 결정을 유지하고, 남은 명칭·반환 형식·의존성·호출 정책·버전을 정리해 네 문서에 반영한다.
+Files:
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
-- [ ] 동일한 목표와 근거 기준의 스킬·서브에이전트 룰을 작성한다. 점검 결과는 범위·문제·근거·권고·질문을 포함한다.
-- [ ] 읽기 전용 진단과 요청한 항목 적용, 코드/문서 불일치 분류, 과거 기록·링크·기존 작업 보존을 반영한다.
-- [ ] 후보부터 원문으로 읽기를 좁히고 서브에이전트에는 필요한 진입점만 전달하게 한다.
-- [ ] manifest에 정비자를 `default: false`로 등록하고, 기본 설치 미포함·`--all` 포함·`--only` 항목 선택을 검증한다.
-- [ ] 필요한 호출 정책을 등록하고 해시 검증·기존 버전 교체 검사를 맞춘다.
-- [ ] 실제 역할·선택 설치를 README·agent-kit 안내·METHOD 두 언어판·CHANGELOG에 반영한다.
+### 2단계 — 문서 정비 스킬·룰과 선택 설치: 구현·자동 검증 완료
+
+진입: DC-56의 선택 설치 결정을 유지한다. 2026-11-08 정비자 1.0.0·designer 1.3.1·kit 1.5.0,
+다른 스킬 의존성 없음·Codex 명시 호출 정책·다섯 절의 간결한 반환 구성을 확정해 문서에 반영했다.
+
+- [x] 동일한 목표와 근거 기준의 스킬·서브에이전트 룰을 작성한다. 점검 결과는 범위·문제·근거·권고·질문을 포함한다.
+- [x] 읽기 전용 진단과 요청한 항목 적용, 코드/문서 불일치 분류, 과거 기록·링크·기존 작업 보존을 반영한다.
+- [x] 후보부터 원문으로 읽기를 좁히고 서브에이전트에는 필요한 진입점만 전달하게 한다.
+- [x] manifest에 정비자를 `default: false`로 등록하고, 기본 설치 미포함·`--all` 포함·`--only` 항목 선택을 검증한다.
+- [x] 필요한 호출 정책을 등록하고 해시 검증·기존 버전 교체 검사를 맞춘다.
+- [x] 실제 역할·선택 설치를 README·agent-kit 안내·METHOD 두 언어판·CHANGELOG에 반영한다.
 
 기준 검증: `test/agent-kit.test.js`, `test/agent-kit-plan.test.js`, `test/agent-kit-install.test.js`의 현재 기대를 확인한다.
 종료: `npm run check`와 agent-kit 관련 테스트 통과, 기본 세 역할 유지, 선택 역할만 설치·재실행 가능(M-40).
 실제 코드 점검과 문서 적용 행동은 다음 단계에서 확인하며 설치 성공만으로 완료 처리하지 않는다.
 
-### Test Hardening: 미구현
+검증: check(100 JS·kit 1.5.0 여섯 쌍), kit 관련 테스트 49개와 전체 Node 테스트 238개가 통과했다.
+기존 설치기는 수정하지 않았고, 비designer 네 역할의 소스·버전·해시를 보존했다. 실제 kit 1.4.0 사본은
+설치 기록 유무 모두에서 designer 네 파일만 갱신 대상으로 인식하고 기본 설치에 정비자를 추가하지 않았다.
+
+Files:
+- `agent-kit/skills/doc-driven-maintainer-v1/SKILL.md` (added)
+- `agent-kit/skills/doc-driven-maintainer-v1/agents/openai.yaml` (added)
+- `agent-kit/agents/doc-driven-maintainer-v1.md` (added)
+- `agent-kit/manifest.json` (modified)
+- `agent-kit/README.md` (modified)
+- `README.md` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `CHANGELOG.md` (modified)
+- `test/agent-kit.test.js` (modified)
+- `test/agent-kit-plan.test.js` (modified)
+- `test/agent-kit-install.test.js` (modified)
+- `test/integration/agent-kit.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### Test Hardening: 자동·합성 검증 완료
 
 진입: 스킬·룰·설치 등록 구현 완료. 가상 프로젝트로 문서 오류/구현 오류/계획/판단 불가를 구분해 재현한다.
 
-- [ ] 오래됐지만 정확한 문서, 최신이지만 틀린 문서, Files 없는 문서, 과거 삭제·이름 변경 기록을 점검한다.
-- [ ] ID 범위 중복·상충 결정·증거 없는 과거 단계·Git 이력 부재/얕은 이력·미커밋 변경을 다룬다.
-- [ ] 진단 전후 작업 트리/문서 해시를 비교하고 원문 전체가 메인 결과에 복제되지 않는지 확인한다.
-- [ ] 선택 적용 시 기존 사용자 작업·미해결 TBD·검증 이력을 보존하고 이동 링크·앵커를 확인한다.
+- [x] 오래됐지만 정확한 문서, 최신이지만 틀린 문서, Files 없는 문서, 과거 삭제·이름 변경 기록을 점검한다.
+- [x] ID 범위 중복·상충 결정·증거 없는 과거 단계·Git 이력 부재/얕은 이력·미커밋 변경을 다룬다.
+- [x] 진단 전후 작업 트리/문서 해시를 비교하고 원문 전체가 메인 결과에 복제되지 않는지 확인한다.
+- [x] 선택 적용 시 기존 사용자 작업·미해결 TBD·검증 이력을 보존하고 이동 링크·앵커를 확인한다.
 
 기준 검증: M-35~39의 합성 시나리오와 이전 단계 회귀. 새 자동 검사는 설치 등 기계적으로 검증 가능한 동작에 집중한다.
 종료: `npm run check`·`npm test`와 시나리오 결과를 기록하고 모델/클라이언트별 행동과 미확인 범위를 명시한다.
 
-### Integration Test: 미구현
+합성 근거: 독립 정비자가 문서 오류(10→30초)와 구현 오류(요구 3회·구현/테스트 2회)를 구분했다.
+오래된 정확한 문서·동명 ID의 다른 기능·미구현 계획·과거 rename을 오류로 단정하지 않았다. 진단 후 13개 파일 해시가
+모두 같았고, D1만 적용한 뒤 DESIGN.md 하나만 바뀌었다. Git 없는 사본과 depth-1 clone도 점검했다.
+특히 shallow 경계의 git show가 snapshot을 added로 보이는 것을 단계 근거로 쓰지 않고 미확인으로 반환했다.
+명시 요청한 Phase 2 누락 기록은 full Git의 R100 근거로 정확히 복원 제안했고 파일은 수정하지 않았다.
+M1 적용 시 중복 TIMEOUT.md만 삭제하고 README 링크만 바꿨으며 기준 문서·D1·코드·테스트·사용자 메모는 보존했다.
+첫 designer 합성에서 불필요한 경로 목록 탐색을 발견해 두 문장 안에서 조건을 보완했고, 독립 재검증은 통과했다.
+
+Files:
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### Integration Test: 자동·합성 검증 완료, 실제 클라이언트 인수 대기
 
 진입: Test Hardening의 필수 시나리오 통과와 남은 문제의 처리 방침 기록.
 
-- [ ] `npm pack --dry-run`과 별도 tarball/임시 HOME에서 기본·`--all`·`--only`·재설치·수정본 보호를 확인한다.
-- [ ] 실제 designer 세션에서 지정 문서 충분/부족 사례를 실행하고 불필요한 전체 탐색 여부를 관찰한다.
-- [ ] 독립 정비 서브에이전트가 진단만 반환한 뒤 선택 항목 적용을 수행하는 흐름을 격리 예제로 확인한다.
+- [x] `npm pack --dry-run`과 별도 tarball/임시 HOME에서 기본·`--all`·`--only`·재설치·수정본 보호를 확인한다.
+- [x] 독립 designer 합성 세션에서 지정 문서 충분/부족·Files 없는 문서의 재사용을 확인한다.
+- [x] 독립 정비 서브에이전트가 진단만 반환한 뒤 선택 항목 적용을 수행하는 흐름을 격리 예제로 확인한다.
 - [ ] Claude Code·Codex에서 선택 역할의 발견·호출·일반 작업 미호출을 관찰한다. 미지원 기능은 한계로 기록한다.
-- [ ] 런타임 의존성·패키지 증감과 지시 분량을 비교하고, 실제 에이전트 비용/정확도 개선 보장은 하지 않는다.
+- [x] 런타임 의존성·패키지 증감과 지시 분량을 비교하고, 실제 에이전트 비용/정확도 개선 보장은 하지 않는다.
 
 기준 검증: 기존 `npm run test:integration`과 M-35~40. 브라우저 코드 변경이 없으면 UI 회귀를 추가하지 않는다.
 종료: 설치/검사 결과와 실제 에이전트 인수를 구분해 기록한다. 배포·전역 설치·외부 사본 갱신은 이번 계획에 포함하지 않는다.
+
+자동 근거: production tarball 설치 통합 8개(Chromium 156.0.8078.4 포함)가 통과했다. 최종 designer 문구·해시 보완 후
+check·kit 49개와 F-09 설치 통합을 다시 통과했다. F-09는 기본 12파일·--all 26파일·정비자 단독 5파일(두 클라이언트),
+정비자 정책·반복 설치·문서 보존을 확인한다. Codex 단독 정비자 설치는 3파일이다. 자체 패키지는 같은 환경의 계획 커밋 대비 61→64파일,
+압축 100,529→104,062바이트(+3,533), 해제 343,111→354,518바이트(+11,407)이며 런타임 의존성은 동일하다.
+Codex CLI 0.159.0-alpha.3의 모델 호출 없는 prompt-input 검사에서 일반 요청에 정비자 본문이 포함되지 않음을 관찰했다.
+이 관찰은 에이전트 발견·명시 호출을 입증하지 않는다. Claude Code가 없어 실제 세션 인수는 M-40에 남긴다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
 ## 검증 예제와 기록
 
@@ -2827,20 +2896,19 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 
 ## 현재 인계
 
-이 프로젝트의 현재 인계는 이 블록 하나다. 작업을 멈출 때 이 블록을 바꾸며 이전 내용은 git 이력에 남는다.
-2026-10-28 이전 기록은 [인계 이력](./handoff/HISTORY.md#구현-계획에서-옮긴-기록)을 따른다.
+이 프로젝트의 현재 인계는 이 블록 하나다. 이전 내용은 git 이력에 남는다.
 
-- 현재 작업(2026-11-07): RQ-33~37 문서 계획. 사용자 요청대로 새 브랜치 `docs/document-maintenance-plan`에서
-  docs/ 4종만 갱신했다. 스킬·룰·manifest·구현·배포 버전은 아직 바꾸지 않았다.
-- 기준 HEAD: `6b155fc`(main의 0.7.0 GitHub 릴리스 기록). 현재 변경은 미커밋 문서 작업이며 시작 작업 트리는 clean이었다.
-- 반영 내용: designer 지정 문서 우선·부족할 때만 추가 탐색, 요청 시 실행하는 문서 정비 스킬/서브에이전트,
-  코드와 문서 대조·과거 Files 근거·병합/이동 권고·선택 적용·컨텍스트 절약과 인수 기준.
-- 추가 결정: 정비자는 기본 설치에서 제외하고 `--all` 또는 `--only <정비자 항목명>`으로 설치한다(사용자 확정).
-- 다음: DC-56의 남은 명칭·의존성·호출 정책·버전·반환 형식을 정리한 뒤 위 1단계부터 구현한다.
-  현재는 문서 계획 단계이며 구현은 시작하지 않았다.
-- 검증: diff 공백 오류·새 ID 16개/Refs/문서 간 대응·추가 상대 링크/앵커 3개·현재 인계 하나를 확인했다.
-  기존 kit 1.4.0 다섯 쌍 해시·기본 세 역할 검사 통과. 새 M-35~40과 구현 테스트는 미실행이다.
-- 기존 배포: npm 0.7.0/kit 1.4.0, 태그 v0.7.0은 `fd12146`이며 게시·정식 GitHub 릴리스 완료 기록은 해당 작업 절과 git 이력에 있다.
-- 기존 후속: RQ-30·31의 추가 Test Hardening·최종 UX(DC-46), 프레임워크 검토(DC-49)와 기존 실제 클라이언트/
-  클라우드/플랫폼 인수는 각 작업 절·수동 체크리스트의 상태를 유지한다. 이번 계획에서 해소하지 않는다.
-- 차단: 문서 계획의 기술적 차단 없음. 미정 항목은 DC-56이다. 전역 설치·외부 사본 갱신·커밋/푸시·배포는 수행하지 않았다.
+- 현재 작업(2026-11-08): RQ-33~37 구현·자동/합성 검증 완료. 브랜치는 `docs/document-maintenance-plan`이다.
+- 계획 커밋: `09fd3e8`. designer 1.3.1·maintainer 1.0.0·kit 1.5.0을 구현했고 npm 버전은 0.7.0으로 유지했다.
+  정비자는 기본 설치에서 제외하며 --all/--only로만 설치한다. 비designer 네 역할과 설치기·런타임 의존성은 그대로다.
+- 검증: check 100 JS/kit 여섯 쌍, Node 238/238, kit 49/49, production tarball 설치 통합 8/8 통과.
+  최종 designer 문구 보완 뒤 check·kit 49개·F-09를 다시 통과했다. 단계별 Files는 위 작업 절에서 Git 변경과 대응한다.
+- 합성: designer 세 사례, 정비자 진단/선택 수정·과거 기록·Git 없음/shallow 검증을 독립 에이전트로 확인했다.
+  일반 점검 13파일은 무변경이고 D1 적용 후 DESIGN.md만 바뀌었다. M1은 중복 문서 삭제와 README 링크만 반영했다.
+  full Git의 Phase 2 누락 Files 복원 제안도 확인했다. 실제 클라이언트 인수와 합성 결과는 구분한다.
+- 용량: 계획 커밋 대비 압축 +3,533/해제 +11,407바이트, 파일 61→64. 기본 지시 증가는 designer 두 문장뿐이다.
+- 다음: M-39·40의 실제 Claude Code/Codex 세션 발견·명시 호출·일반 작업 미호출을 확인한다.
+  Codex 0.159.0-alpha.3 prompt-input의 일반 본문 미포함만 관찰했고 Claude Code는 설치돼 있지 않다.
+- 기존 후속: DC-46 최종 UX·DC-49 프레임워크 검토와 기존 플랫폼/클라우드 인수는 각 작업 절의 상태를 유지한다.
+- 배포: npm 게시·main 병합·푸시·전역 설치·외부 사본 갱신은 하지 않았다. 이번 구현의 커밋 결과는 완료 시 기록한다.
+- 차단: 구현의 기술적 차단 없음. 실제 클라이언트 인수는 위 환경 한계에 따라 남겨둔다.

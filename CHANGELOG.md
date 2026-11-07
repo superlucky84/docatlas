@@ -7,6 +7,13 @@ Agent skill and rule versions are tracked separately in
 
 ## Unreleased
 
+- Agent kit 1.5.0 adds optional `doc-driven-maintainer-v1` 1.0.0 for requested document
+  inspection and repair, including code/document drift, historical records, and merge/move
+  recommendations. Default installs keep the same three roles; use `--all` or
+  `--only doc-driven-maintainer-v1`. It has no skill dependency and includes a Codex explicit-call policy.
+- Designer 1.3.1 reads user-specified documents first and searches linked or nearby documents
+  only when the existing requirements or design for the change are unclear.
+
 ## 0.7.0 — 2026-11-04
 
 - Read phase `Files:` records from your documents in the new **Related files** panel.

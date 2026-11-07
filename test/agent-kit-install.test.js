@@ -212,7 +212,8 @@ test('the docatlas command runs agents commands against the packaged kit', async
   const env = { ...process.env, HOME: workspace.home, USERPROFILE: workspace.home };
   const help = spawnSync(process.execPath, [cliPath, 'agents', 'help'], { cwd: workspace.project, env, encoding: 'utf8' });
   assert.equal(help.status, 0, help.stderr);
-  assert.match(help.stdout, /doc-driven-designer-v1 +1\.3\.0 +default/);
+  assert.match(help.stdout, /doc-driven-designer-v1 +1\.3\.1 +default/);
+  assert.match(help.stdout, /doc-driven-maintainer-v1 +1\.0\.0 +with --all or --only/);
   const before = await snapshot(workspace.root);
   const dry = spawnSync(process.execPath, [cliPath, 'agents', 'install', '--dry-run'], { cwd: workspace.project, env, encoding: 'utf8' });
   assert.equal(dry.status, 0, dry.stderr);
