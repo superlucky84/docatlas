@@ -1,10 +1,13 @@
 # docatlas 구현 계획
 
-문서 기준: 2026-11-04.
+문서 기준: 2026-11-08.
 [요구사항](./REQUIREMENTS.md) · [설계](./DESIGN.md) · [수동 검증](./MANUAL_TEST_CHECKLIST.md)
 
 ## 현재 상태와 작업 순서
 
+- 현재 작업(2026-11-08): RQ-33~37 구현·자동/합성 검증 완료. 계획 커밋 `09fd3e8` 뒤 designer 1.3.1과
+  선택 maintainer 1.0.0을 kit 1.5.0으로 구현했다. PR #5 리뷰 후속(DC-58)으로 두 역할의 문구를 보완했다.
+  실제 클라이언트 인수와 게시는 별도다.
 - 완료: 독립 패키지 뼈대, 공개 저장소, 도움말·버전 CLI, 초기 패키징 검증.
 - 완료: Phase 1 문서 수집 API, 기능 계층, 선택 설정과 자동 검증.
 - 완료: Phase 2 CLI·로컬 서버·카드 지도·Markdown source 표시.
@@ -2525,6 +2528,224 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+## 기존 문서 활용과 문서 정비 역할 — 구현·검증
+
+Refs: RQ-33, RQ-34, RQ-35, RQ-36, RQ-37, DC-52, DC-53, DC-54, DC-55, DC-56, M-35, M-36, M-37, M-38, M-39, M-40
+
+상태: 2026-11-08 구현·자동/합성 검증 완료. 브랜치는 `docs/document-maintenance-plan`, 시작 HEAD는
+`6b155fc`, 계획 커밋은 `09fd3e8`이다. 구현 전 Node 24.19.0/Linux에서 check와 기존 kit 테스트 47개를 통과했다.
+실제 Claude Code/Codex 세션의 발견·명시 호출·장기 미호출 인수는 별도로 남긴다.
+
+### 기준 문서 — 작성·검증 완료
+
+진입: 기존 4종 문서·designer 스킬/룰·reviewer·agent-kit 설치/manifest와 Refs·Files 계약을 확인한다.
+
+- [x] 사용자 지정 문서 우선과 조건부 추가 탐색, 짧은 지시 유지 요구를 RQ-33·37로 정리한다.
+- [x] 문서 정비 역할의 진단·권고·선택 적용과 코드/이력 근거 경계를 RQ-34~36, DC-53~55로 정리한다.
+- [x] 기본 설치 제외·`--all`/`--only` 설치는 사용자 확정으로, 이름·의존성·호출 정책·버전·반환 형식은 DC-56의 남은 TBD로 구분한다.
+- [x] 구현 단계·기준 검증·종료 기준과 M-35~40을 연결한다.
+- [x] 변경 구간의 ID·Refs·상대 링크·상태 표기, diff와 변경 파일 범위를 검증하고 실제 결과를 기록한다.
+
+기준 검증: 시작 작업 트리 clean, 기존 kit 1.4.0 다섯 쌍과 기본 세 역할을 읽어 현재 상태로 기록한다.
+종료: 네 문서의 요구·결정·단계·인수가 대응하고 diff가 이 네 파일에 한정된다. 스킬 구현 통과로 기록하지 않는다.
+
+검증(2026-11-07): `git diff --check` 통과. 일회성 문서 검사로 새 ID 16개의 정의·문서 간 대응·Refs,
+추가 상대 링크/앵커 3개, 현재 인계 하나와 M-35~40의 미실행 상태를 확인했다.
+기존 checkAgentKit/loadKit 검사도 통과해 kit 1.4.0 다섯 쌍의 해시와 기본 세 역할을 확인했다.
+제품·스킬 변경이 없어 의존성을 설치하거나 npm 전체 테스트·브라우저·설치 인수를 실행하지 않았다.
+같은 날 사용자 추가 결정으로 정비자의 기본 설치 제외·`--all`/`--only` 선택 설치를 네 문서에 확정사항으로 반영했다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 1단계 — designer 조건부 탐색: 구현·합성 검증 완료
+
+진입: 기준 문서 정리 완료. 기존 탐색·배치 규칙을 유지하는 영문 두 문장 후보로 시작한다.
+
+- [x] 기존 designer 스킬과 룰의 탐색 항목을 최소한으로 보완하고 변경 전후 문장·행·바이트 수를 비교한다.
+- [x] 충분한 지정 문서에서는 추가 탐색을 요구하지 않고, 부족할 때 링크·코드 주변과 본문으로 찾게 한다.
+- [x] 파일 기록이 없는 문서도 발견하며 매 작업 보고서·질문·정비자 자동 호출은 추가하지 않는다.
+- [x] designer 버전·이전 해시·새 해시를 정리하고 METHOD 두 언어판의 관련 설명을 필요한 만큼 맞춘다.
+
+기준 검증: 기존 `npm run check`와 agent-kit 관련 테스트. 파일을 고치기 전 실행 환경과 결과를 기록한다.
+종료: M-35의 충분/부족/Files 없음 시나리오를 대조하고 추가 지시 분량을 확인한다. 행동 인수와 파일 검사를 구분한다.
+
+검증: 충분한 두 문서를 지정한 독립 합성 재검증은 두 문서만 읽었고, 링크·코드 주변 문서 탐색 사례도 통과했다.
+기존 두 문장 안에서 충분한 문서가 있으면 추가 탐색하지 않도록 명확히 했다. 스킬 +1행/+224바이트, 룰 +0행/+222바이트다.
+
+Files:
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 2단계 — 문서 정비 스킬·룰과 선택 설치: 구현·자동 검증 완료
+
+진입: DC-56의 선택 설치 결정을 유지한다. 2026-11-08 정비자 1.0.0·designer 1.3.1·kit 1.5.0,
+다른 스킬 의존성 없음·Codex 명시 호출 정책·다섯 절의 간결한 반환 구성을 확정해 문서에 반영했다.
+
+- [x] 동일한 목표와 근거 기준의 스킬·서브에이전트 룰을 작성한다. 점검 결과는 범위·문제·근거·권고·질문을 포함한다.
+- [x] 읽기 전용 진단과 요청한 항목 적용, 코드/문서 불일치 분류, 과거 기록·링크·기존 작업 보존을 반영한다.
+- [x] 후보부터 원문으로 읽기를 좁히고 서브에이전트에는 필요한 진입점만 전달하게 한다.
+- [x] manifest에 정비자를 `default: false`로 등록하고, 기본 설치 미포함·`--all` 포함·`--only` 항목 선택을 검증한다.
+- [x] 필요한 호출 정책을 등록하고 해시 검증·기존 버전 교체 검사를 맞춘다.
+- [x] 실제 역할·선택 설치를 README·agent-kit 안내·METHOD 두 언어판·CHANGELOG에 반영한다.
+
+기준 검증: `test/agent-kit.test.js`, `test/agent-kit-plan.test.js`, `test/agent-kit-install.test.js`의 현재 기대를 확인한다.
+종료: `npm run check`와 agent-kit 관련 테스트 통과, 기본 세 역할 유지, 선택 역할만 설치·재실행 가능(M-40).
+실제 코드 점검과 문서 적용 행동은 다음 단계에서 확인하며 설치 성공만으로 완료 처리하지 않는다.
+
+검증: check(100 JS·kit 1.5.0 여섯 쌍), kit 관련 테스트 49개와 전체 Node 테스트 238개가 통과했다.
+기존 설치기는 수정하지 않았고, 비designer 네 역할의 소스·버전·해시를 보존했다. 실제 kit 1.4.0 사본은
+설치 기록 유무 모두에서 designer 네 파일만 갱신 대상으로 인식하고 기본 설치에 정비자를 추가하지 않았다.
+
+Files:
+- `agent-kit/skills/doc-driven-maintainer-v1/SKILL.md` (added)
+- `agent-kit/skills/doc-driven-maintainer-v1/agents/openai.yaml` (added)
+- `agent-kit/agents/doc-driven-maintainer-v1.md` (added)
+- `agent-kit/manifest.json` (modified)
+- `agent-kit/README.md` (modified)
+- `README.md` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `CHANGELOG.md` (modified)
+- `test/agent-kit.test.js` (modified)
+- `test/agent-kit-plan.test.js` (modified)
+- `test/agent-kit-install.test.js` (modified)
+- `test/integration/agent-kit.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### Test Hardening: 자동·합성 검증 완료
+
+진입: 스킬·룰·설치 등록 구현 완료. 가상 프로젝트로 문서 오류/구현 오류/계획/판단 불가를 구분해 재현한다.
+
+- [x] 오래됐지만 정확한 문서, 최신이지만 틀린 문서, Files 없는 문서, 과거 삭제·이름 변경 기록을 점검한다.
+- [x] ID 범위 중복·상충 결정·증거 없는 과거 단계·Git 이력 부재/얕은 이력·미커밋 변경을 다룬다.
+- [x] 진단 전후 작업 트리/문서 해시를 비교하고 원문 전체가 메인 결과에 복제되지 않는지 확인한다.
+- [x] 선택 적용 시 기존 사용자 작업·미해결 TBD·검증 이력을 보존하고 이동 링크·앵커를 확인한다.
+
+기준 검증: M-35~39의 합성 시나리오와 이전 단계 회귀. 새 자동 검사는 설치 등 기계적으로 검증 가능한 동작에 집중한다.
+종료: `npm run check`·`npm test`와 시나리오 결과를 기록하고 모델/클라이언트별 행동과 미확인 범위를 명시한다.
+
+합성 근거: 독립 정비자가 문서 오류(10→30초)와 구현 오류(요구 3회·구현/테스트 2회)를 구분했다.
+오래된 정확한 문서·동명 ID의 다른 기능·미구현 계획·과거 rename을 오류로 단정하지 않았다. 진단 후 13개 파일 해시가
+모두 같았고, D1만 적용한 뒤 DESIGN.md 하나만 바뀌었다. Git 없는 사본과 depth-1 clone도 점검했다.
+특히 shallow 경계의 git show가 snapshot을 added로 보이는 것을 단계 근거로 쓰지 않고 미확인으로 반환했다.
+명시 요청한 Phase 2 누락 기록은 full Git의 R100 근거로 정확히 복원 제안했고 파일은 수정하지 않았다.
+M1 적용 시 중복 TIMEOUT.md만 삭제하고 README 링크만 바꿨으며 기준 문서·D1·코드·테스트·사용자 메모는 보존했다.
+첫 designer 합성에서 불필요한 경로 목록 탐색을 발견해 두 문장 안에서 조건을 보완했고, 독립 재검증은 통과했다.
+
+Files:
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### Integration Test: 자동·합성 검증 완료, 실제 클라이언트 인수 대기
+
+진입: Test Hardening의 필수 시나리오 통과와 남은 문제의 처리 방침 기록.
+
+- [x] `npm pack --dry-run`과 별도 tarball/임시 HOME에서 기본·`--all`·`--only`·재설치·수정본 보호를 확인한다.
+- [x] 독립 designer 합성 세션에서 지정 문서 충분/부족·Files 없는 문서의 재사용을 확인한다.
+- [x] 독립 정비 서브에이전트가 진단만 반환한 뒤 선택 항목 적용을 수행하는 흐름을 격리 예제로 확인한다.
+- [ ] Claude Code·Codex에서 선택 역할의 발견·호출·일반 작업 미호출을 관찰한다. 미지원 기능은 한계로 기록한다.
+- [x] 런타임 의존성·패키지 증감과 지시 분량을 비교하고, 실제 에이전트 비용/정확도 개선 보장은 하지 않는다.
+
+기준 검증: 기존 `npm run test:integration`과 M-35~40. 브라우저 코드 변경이 없으면 UI 회귀를 추가하지 않는다.
+종료: 설치/검사 결과와 실제 에이전트 인수를 구분해 기록한다. 배포·전역 설치·외부 사본 갱신은 이번 계획에 포함하지 않는다.
+
+자동 근거: production tarball 설치 통합 8개(Chromium 156.0.8078.4 포함)가 통과했다. 최종 designer 문구·해시 보완 후
+check·kit 49개와 F-09 설치 통합을 다시 통과했다. F-09는 기본 12파일·--all 26파일·정비자 단독 5파일(두 클라이언트),
+정비자 정책·반복 설치·문서 보존을 확인한다. Codex 단독 정비자 설치는 3파일이다. 자체 패키지는 같은 환경의 계획 커밋 대비 61→64파일,
+압축 100,529→104,062바이트(+3,533), 해제 343,111→354,518바이트(+11,407)이며 런타임 의존성은 동일하다.
+Codex CLI 0.159.0-alpha.3의 모델 호출 없는 prompt-input 검사에서 일반 요청에 정비자 본문이 포함되지 않음을 관찰했다.
+이 관찰은 에이전트 발견·명시 호출을 입증하지 않는다. Claude Code가 없어 실제 세션 인수는 M-40에 남긴다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+## 0.8.0 배포 버전 준비와 PR — 완료, PR #5
+
+Refs: RQ-21, RQ-33, RQ-34, RQ-35, RQ-36, RQ-37, DC-57, M-41
+
+진입: 구현 커밋 `9026fc2`, 인계 기록 `e3e328f`, 깨끗한 작업 트리. 사용자 요청으로 버전 올림·브랜치 푸시·PR 작성을 진행한다.
+
+- [x] 새 선택 역할을 반영해 npm 0.8.0 마이너 후보로 정하고 DC-57과 M-41을 기준 문서에 기록한다.
+- [x] package.json·package-lock.json·CHANGELOG를 0.8.0 후보로 맞춘다. kit 1.5.0과 의존성은 유지한다.
+- [x] check·Node 테스트·별도 설치 통합·pack/CLI 버전 검증을 실행하고 실제 결과를 기록한다.
+- [x] 버전 변경을 커밋하고 현재 브랜치를 푸시한 뒤 main 대상 PR을 만든다.
+
+기준 검증: 기존 구현의 check·Node 238개·설치 통합 8개 통과. 새 버전의 결과는 별도로 기록한다.
+종료: 0.8.0 metadata/CLI/tarball 일치와 PR URL·head SHA를 확인한다. 실제 npm 게시·태그·main 병합은 수행하지 않는다.
+
+검증(2026-11-08, Linux/Node 24.19.0): npm run check(100 JS·kit 1.5.0 여섯 쌍), npm test 238/238,
+설치 통합 8/8(Chromium 포함)과 pack dry-run 통과. package.json·lockfile 두 위치·CLI·tarball 모두 0.8.0이며
+런타임/개발 의존성은 main과 동일하다. 자체 tarball은 64파일·압축 104,063·해제 354,518바이트다.
+버전 준비 커밋 `594c76d`를 푸시하고 [PR #5](https://github.com/superlucky84/docatlas/pull/5)를 생성했다. 생성 시 PR head와 로컬 HEAD가
+`594c76d98146a4f4b7a24845567dcad0fe8bf8d8`로 일치했고 main과 충돌이 없음을 확인했다. 후속 문서 기록도 같은 브랜치에 반영한다.
+GitHub Actions의 플랫폼 CI와 M-39·40 인수는 로컬 검증과 구분하며 태그·npm 게시·main 병합은 수행하지 않았다.
+
+Files:
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+## PR #5 리뷰 후속 — designer·maintainer 문구 보완: 완료
+
+Refs: RQ-33, RQ-35, RQ-36, DC-52, DC-53, DC-54, DC-58, M-35, M-36, M-37
+
+진입: PR #5 head `aeaef12`, 깨끗한 작업 트리. 리뷰와 독립 합성 비교 결과를 보고했고 2026-11-08 사용자가 권고대로 적용을 요청했다.
+
+- [x] 리뷰 결정과 근거를 DC-58로 기록하고 RQ-33·35, DC-52~54, M-35~37을 현재 계약에 맞춘다.
+- [x] designer 스킬·룰의 지정 문서 문장을 추가 문서 탐색만 생략하고 변경이 닿는 코드는 읽도록 바꾼다.
+- [x] maintainer 스킬·룰에 시간 순서 기준 한 문장을 넣고, 진단 검사 기준을 추적 파일과 Git 상태로 맞춘다.
+- [x] 0.8.0 미게시이므로 버전을 유지하고 manifest 해시만 다시 기록한다. 릴리스 노트를 맞춘다.
+- [x] METHOD 영문의 소문자 문장 시작과 현재 인계의 인계 이력 링크를 고친다.
+
+기준 검증: 변경 전 `aeaef12`에서 check(100 JS·kit 여섯 쌍), Node 테스트 232 통과·6 건너뜀(root에서 못 하는 권한 테스트),
+GitHub Actions 네 조합 통과를 확인했다. designer 1.3.0의 이전 해시 세 개를 소스에서 다시 계산해 일치를 확인했다.
+종료: check·Node 테스트·설치 통합·pack 통과, 네 문서의 결정·인수 대응. M-39·40의 실제 클라이언트 인수는 그대로 남는다.
+
+검증(2026-11-08, Linux/Node 22.23.4, root): `npm run check`(100 JS·kit 1.5.0 여섯 쌍), Node 테스트 238개 중 232 통과·6 건너뜀
+(같은 권한 테스트), 설치 통합 8/8 통과. 첫 설치 통합은 Playwright 1.64.1이 기대하는 브라우저 빌드가 이 환경에 없어
+F-07이 브라우저 실행에서 실패했다. `PLAYWRIGHT_BROWSERS_PATH`로 설치된 Chromium 빌드를 가리켜 다시 실행했다(저장소 변경 없음).
+pack dry-run은 0.8.0·64파일·압축 104,348·해제 355,232바이트로 직전 대비 +280/+714바이트다.
+합성 비교 근거는 M-35·37에 있으며, 비교에 쓴 가상 프로젝트는 저장소에 넣지 않았다.
+
+Files:
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/skills/doc-driven-maintainer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-maintainer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `CHANGELOG.md` (modified)
+- `METHOD.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -2741,126 +2962,29 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 
 ## 현재 인계
 
-이 프로젝트의 현재 인계는 이 블록 하나다. 작업을 멈출 때 이 블록을 바꾸며 이전 내용은 git 이력에 남는다.
+이 프로젝트의 현재 인계는 이 블록 하나다. 이전 내용은 git 이력에 남는다.
 2026-10-28 이전의 인계와 검증 기록은 [인계 이력](./handoff/HISTORY.md#구현-계획에서-옮긴-기록)에 있다.
 
-- 현재 작업(2026-11-04): RQ-30·31의 관련 파일·왼쪽 파일명 검색 프로토타입과 기준 4종 문서 동기화.
-  사용자 순서는 프로토타입 → 파일명 검색 → npx 용량 확인 → 문서 작성 → 번들링/리뷰 보완 → 0.7.0 main 반영 → 태그 게시 요청이다.
-- 현재 후속 완료: 사용자 승인한 RQ-32/DC-50 현행 UI 번들링·최소화. build:web와 배포 필터, 고정 자산 제공,
-  개발 전용 esbuild 0.28.2와 빌드/pack 진입을 추가했다. 앱은 현재 같은 로컬 주소에서 최소화 자산을 제공한다.
-- 리뷰 후속: warning 1·suggestion 2 모두 타당하다고 판단해 적용했다. 모달 초점 복구/대상 삭제 fallback,
-  목록 지연 생성/재열기 캐시, pack prepare 단일 빌드와 회귀 검사를 추가했다. 최신 pack은 61파일·100,464/342,932바이트다.
-- 최신 검증: check 100 JS·Node 236/236·Chrome 54/54·설치 통합 8/8. 리뷰의 초점 재현을 새 회귀 6개로 보강했다.
-  첫 macOS/Node 24 CI의 초기 렌더 경합을 테스트 대기로 보완한 뒤 네 플랫폼 조합 CI 41786014563이 모두 통과했다.
-- 최초 번들링 검증: check 100 JS·Node 236/236·Chrome 48/48·설치 통합 8/8. pack 61파일·압축 100,227·해제 342,299바이트.
-  번들 전보다 -3,608/-19,542바이트이며 소비자 일반 설치에 esbuild가 없다. 원격 Windows/Node 22 재검증은 미실행이다.
-- 번들링 전 근거: macOS 15.6.1 / Node 24.22.1 / npm 11.19.1, 문법 98·kit 1.4.0 다섯 쌍·Node 236/236·Chrome 48/48·pack 65파일.
-  기존 0.6.0 대비 압축 +6,051바이트·해제 +23,316바이트, 런타임 의존성 변화 없음. 문서 수정 이후 개수/기록 수는 고정하지 않는다.
-- 다음(새 기능): 위 Test Hardening의 추가 경계 확인과 Integration Test의 남은 수동 인수. 별도 tarball 설치와 원격 플랫폼 CI는 확인했다.
-  DC-46 최종 UX는 TBD다. DC-51의 0.7.0 태그·npm 게시는 완료했다. 리뷰와 후속 수정은 승인받아 수행했다.
-- 검토만 수행: 사용자 질문에 따라 로컬 Lithent/ftags의 패키지/최소 번들·현재 UI 최소화 효과를 비교했다(DC-49).
-  프레임워크 전환은 없고 실제 이식 후 효과는 미검증이다. 현행 UI 빌드만 별도 승인된 DC-50으로 구현했다.
-- 배포 완료: 초기 프레임 지연으로 CI 실패를 재현했고 대기 보완 후 로컬 Chrome 54/54·check·pack 통과. 제품 소스 변경 없음.
-  fd12146의 네 플랫폼 조합 CI 41786014563 통과 후 v0.7.0 푸시, Publish to npm 41786794590 성공.
-  npm latest 0.7.0·gitHead·SLSA provenance, 빈 임시 캐시의 게시본 npx 실행을 확인했다. pack 61파일·100,532/343,111바이트다.
-  사용자 UX 인수와 Lithent 도입은 미정으로 남는다.
-- 최신 게시 커밋: `fd12146`(CI 대기 보완·v0.7.0/npm gitHead). 후속 배포 기록은 이 인계를 포함한 문서 커밋으로 main에 반영한다.
-  게시한 태그는 이동하지 않는다. 배포 차단 없음. 추가 요청으로 정식 Latest [GitHub 릴리스](https://github.com/superlucky84/docatlas/releases/tag/v0.7.0)도 게시했다.
-  최신 기록 기준 커밋은 `3c9ec9c`이며 이번 릴리스 노트 확인 기록을 후속 문서 커밋으로 main에 반영한다.
-
-- 완료: 0.3.1을 npm에 게시했다(gitHead 8f6bc69). 저장소 소개(DC-20~25), .conda 기본 제외(DC-24), 에이전트용 도움말 보강(DC-26·27) 포함.
-- 완료(2026-10-29): README·METHOD 두 언어판·예제 README의 clone 실행 안내에 npm install 선행 단계를 추가했다(e1f3976).
-- 완료(2026-10-29, 배포 전): DC-28. agents install의 기본 대상을 세 쌍으로 바꾸고 도움말의 포함 여부 질문 단계를 없앴다.
-  클라이언트 자동 감지는 사용자 선택으로 그대로다. 검증 결과는 위 "기본 설치 항목을 세 쌍으로" 단계에 있다.
-  사용자 요청으로 PR 없이 main에 fast-forward로 병합했다(ad436b1).
-- 완료(2026-10-29): 0.4.0을 npm에 게시했다(gitHead fada805, latest). 태그 v0.3.1·v0.4.0을 사용자가 만들었다.
-- 완료(2026-10-30): DC-29. 블로그 글의 문서 위치 원칙을 METHOD 두 언어판과 designer 스킬 1.2.0(kit 1.1.0)에 반영했다(aa4f90c).
-  검증 결과와 리뷰 반영은 위 "문서 위치 원칙 보강" 단계에 있다.
-- 완료(2026-10-30): 0.4.1을 npm에 게시했다(gitHead fcb4e68, latest). 태그 v0.4.1은 사용자가 만들었고, GitHub 릴리스 v0.4.1(영문 노트)을 만들었다.
-  main 반영·푸시 뒤 작업 브랜치는 지웠다. GitHub 릴리스 v0.4.0도 있다.
-- 완료(2026-10-30): ctxbin 원격의 designer 스킬을 1.2.0으로 갱신했다(백업 후). 나머지 doc-driven 스킬·룰은 이미 원본과 같다.
-- 완료(2026-10-30): 사용자 전역 사본을 ctxbin sync 대신 docatlas@0.4.1로 맞췄다(사용자 선택으로 --force, 백업 후). 다시 실행하면 unchanged 12.
-  이후 갱신은 docatlas로만 한다. ctxbin sync를 실행하면 ctxbin 표기로 되돌아간다.
-- 완료(2026-10-30): Confluence 개인 공간 페이지와 팀원의 팀 페이지를 designer 1.2.0으로 갱신했다. 팀 페이지는 스킬·룰 코드 블록만 바꿨다.
-- 완료(2026-11-01): RQ-20·DC-30 구현 계획의 Refs·Files 표기(작업 브랜치 ccr-9dd9ad4c-9qnhod).
-  사용자 결정: Files와 Refs 둘 다, 세 스킬·룰에 규칙, 문서부터. designer만으로 동작하고 implementer·reviewer는 강화 개념이다.
-  DC-30의 세 TBD는 제안대로 정했다(영어 라벨, 새 작업부터·예제 checkout만, docatlas 검색은 별도 후속).
-  METHOD 두 언어판, kit 1.2.0(designer 1.3.0·implementer 1.2.0·reviewer 1.5.0), 예제 checkout, CHANGELOG Unreleased를 고쳤다.
-  검증 결과는 위 "구현 계획의 Refs·Files 표기" 절에 있다. 사용자 우려에 따라 새 스킬·룰 문장을 줄였다(designer 스킬 +36%→+21%).
-  사용자 요청으로 두 번 리뷰했다. 첫 리뷰 warning 5개, 두 번째 리뷰 warning 3개를 모두 고쳤다(두 번 모두 critical 0).
-  designer 스킬은 0373bbc 대비 +27.8%다.
-  커밋: 956fc14·7a630af(기준 문서), e1087a8(구현), a824c9b(분량 정리), ade4291(리뷰 반영), ea4e9d8(참고 기록임을 알리기),
-  81dce98(두 번째 리뷰 반영), 0.4.2 준비 커밋(main 반영).
-  사용자 우려에 따라 Refs·Files가 참고 기록일 뿐 전체 색인이 아니라는 안내를 designer 스킬·룰, METHOD, AGENTS.md 예시와 이 저장소 AGENTS.md에 넣었다.
-- 완료(2026-11-01): 사용자 결정으로 0.4.2 배포를 준비했다. 버전·CHANGELOG·검사·dry-run을 마치고 main에 fast-forward로 반영했다.
-  결과와 사용자 절차는 위 "0.4.2 배포 준비" 절에 있다.
-- 완료(2026-11-01): main CI(run 41265141901, 337200b)가 네 작업 모두 통과했다. 이 기록은 작업 브랜치에만 있고 main에는 게시 기록과 함께 반영한다.
-- 완료(2026-11-01): RQ-21·DC-31 npm 게시 자동화. publish.yml과 CONTRIBUTING "Releasing"을 main에 반영했다(556d0f0).
-  Platform checks(run 41276800138)와 수동 리허설(run 41276806056)이 통과했다.
-- 완료(2026-11-01): 사용자가 Trusted Publisher를 등록했다(npm 11.21.1의 `npm trust github`, 처음 시도는 npm이 낮아 "Unknown command: trust").
-  등록값은 file publish.yml, repository superlucky84/docatlas, permissions publish·stage publish로 workflow와 같다.
-- 완료(2026-11-01): 사용자가 v0.4.2 태그(556d0f0)를 푸시했고 Publish to npm(run 41277271628)이 0.4.2를 게시했다.
-  npm latest 0.4.2, gitHead 556d0f0, SLSA provenance 있음. 이 세션의 git 연결은 태그 푸시를 HTTP 403으로 거절해 태그는 사용자가 푸시했다.
-  게시 기록 커밋을 main에 fast-forward로 반영했다.
-- 완료(2026-11-01): GitHub 릴리스 v0.4.2(영문 노트, Latest)를 사용자가 만들었다(05:43 UTC). 이 세션의 GitHub 도구에는 릴리스 생성이 없어
-  에이전트가 v0.4.1과 같은 구성의 노트를 미리 채운 작성 링크를 만들었다. 태그 v0.4.2는 그대로 556d0f0을 가리킨다.
-- 완료(2026-11-01, RQ-22 1단계): `docatlas private init|status|help`와 git 숨김. 결과는 "개인 문서와 백업" 절 1단계에 있다.
-- 완료(2026-11-01): 1단계 리뷰(warning 10)를 반영했다. 사용자가 "항상 저장소 최상위"를 골랐다.
-  git 밖에서는 위쪽의 기존 `.docatlas/private/`를 루트로 쓰도록 보완했다(사용자 선택).
-- 완료(2026-11-01): 1단계 재리뷰(critical 2·warning 4)를 반영했다. git 밖 찾기는 홈 안에서만, 홈과 그 위는 막기(사용자 선택).
-- 완료(2026-11-01): 사용자 우려(규칙 복잡, Windows)에 따라 1단계를 단순화했다. git 밖은 실행한 폴더, git 밖 판단은 git의 답, 플랫폼 CI에 개인 문서 테스트.
-  Platform checks(run 41286187387, cf2e790)가 macOS·Windows × Node 22·24에서 모두 통과했다.
-- 완료(2026-11-01, RQ-22 2단계): 문서 지도의 Private 그룹과 배지. 결과는 "개인 문서와 백업" 절 2단계에 있다.
-- 완료(2026-11-01): 2단계 변경의 Platform checks(run 41302543992, 6b903f2)가 macOS·Windows × Node 22·24에서 통과했다.
-- 완료(2026-11-01, RQ-23 3단계): `docatlas private backup|list|restore`, status의 백업 비교, 문서 지도 시작 안내. 결과는 "개인 문서와 백업" 절 3단계에 있다.
-  사용자가 컨텍스트를 비운 뒤 이어서 하라고 해 2단계 리뷰 없이 진행했다.
-- 완료(2026-11-01): 3단계 Windows 확인. 테스트 멈춤(지도를 끄기 전 정리)과 안내 경로 따옴표 문제를 고쳤고 run 41304393601(9134817)이 네 작업 모두 통과했다.
-- 완료(2026-11-01, RQ-22 4단계): doc-driven-private-v1 1.0.0(kit 1.3.0, default false, requires designer), agents help 표시,
-  새 항목만 더한 kit은 업데이트 안내를 띄우지 않음(PR-10 보완), 안내 문서와 CHANGELOG Unreleased. 결과는 "개인 문서와 백업" 절 4단계에 있다.
-  CHANGELOG의 개인 문서 항목은 main 반영 때가 아니라 4단계에서 미리 적었다(main에 가면 그대로 Unreleased).
-- 완료(2026-11-01, RQ-22·23 Test Hardening): 잠금 없이 동시 실행 안전(설계 제안), 복구의 새 파일은 hard link로 온전히 놓기, 검사-쓰기 사이 재확인,
-  경계 테스트 6개. 결과는 "개인 문서와 백업" 절 Test Hardening에 있다.
-- 완료(2026-11-01, 사용자 변경): 백업은 최신 N개만 남긴다(`--keep <n>`은 그 실행만). 처음 3개로 했다가 사용자 선택으로 기본 10개로 바꿨다.
-  origin이 없으면 키에 경로 구분값을 붙인다. 결과는 "백업 개수 제한"과 "기본 10개와 origin 없는 키 보강"에 있다.
-- 완료(2026-11-01, RQ-22·23 Integration Test): F-10 통합 테스트(production tarball로 백업 → 삭제 → 새 clone 복구 → 지도)와 4단계 회귀였던 F-09 수정.
-  결과는 "개인 문서와 백업" 절 Integration Test에 있다. 개인 문서 기능의 계획 단계는 모두 끝났다.
-- 완료(2026-11-01, 사용자 변경): 자동 백업은 구현 phase마다 한 번(에이전트 몫을 마쳤을 때), 나머지는 요청 때만. 백업끼리 바뀌지 않은 파일은 하드 링크로 공유.
-  doc-driven-implementer-v1 1.3.0. 결과는 "개인 문서와 백업" 절 "백업 시점과 파일 공유"에 있다.
-- 완료(2026-11-01): 사용자 결정으로 0.5.0 배포를 준비했다. 버전·CHANGELOG·전체 검사·dry-run을 마치고 main에 fast-forward로 반영했다.
-  결과와 사용자 절차는 "0.5.0 배포 준비" 절에 있다.
-- 완료(2026-11-01): main CI(run 41325036270) 통과 뒤 사용자가 `v0.5.0` 태그(75c7e62)를 푸시했고 Publish to npm(run 41325911232)이 0.5.0을 게시했다.
-  npm latest 0.5.0, gitHead 75c7e62, provenance 있음. GitHub 릴리스 v0.5.0의 영문 노트를 미리 채운 작성 링크로 건넸다.
-- 완료(2026-11-01): 사용자가 GitHub 릴리스 v0.5.0(영문 노트)을 만들었다. 게시·릴리스 기록을 main에 fast-forward로 반영했다.
-- 완료(2026-11-03, RQ-24~29): 사용자 구현 승인에 따라 선택 백업 스킬/룰 1.0.0과 private-cloud 보조 명령을 구현했다. kit 1.4.0, 기존 네 쌍/기본 세 쌍/로컬 phase 백업 유지, 외부 의존성 추가 없음.
-  전체/선택 경로는 private 내부만 대상이며 이름/태그/ID, 새 PC 발견/미리보기/추가 복구, 로컬 상태/잠금, 내용 중복 제거와 하드 링크 재구성을 제공한다. DC-37~44는 확정 계약을 따른다.
-- 검증 완료: check(92 JS·다섯 쌍), npm test 231개, 설치된 Chrome의 integration 7개, skill quick_validate, 독립 에이전트 합성 a→새 PC a,c 왕복.
-  첫 Windows CI의 tar 출력 경로 문제를 26e30de에서 수정했다. 재실행 run 41591966422가 macOS/Windows × Node 22/24에서 모두 통과했고 브라우저 42개씩 통과했다.
-  게시 패키지는 62파일, 압축 97,784바이트·해제 338,525바이트다. 0.5.0 대비 +18,558/+66,167바이트이며 외부 의존성 변화는 없다.
-- 배포 완료(2026-11-03): 사용자 요청으로 a2ab079·26e30de를 main에 커밋/푸시했다. v0.6.0 태그는 검사된 26e30de다.
-  Publish to npm run 41592640829 성공, latest 0.6.0·gitHead 26e30de·SLSA provenance 확인. 빈 임시 npm 캐시의 게시본 --version/private-cloud help도 성공했다.
-  정식 GitHub 릴리스: https://github.com/superlucky84/docatlas/releases/tag/v0.6.0 (06:54:45 UTC, Latest).
-- 다음(선택 인수): M-23~29의 실제 클라우드 앱 전송·Windows 콘솔·일반 작업의 에이전트 무권유 확인. Windows/macOS CLI 자동 검증은 끝났지만 실제 계정 연결/업로드·다운로드는 하지 않았다.
-  사용자 환경의 스킬 설치·ctxbin/wiki 사본 갱신은 별도 요청이 있을 때만 한다. 배포 후 기록은 기준 4종 문서만 바꿔 커밋/푸시한다.
-- 다음: 사람 확인 M-21·M-22(실제 에이전트 세션에서 doc-driven-private-v1과 백업·복구가 규칙대로 움직이는지, 실제 GitLab 원격·Windows 콘솔).
-  원하면 ctxbin·Confluence 사본 갱신(현재 원본 kit 1.4.0, 요청할 때만). 이전 남은 확인 M-16~M-19는 아래 줄을 따른다.
-  백업 시점과 파일 공유는 Platform checks run 41309468776(27c02c8)으로 macOS·Windows에서 통과했다.
-- 완료(2026-11-01): 사용자 요청으로 2단계~파일 공유를 리뷰했다(REQUEST_CHANGES, critical 2). 모두 반영했다. 결과는 "2단계~파일 공유 리뷰 반영"에 있다.
-  리뷰 반영은 Platform checks run 41324166410(2ab6639)으로 macOS·Windows에서 통과했다(test/private-map.test.js 포함).
-  Platform checks 통과: 4단계 run 41304909846, Test Hardening run 41305526082, 3개 제한 run 41306271470, 10개·키 보강 run 41306747792.
-  Integration Test 커밋은 통합 테스트와 문서만 바꿨고 test:integration은 Platform checks에 없어 CI를 다시 돌리지 않았다.
-  원하면 main 반영 전에 2단계~Integration Test 리뷰.
-  ctxbin·Confluence 사본 갱신은 사용자가 요청할 때만 한다.
-- 다음(기존): M-19 사람 확인(designer만 설치한 실제 세션에서 Refs·Files가 남는지)과 요청 시 사본 갱신.
-  당시 후속이던 docatlas의 기록 수집·검색은 현재 RQ-30·31의 프로토타입으로 시작했다(DC-30 c).
-- 다음(기존): M-17의 실제 환경 업데이트 안내(docatlas로 kit 1.0.0을 설치한 환경에서 0.4.1 문서 지도의 안내와 재설치 후 사라짐).
-  사용자 환경은 0.4.1부터 docatlas 기록이 생겨 다음 kit 변경 때 확인할 수 있다.
-  M-18의 DC-29 항목(위치 절 읽기, 구조가 불분명한 프로젝트에서 designer 1.2.0이 위치를 묻는지),
-  M-16 사람 확인(세 항목 기본 설치, 한쪽 클라이언트만 있는 HOME, 에이전트가 묻지 않고 미리보기를 보여 주는지),
-  M-18 나머지, Codex 실제 세션, Windows 콘솔·Node 22.0 인수.
-- 차단: 없음.
-- 최신 확인 게시 구현 커밋: 26e30de(main에 포함, 태그 v0.6.0). 기능/버전 커밋은 a2ab079다.
-  0.7.0 작업 시작 HEAD는 ddf6e54이며 새 구현/버전은 위 0.7.0 준비 절을 포함한 main 커밋으로 식별한다.
-  0.5.0 게시본은 75c7e62(태그 v0.5.0, GitHub 릴리스 v0.5.0)이다.
-  0.4.2 게시본은 556d0f0(태그 v0.4.2)이다. 작업 브랜치에는 그 위에 e7d5ade(계획),
-  6aea538(1단계), 1cb28ca(1단계 리뷰 반영), a0ec443(git 밖의 루트 찾기), a9419f1(1단계 재리뷰 반영), cf2e790(1단계 단순화), 180aa18·58c71f5(기록), 6b903f2(2단계), 3024f63(3단계), addfa4d·9134817(Windows 수정), be12eb2(4단계), c744624(Test Hardening), 6571597(백업 개수 제한), 205385d(기본 10개와 origin 없는 키), 6b2a1d4(Integration Test), 27c02c8(백업 시점과 파일 공유), 5e015e0(Windows 기록),
-  2ab6639(리뷰 반영), 1814833(Windows 기록), 그리고 이 인계 커밋(0.5.0 배포 준비, main에 반영)이 있다. 0.4.1 게시본은 fcb4e68이다.
+- 현재 작업(2026-11-08): npm 0.8.0 배포 후보와 main 대상 [PR #5](https://github.com/superlucky84/docatlas/pull/5) 작성 완료.
+  브랜치는 `docs/document-maintenance-plan`, 버전 준비 커밋은 `594c76d`이며 로컬 검증은 통과했다.
+- 리뷰 후속(DC-58): 사용자 요청으로 PR #5 리뷰 권고를 적용했다. designer는 지정 문서가 충분해도 변경이 닿는 코드를 읽고,
+  정비자는 재확인 기록 없이 코드보다 오래된 문서 주장을 문서 오류 가능성으로 보고한다. 버전은 유지하고 해시만 갱신했다.
+  근거와 한계(조건당 1회, Claude 모델, 보완한 룰 문장은 미실행)는 M-35·37에 있다.
+- 계획 커밋: `09fd3e8`, 구현 커밋: `9026fc2`. designer 1.3.1·maintainer 1.0.0·kit 1.5.0을 구현했다. DC-57 후속 요청으로 npm 버전을 0.8.0 후보로 올렸다.
+  정비자는 기본 설치에서 제외하며 --all/--only로만 설치한다. 비designer 네 역할과 설치기·런타임 의존성은 그대로다.
+- 검증: check 100 JS/kit 여섯 쌍, Node 238/238, kit 49/49, production tarball 설치 통합 8/8 통과.
+  최종 designer 문구 보완 뒤 check·kit 49개·F-09를 다시 통과했다. 단계별 Files는 위 작업 절에서 Git 변경과 대응한다.
+  리뷰 후속 뒤 check·Node 232 통과/6 건너뜀(root)·설치 통합 8/8·pack(+280/+714바이트)을 다시 통과했다.
+- 합성: designer 세 사례, 정비자 진단/선택 수정·과거 기록·Git 없음/shallow 검증을 독립 에이전트로 확인했다.
+  일반 점검 13파일은 무변경이고 D1 적용 후 DESIGN.md만 바뀌었다. M1은 중복 문서 삭제와 README 링크만 반영했다.
+  full Git의 Phase 2 누락 Files 복원 제안도 확인했다. 실제 클라이언트 인수와 합성 결과는 구분한다.
+- 용량: 계획 커밋 대비 압축 +3,533/해제 +11,407바이트, 파일 61→64. 기본 지시 증가는 designer 두 문장뿐이다.
+- 다음: PR의 원격 플랫폼 CI와 리뷰를 확인한다.
+  별도 인수는 M-39·40의 실제 Claude Code/Codex 세션 발견·명시 호출·일반 작업 미호출이다.
+  Codex 0.159.0-alpha.3 prompt-input의 일반 본문 미포함만 관찰했고 Claude Code는 설치돼 있지 않다.
+- 기존 후속: DC-46 최종 UX·DC-49 프레임워크 검토와 기존 플랫폼/클라우드 인수는 각 작업 절의 상태를 유지한다.
+- 커밋: 계획 `09fd3e8`, 구현 `9026fc2`, 인계 `e3e328f`, 버전 준비 `594c76d`, PR 기록 `aeaef12`, 그리고 이 인계를 포함한
+  리뷰 후속 커밋이다. 브랜치를 푸시했고 PR은 open이다. 태그·npm 게시·main 병합·전역 설치·외부 사본 갱신은 하지 않았다.
+  designer 문구가 바뀌었으므로 ctxbin·wiki 사본은 사용자가 요청할 때 이 원본으로 갱신한다.
+- 게시 때 할 일: CHANGELOG의 `0.8.0 — 2026-11-08 (planned)`를 실제 게시일(UTC)로 바꾸고 `(planned)`를 뺀다.
+- 차단: 구현의 기술적 차단 없음. 실제 클라이언트 인수는 위 환경 한계에 따라 남겨둔다.

@@ -39,7 +39,7 @@ function hasError(errors, pattern) {
   assert.ok(errors.some(error => pattern.test(error)), 'expected ' + pattern + ' in ' + JSON.stringify(errors));
 }
 
-test('the repository kit keeps the default roles and adds optional private and backup pairs', async () => {
+test('the repository kit keeps the default roles and optional maintenance stays independent', async () => {
   const { errors, manifest } = await checkAgentKit(repositoryKit);
   assert.deepEqual(errors, []);
   assert.deepEqual(manifest.items.map(item => [item.name, item.default, item.requires]), [
@@ -47,7 +47,8 @@ test('the repository kit keeps the default roles and adds optional private and b
     ['doc-driven-implementer-v1', true, undefined],
     ['doc-driven-reviewer-v1', true, undefined],
     ['doc-driven-private-v1', false, ['doc-driven-designer-v1']],
-    ['doc-driven-backup-v1', false, undefined]
+    ['doc-driven-backup-v1', false, undefined],
+    ['doc-driven-maintainer-v1', false, undefined]
   ]);
 });
 
@@ -79,13 +80,23 @@ test('invocation policies are hashed, restricted to their own skill, and contain
   hasError((await checkAgentKit(escaped)).errors, /exact skill agents\/openai.yaml/);
 });
 
-test('the original four pairs retain their published versions and source hashes', async () => {
+test('the implementer, reviewer and private pairs retain their published versions and source hashes', async () => {
   const { manifest } = await checkAgentKit(repositoryKit);
-  assert.deepEqual(manifest.items.slice(0, 4).map(item => [item.name, item.version, item.skill.sha256, item.agent.sha256]), [
-    ['doc-driven-designer-v1', '1.3.0', 'c22d7f737ad7c6bc41096048236c01651a1be8b99063312bb885e1961477c9d4', 'da1c557ab7e62affe05753af95ffd36adc1d83d05bcfb7d35f8a7e7e53216378'],
+  assert.deepEqual(manifest.items.slice(1, 4).map(item => [item.name, item.version, item.skill.sha256, item.agent.sha256]), [
     ['doc-driven-implementer-v1', '1.3.0', '7ed64b2e34812379b5ddb133423c317e9207f54193f5d532457b299927ef15a0', '3b38acafd4d244db808af94e791aae6f6841b32f3bc39798c04de40652b691af'],
     ['doc-driven-reviewer-v1', '1.5.0', 'a14f4d210e42c5d1d8b299feb515208a702cdfc14781cce2ded00cd34b6c6a71', 'fbbd578703a28031636aad66e64c40da0c907c877d9c7d444cafb366f6649ebd'],
     ['doc-driven-private-v1', '1.0.0', '6f6cb31afdc0ffd84aff345d3ec71e642fdb053f7bb0efeffb768a848b590461', '36e549f3ef9991d6c25f5343cbf924f329879f2acf515aa5e0904d03c14559d0']
+  ]);
+});
+
+test('designer upgrades retain hashes for the published skill, rule and rendered Codex agent', async () => {
+  const { manifest } = await checkAgentKit(repositoryKit);
+  const designer = manifest.items.find(item => item.name === 'doc-driven-designer-v1');
+  assert.equal(designer.version, '1.3.1');
+  assert.deepEqual(designer.previous.filter(item => item.version === '1.3.0').map(item => [item.kind, item.part, item.sha256]).sort(), [
+    ['agent', 'file', 'da1c557ab7e62affe05753af95ffd36adc1d83d05bcfb7d35f8a7e7e53216378'],
+    ['codex-agent', 'file', 'edc325070497a64e689de5db00c4cc654dfd7097ac2abfb2119f1e78f754bc75'],
+    ['skill', 'file', 'c22d7f737ad7c6bc41096048236c01651a1be8b99063312bb885e1961477c9d4']
   ]);
 });
 

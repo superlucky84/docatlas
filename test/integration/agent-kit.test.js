@@ -56,6 +56,9 @@ test('F-09: a packaged install manages agent skills globally and per project wit
   const packed = new Set(pack.files.map(file => file.path));
   for (const filename of ['agent-kit/manifest.json', 'agent-kit/README.md', 'agent-kit/skills/' + DESIGNER + '/SKILL.md',
     'agent-kit/agents/' + DESIGNER + '.md', 'agent-kit/agents/doc-driven-reviewer-v1.md',
+    'agent-kit/skills/doc-driven-maintainer-v1/SKILL.md',
+    'agent-kit/agents/doc-driven-maintainer-v1.md',
+    'agent-kit/skills/doc-driven-maintainer-v1/agents/openai.yaml',
     'src/agent-kit/command.js', 'src/agent-kit/install.js', 'src/agent-kit/notice.js']) {
     assert.ok(packed.has(filename), 'Missing packaged file: ' + filename);
   }
@@ -98,17 +101,39 @@ test('F-09: a packaged install manages agent skills globally and per project wit
   assert.equal(await fs.readFile(globalSkill, 'utf8'), kitSkill);
   assert.match(await fs.readFile(path.join(home, '.codex', 'agents', DESIGNER + '.toml'), 'utf8'), /^name = "doc-driven-designer-v1"\n/);
   assert.deepEqual(lines((await agents(['install'])).stdout).slice(0, 12).map(line => line[0]), Array(12).fill('unchanged'));
+  await assert.rejects(fs.access(path.join(home, '.agents/skills/doc-driven-maintainer-v1')), { code: 'ENOENT' });
+
+  // Targeting maintenance alone installs both client rules and the Codex invocation policy.
+  const maintainerHome = path.join(temporary, '정비자 홈');
+  await fs.mkdir(path.join(maintainerHome, '.claude'), { recursive: true });
+  await fs.mkdir(path.join(maintainerHome, '.agents'));
+  const maintenance = args => npm(['exec', '--offline', '--', 'docatlas', 'agents', 'install',
+    '--only', 'doc-driven-maintainer-v1', ...args], project, { HOME: maintainerHome, USERPROFILE: maintainerHome });
+  const maintenanceBefore = await filesIn(maintainerHome);
+  const maintenancePreview = await maintenance(['--dry-run']);
+  assert.equal(lines(maintenancePreview.stdout).filter(line => line[0] === 'dry-run' && line[1] === 'create').length, 5);
+  const withoutNpm = files => Object.fromEntries(Object.entries(files).filter(([name]) => !name.startsWith('.npm/')));
+  assert.deepEqual(withoutNpm(await filesIn(maintainerHome)), withoutNpm(maintenanceBefore));
+  assert.equal(lines((await maintenance([])).stdout).filter(line => line[0] === 'create').length, 5);
+  const maintenanceSkill = '.agents/skills/doc-driven-maintainer-v1/';
+  assert.equal(await fs.readFile(path.join(maintainerHome, maintenanceSkill, 'agents/openai.yaml'), 'utf8'),
+    'policy:\n  allow_implicit_invocation: false\n');
+  assert.match(await fs.readFile(path.join(maintainerHome, '.codex/agents/doc-driven-maintainer-v1.toml'), 'utf8'),
+    /^name = "doc-driven-maintainer-v1"\n/);
+  await assert.rejects(fs.access(path.join(maintainerHome, '.agents/skills', DESIGNER)), { code: 'ENOENT' });
+  assert.equal(lines((await maintenance([])).stdout).filter(line => line[0] === 'unchanged').length, 5);
 
   // A project install with --all adds every item, including the private documents pair that the default leaves out,
   // and explains client rules. Only the three items installed globally get same-name warnings.
   const local = await agents(['install', '--project', '--all']);
   const localLines = lines(local.stdout);
-  assert.equal(localLines.filter(line => line[0] === 'create').length, 21);
+  assert.equal(localLines.filter(line => line[0] === 'create').length, 26);
   assert.equal(localLines.filter(line => line[0] === 'create' && line[4] === 'doc-driven-private-v1').length, 4);
   assert.deepEqual(localLines.filter(line => line[0] === 'warning').map(line => line[1]),
     [...Array(12).fill('same-name'), 'codex-trust']);
   await fs.access(path.join(project, '.claude', 'skills', 'doc-driven-reviewer-v1', 'SKILL.md'));
   await fs.access(path.join(project, '.claude', 'skills', 'doc-driven-private-v1', 'SKILL.md'));
+  await fs.access(path.join(project, '.claude', 'skills', 'doc-driven-maintainer-v1', 'SKILL.md'));
   await fs.access(path.join(project, '.docatlas', 'agents.json'));
   const documentsAfter = await filesIn(project);
   for (const name of Object.keys(documentsBefore)) {

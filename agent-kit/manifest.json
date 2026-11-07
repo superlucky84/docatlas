@@ -1,20 +1,41 @@
 {
   "schema": 1,
-  "kitVersion": "1.4.0",
+  "kitVersion": "1.5.0",
   "items": [
     {
       "name": "doc-driven-designer-v1",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "default": true,
       "skill": {
         "path": "skills/doc-driven-designer-v1/SKILL.md",
-        "sha256": "c22d7f737ad7c6bc41096048236c01651a1be8b99063312bb885e1961477c9d4"
+        "sha256": "11402dae8928660227ceffb1ce405d774112e1131467d78c75f0707c57c19eb0"
       },
       "agent": {
         "path": "agents/doc-driven-designer-v1.md",
-        "sha256": "da1c557ab7e62affe05753af95ffd36adc1d83d05bcfb7d35f8a7e7e53216378"
+        "sha256": "a885db63a9042427c520e08204238074b2933786157327f59647f9c544f04833"
       },
       "previous": [
+        {
+          "version": "1.3.0",
+          "kind": "codex-agent",
+          "part": "file",
+          "sha256": "edc325070497a64e689de5db00c4cc654dfd7097ac2abfb2119f1e78f754bc75",
+          "source": "docatlas agent kit 1.4.0 (docatlas 0.7.0)"
+        },
+        {
+          "version": "1.3.0",
+          "kind": "agent",
+          "part": "file",
+          "sha256": "da1c557ab7e62affe05753af95ffd36adc1d83d05bcfb7d35f8a7e7e53216378",
+          "source": "docatlas agent kit 1.4.0 (docatlas 0.7.0)"
+        },
+        {
+          "version": "1.3.0",
+          "kind": "skill",
+          "part": "file",
+          "sha256": "c22d7f737ad7c6bc41096048236c01651a1be8b99063312bb885e1961477c9d4",
+          "source": "docatlas agent kit 1.4.0 (docatlas 0.7.0)"
+        },
         {
           "version": "1.2.0",
           "kind": "skill",
@@ -228,6 +249,24 @@
         "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
       },
       "previous": []
+    },
+    {
+      "name": "doc-driven-maintainer-v1",
+      "version": "1.0.0",
+      "default": false,
+      "skill": {
+        "path": "skills/doc-driven-maintainer-v1/SKILL.md",
+        "sha256": "07b6b888f801ff085ece56cc8c11dc5368c270660e1397931a81cbffaf9c2d20"
+      },
+      "agent": {
+        "path": "agents/doc-driven-maintainer-v1.md",
+        "sha256": "09c54ee48d41265b13d3d268738f742d245704c109a9b0ac4539ee4af100887b"
+      },
+      "previous": [],
+      "invocationPolicy": {
+        "path": "skills/doc-driven-maintainer-v1/agents/openai.yaml",
+        "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
     }
   ]
 }

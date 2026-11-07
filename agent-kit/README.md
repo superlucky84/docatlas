@@ -6,13 +6,14 @@ docatlas installs them for Claude Code and Codex.
 
 | Name | Version | Skill | Agent rule | Installed by default |
 | --- | --- | --- | --- | --- |
-| doc-driven-designer-v1 | 1.3.0 | [SKILL.md](skills/doc-driven-designer-v1/SKILL.md) | [rule](agents/doc-driven-designer-v1.md) | Yes |
+| doc-driven-designer-v1 | 1.3.1 | [SKILL.md](skills/doc-driven-designer-v1/SKILL.md) | [rule](agents/doc-driven-designer-v1.md) | Yes |
 | doc-driven-implementer-v1 | 1.3.0 | [SKILL.md](skills/doc-driven-implementer-v1/SKILL.md) | [rule](agents/doc-driven-implementer-v1.md) | Yes |
 | doc-driven-reviewer-v1 | 1.5.0 | [SKILL.md](skills/doc-driven-reviewer-v1/SKILL.md) | [rule](agents/doc-driven-reviewer-v1.md) | Yes |
 | doc-driven-private-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-private-v1/SKILL.md) | [rule](agents/doc-driven-private-v1.md) | No; needs the designer |
 | doc-driven-backup-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-backup-v1/SKILL.md) | [rule](agents/doc-driven-backup-v1.md) | No; explicit cloud requests only |
+| doc-driven-maintainer-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-maintainer-v1/SKILL.md) | [rule](agents/doc-driven-maintainer-v1.md) | No; requested document inspection and repair |
 
-Kit version 1.4.0. [manifest.json](manifest.json) records each item's version and hashes, and
+Kit version 1.5.0. [manifest.json](manifest.json) records each item's version and hashes, and
 `requires` names the items another item needs.
 
 ## Install
@@ -23,8 +24,9 @@ Claude Code and Codex read automatically.
 ```sh
 npx docatlas agents install --dry-run   # preview; writes nothing
 npx docatlas agents install             # designer, implementer, and reviewer
-npx docatlas agents install --all       # also private documents and requested cloud backups
+npx docatlas agents install --all       # also private documents, cloud backups, and document maintenance
 npx docatlas agents install --only doc-driven-designer-v1   # only the designer
+npx docatlas agents install --only doc-driven-maintainer-v1 # only document maintenance
 ```
 
 The designer, implementer, and reviewer are installed by default because a piece of work usually
@@ -45,7 +47,15 @@ Choose backup names, tags and paths; preserve other local folders during restore
 hooks into another role's phase completion or changes its instructions. See the
 [cloud backup guide](../guide/cloud-backups.md). Select it with `--only doc-driven-backup-v1`;
 it has no other skill dependency. Codex also receives its `agents/openai.yaml` with
-`allow_implicit_invocation: false`. Other items have no additional policy file.
+`allow_implicit_invocation: false`.
+
+`doc-driven-maintainer-v1` inspects existing documents against code, tests and decisions when
+you request documentation maintenance. It reports drift, missing records, and merge/move
+recommendations; inspection is read-only, and repairs apply only the requested document items.
+It works directly or as a subagent, has no skill dependency, and is excluded from the default
+install. Select it with `--all` or `--only doc-driven-maintainer-v1`. Like the backup role, it
+includes a Codex policy with `allow_implicit_invocation: false`; ordinary coding and phase
+completion do not call it. Other items have no additional policy file.
 
 The command installs for Claude Code and Codex only. Other agents can still use the kit: the
 skills and rules are plain Markdown in this folder, and `docatlas agents help` prints their
