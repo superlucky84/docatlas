@@ -6,7 +6,8 @@
 ## 현재 상태와 작업 순서
 
 - 현재 작업(2026-11-08): RQ-33~37 구현·자동/합성 검증 완료. 계획 커밋 `09fd3e8` 뒤 designer 1.3.1과
-  선택 maintainer 1.0.0을 kit 1.5.0으로 구현했다. 실제 클라이언트 인수와 게시는 별도다.
+  선택 maintainer 1.0.0을 kit 1.5.0으로 구현했다. PR #5 리뷰 후속(DC-58)으로 두 역할의 문구를 보완했다.
+  실제 클라이언트 인수와 게시는 별도다.
 - 완료: 독립 패키지 뼈대, 공개 저장소, 도움말·버전 CLI, 초기 패키징 검증.
 - 완료: Phase 1 문서 수집 API, 기능 계층, 선택 설정과 자동 검증.
 - 완료: Phase 2 CLI·로컬 서버·카드 지도·Markdown source 표시.
@@ -2710,6 +2711,41 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+## PR #5 리뷰 후속 — designer·maintainer 문구 보완: 완료
+
+Refs: RQ-33, RQ-35, RQ-36, DC-52, DC-53, DC-54, DC-58, M-35, M-36, M-37
+
+진입: PR #5 head `aeaef12`, 깨끗한 작업 트리. 리뷰와 독립 합성 비교 결과를 보고했고 2026-11-08 사용자가 권고대로 적용을 요청했다.
+
+- [x] 리뷰 결정과 근거를 DC-58로 기록하고 RQ-33·35, DC-52~54, M-35~37을 현재 계약에 맞춘다.
+- [x] designer 스킬·룰의 지정 문서 문장을 추가 문서 탐색만 생략하고 변경이 닿는 코드는 읽도록 바꾼다.
+- [x] maintainer 스킬·룰에 시간 순서 기준 한 문장을 넣고, 진단 검사 기준을 추적 파일과 Git 상태로 맞춘다.
+- [x] 0.8.0 미게시이므로 버전을 유지하고 manifest 해시만 다시 기록한다. 릴리스 노트를 맞춘다.
+- [x] METHOD 영문의 소문자 문장 시작과 현재 인계의 인계 이력 링크를 고친다.
+
+기준 검증: 변경 전 `aeaef12`에서 check(100 JS·kit 여섯 쌍), Node 테스트 232 통과·6 건너뜀(root에서 못 하는 권한 테스트),
+GitHub Actions 네 조합 통과를 확인했다. designer 1.3.0의 이전 해시 세 개를 소스에서 다시 계산해 일치를 확인했다.
+종료: check·Node 테스트·설치 통합·pack 통과, 네 문서의 결정·인수 대응. M-39·40의 실제 클라이언트 인수는 그대로 남는다.
+
+검증(2026-11-08, Linux/Node 22.23.4, root): `npm run check`(100 JS·kit 1.5.0 여섯 쌍), Node 테스트 238개 중 232 통과·6 건너뜀
+(같은 권한 테스트), 설치 통합 8/8 통과. 첫 설치 통합은 Playwright 1.64.1이 기대하는 브라우저 빌드가 이 환경에 없어
+F-07이 브라우저 실행에서 실패했다. `PLAYWRIGHT_BROWSERS_PATH`로 설치된 Chromium 빌드를 가리켜 다시 실행했다(저장소 변경 없음).
+pack dry-run은 0.8.0·64파일·압축 104,348·해제 355,232바이트로 직전 대비 +280/+714바이트다.
+합성 비교 근거는 M-35·37에 있으며, 비교에 쓴 가상 프로젝트는 저장소에 넣지 않았다.
+
+Files:
+- `agent-kit/skills/doc-driven-designer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-designer-v1.md` (modified)
+- `agent-kit/skills/doc-driven-maintainer-v1/SKILL.md` (modified)
+- `agent-kit/agents/doc-driven-maintainer-v1.md` (modified)
+- `agent-kit/manifest.json` (modified)
+- `CHANGELOG.md` (modified)
+- `METHOD.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -2927,13 +2963,18 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 ## 현재 인계
 
 이 프로젝트의 현재 인계는 이 블록 하나다. 이전 내용은 git 이력에 남는다.
+2026-10-28 이전의 인계와 검증 기록은 [인계 이력](./handoff/HISTORY.md#구현-계획에서-옮긴-기록)에 있다.
 
 - 현재 작업(2026-11-08): npm 0.8.0 배포 후보와 main 대상 [PR #5](https://github.com/superlucky84/docatlas/pull/5) 작성 완료.
   브랜치는 `docs/document-maintenance-plan`, 버전 준비 커밋은 `594c76d`이며 로컬 검증은 통과했다.
+- 리뷰 후속(DC-58): 사용자 요청으로 PR #5 리뷰 권고를 적용했다. designer는 지정 문서가 충분해도 변경이 닿는 코드를 읽고,
+  정비자는 재확인 기록 없이 코드보다 오래된 문서 주장을 문서 오류 가능성으로 보고한다. 버전은 유지하고 해시만 갱신했다.
+  근거와 한계(조건당 1회, Claude 모델, 보완한 룰 문장은 미실행)는 M-35·37에 있다.
 - 계획 커밋: `09fd3e8`, 구현 커밋: `9026fc2`. designer 1.3.1·maintainer 1.0.0·kit 1.5.0을 구현했다. DC-57 후속 요청으로 npm 버전을 0.8.0 후보로 올렸다.
   정비자는 기본 설치에서 제외하며 --all/--only로만 설치한다. 비designer 네 역할과 설치기·런타임 의존성은 그대로다.
 - 검증: check 100 JS/kit 여섯 쌍, Node 238/238, kit 49/49, production tarball 설치 통합 8/8 통과.
   최종 designer 문구 보완 뒤 check·kit 49개·F-09를 다시 통과했다. 단계별 Files는 위 작업 절에서 Git 변경과 대응한다.
+  리뷰 후속 뒤 check·Node 232 통과/6 건너뜀(root)·설치 통합 8/8·pack(+280/+714바이트)을 다시 통과했다.
 - 합성: designer 세 사례, 정비자 진단/선택 수정·과거 기록·Git 없음/shallow 검증을 독립 에이전트로 확인했다.
   일반 점검 13파일은 무변경이고 D1 적용 후 DESIGN.md만 바뀌었다. M1은 중복 문서 삭제와 README 링크만 반영했다.
   full Git의 Phase 2 누락 Files 복원 제안도 확인했다. 실제 클라이언트 인수와 합성 결과는 구분한다.
@@ -2942,6 +2983,8 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
   별도 인수는 M-39·40의 실제 Claude Code/Codex 세션 발견·명시 호출·일반 작업 미호출이다.
   Codex 0.159.0-alpha.3 prompt-input의 일반 본문 미포함만 관찰했고 Claude Code는 설치돼 있지 않다.
 - 기존 후속: DC-46 최종 UX·DC-49 프레임워크 검토와 기존 플랫폼/클라우드 인수는 각 작업 절의 상태를 유지한다.
-- 커밋: 계획 `09fd3e8`, 구현 `9026fc2`, 인계 `e3e328f`, 버전 준비 `594c76d`다. 브랜치를 푸시했고 PR은 open이다.
-  태그·npm 게시·main 병합·전역 설치·외부 사본 갱신은 하지 않았다.
+- 커밋: 계획 `09fd3e8`, 구현 `9026fc2`, 인계 `e3e328f`, 버전 준비 `594c76d`, PR 기록 `aeaef12`, 그리고 이 인계를 포함한
+  리뷰 후속 커밋이다. 브랜치를 푸시했고 PR은 open이다. 태그·npm 게시·main 병합·전역 설치·외부 사본 갱신은 하지 않았다.
+  designer 문구가 바뀌었으므로 ctxbin·wiki 사본은 사용자가 요청할 때 이 원본으로 갱신한다.
+- 게시 때 할 일: CHANGELOG의 `0.8.0 — 2026-11-08 (planned)`를 실제 게시일(UTC)로 바꾸고 `(planned)`를 뺀다.
 - 차단: 구현의 기술적 차단 없음. 실제 클라이언트 인수는 위 환경 한계에 따라 남겨둔다.

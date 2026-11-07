@@ -260,7 +260,7 @@ you need to know where the documents are and what they say. Typical requests:
 
 That is why this repository ships **docatlas**, a document viewer for people. It shows on one
 local map where every document lives and what it says, so you can see the whole picture and tell
-your agent what to tidy. the document map itself never edits the documents.
+your agent what to tidy. The document map itself never edits the documents.
 
 ## Roles
 

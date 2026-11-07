@@ -8,11 +8,11 @@
       "default": true,
       "skill": {
         "path": "skills/doc-driven-designer-v1/SKILL.md",
-        "sha256": "8ddb9e0ea8f71cb42ab27a8cef98604dd2c947c29f7fc6203ac69f0e056ba372"
+        "sha256": "11402dae8928660227ceffb1ce405d774112e1131467d78c75f0707c57c19eb0"
       },
       "agent": {
         "path": "agents/doc-driven-designer-v1.md",
-        "sha256": "7d105b78e519956efc3371b8d4a983b435ba83efd4474c6cb6bc4a5f71dfb961"
+        "sha256": "a885db63a9042427c520e08204238074b2933786157327f59647f9c544f04833"
       },
       "previous": [
         {
@@ -256,11 +256,11 @@
       "default": false,
       "skill": {
         "path": "skills/doc-driven-maintainer-v1/SKILL.md",
-        "sha256": "7804945bd1b3d174cc0a8bc6ceaf23b573a0ec3481e7907996f23179956e6b60"
+        "sha256": "07b6b888f801ff085ece56cc8c11dc5368c270660e1397931a81cbffaf9c2d20"
       },
       "agent": {
         "path": "agents/doc-driven-maintainer-v1.md",
-        "sha256": "74c95ac953a33079ba3e29cdbebac2c0df919ea2fedad9b0320252cfd04d6932"
+        "sha256": "09c54ee48d41265b13d3d268738f742d245704c109a9b0ac4539ee4af100887b"
       },
       "previous": [],
       "invocationPolicy": {
