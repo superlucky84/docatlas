@@ -33,12 +33,12 @@ async function trySymlink(t, target, link) {
 
 test('the packaged kit loads verified sources and renders Codex agents', async t => {
   const kit = await loadKit();
-  assert.equal(kit.kitVersion, '1.4.0');
+  assert.equal(kit.kitVersion, '1.5.0');
   assert.deepEqual(selectItems(kit).map(item => item.name),
     ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1']);
   assert.deepEqual(selectItems(kit, { all: true }).map(item => item.name),
-    ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1', 'doc-driven-private-v1', 'doc-driven-backup-v1']);
-  assert.deepEqual(kit.items.map(item => item.requires), [[], [], [], ['doc-driven-designer-v1'], []]);
+    ['doc-driven-designer-v1', 'doc-driven-implementer-v1', 'doc-driven-reviewer-v1', 'doc-driven-private-v1', 'doc-driven-backup-v1', 'doc-driven-maintainer-v1']);
+  assert.deepEqual(kit.items.map(item => item.requires), [[], [], [], ['doc-driven-designer-v1'], [], []]);
   const toml = kit.items[0].files.codexAgent.text;
   assert.ok(toml.startsWith('name = "doc-driven-designer-v1"\ndescription = "Documentation-first design partner.'));
   assert.match(toml, /\ndeveloper_instructions = '''\n# Doc-Driven Designer \(Agent Rule\)\n/);
@@ -76,6 +76,34 @@ test('adding the backup pair installs only its files and Codex invocation policy
   assert.deepEqual(await Promise.all(oldPlan.actions.map(action => fs.readFile(action.path, 'utf8'))), before);
   const repeated = await planInstall({ ...options, kit, items: selectItems(kit, { only: ['doc-driven-backup-v1'] }) });
   assert.ok(repeated.actions.every(action => action.action === 'unchanged'));
+});
+
+test('maintenance is opt-in and installs its rule and explicit Codex policy without touching default roles', async t => {
+  const workspace = await createWorkspace(t);
+  const kit = await loadKit();
+  const options = { kit, scope: 'global', home: workspace.home, root: workspace.project, clients: ['claude', 'codex'] };
+  const defaults = await planInstall({ ...options, items: selectItems(kit) });
+  assert.equal(defaults.actions.length, 12);
+  await applyPlan(defaults, { home: workspace.home });
+  const before = await Promise.all(defaults.actions.map(action => fs.readFile(action.path, 'utf8')));
+  const snapshotBefore = await snapshot(workspace.root);
+  const selected = selectItems(kit, { only: ['doc-driven-maintainer-v1'] });
+  const plan = await planInstall({ ...options, items: selected });
+  assert.deepEqual(await snapshot(workspace.root), snapshotBefore);
+  assert.equal(plan.actions.length, 5);
+  assert.ok(plan.actions.every(action => action.name === 'doc-driven-maintainer-v1'));
+  const policy = plan.actions.find(action => action.kind === 'skill-policy');
+  assert.equal(policy.client, 'codex');
+  await applyPlan(plan, { home: workspace.home });
+  assert.equal(await fs.readFile(policy.path, 'utf8'), 'policy:\n  allow_implicit_invocation: false\n');
+  const codex = plan.actions.find(action => action.client === 'codex' && action.kind === 'agent');
+  assert.match(await fs.readFile(codex.path, 'utf8'), /^name = "doc-driven-maintainer-v1"\n/);
+  assert.deepEqual(await Promise.all(defaults.actions.map(action => fs.readFile(action.path, 'utf8'))), before);
+  const repeated = await planInstall({ ...options, items: selected });
+  assert.ok(repeated.actions.every(action => action.action === 'unchanged'));
+  await fs.appendFile(policy.path, '# user policy\n');
+  const edited = await planInstall({ ...options, items: selected });
+  assert.equal(edited.actions.find(action => action.kind === 'skill-policy').action, 'skip-modified');
 });
 
 test('client detection follows the home folders that exist', async t => {
