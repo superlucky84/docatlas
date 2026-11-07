@@ -733,17 +733,17 @@ main 반영 대상은 위 검증 소스이며 실행 커밋은 IMPLEMENT의 0.7.
 
 ### M-41 — 0.8.0 배포 후보와 PR
 
-대응: RQ-21, RQ-33~37 / DC-57. 상태: 로컬 검증 완료·PR 작성 대기, 미게시.
+대응: RQ-21, RQ-33~37 / DC-57. 상태: 로컬 검증·PR 생성 완료, 미게시.
 
 - [x] package.json·lockfile 루트/자체 package 버전·CLI·설치 tarball이 모두 0.8.0이다.
 - [x] CHANGELOG에 0.8.0 후보의 변경점을 옮기고 실제 게시 전임을 구분한다.
 - [x] check·Node 테스트·설치 통합·pack이 새 후보에서 통과하고 kit 1.5.0·의존성은 유지된다.
-- [ ] 푸시한 branch head와 main 대상 PR의 head가 같고 요구사항·검증·남은 실제 클라이언트 인수가 본문에 있다.
+- [x] 푸시한 branch head와 main 대상 PR의 head가 같고 요구사항·검증·남은 실제 클라이언트 인수가 본문에 있다.
 - [x] 버전 태그·npm 게시·main 병합을 수행하지 않는다.
 
 통과: 검증된 새 버전 후보를 PR로 검토할 수 있다. 게시 완료나 실제 클라이언트 인수 통과와 구분한다.
 
-근거: 0.8.0 후보의 check·Node 238개·설치 통합 8개·pack/CLI/lockfile 일치 검사 통과. PR head 확인은 생성 후 기록한다.
+근거: 0.8.0 후보의 check·Node 238개·설치 통합 8개·pack/CLI/lockfile 일치 검사 통과. [PR #5](https://github.com/superlucky84/docatlas/pull/5) 생성 시 head가 로컬 버전 준비 커밋 `594c76d`와 일치함을 확인했다. 원격 CI는 별도다.
 
 ## 관련 파일·파일명 검색 자동 근거 — 2026-11-04
 

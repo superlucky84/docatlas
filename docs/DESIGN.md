@@ -1530,6 +1530,7 @@ Refs는 문서 범위와 실제 ID 정의를 대조한다. 형식 도입 전 문
   npm 0.8.0 마이너 후보로 준비하고 kit 1.5.0·기존 런타임 의존성은 유지한다. manifest/lockfile·CLI·tarball의
   버전과 release notes를 맞춘 뒤 현재 브랜치를 푸시하고 main 대상 PR을 만든다. 태그·npm 게시와 실제 클라이언트
   인수 통과를 뜻하지 않는다. 검증은 check·Node·설치 통합·pack과 M-41로 기록한다.
+  실행: `594c76d`의 0.8.0 metadata/CLI/tarball 일치와 로컬 check·238개·설치 통합 8개를 확인하고 [PR #5](https://github.com/superlucky84/docatlas/pull/5)를 생성했다.
 
 - [x] DC-51: 사용자 버전 올림·커밋·푸시 요청에 따라 새 기능을 담는 0.7.0 마이너 후보로 준비한다.
   kit 1.4.0과 런타임 의존성은 유지한다. a34bc8c main 푸시 뒤 사용자가 태그 푸시·실제 게시 진행을 승인했다.
