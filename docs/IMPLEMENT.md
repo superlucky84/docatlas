@@ -2976,6 +2976,31 @@ Files:
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
+## 0.9.0 배포 — 준비
+
+Refs: RQ-21, RQ-38, RQ-39, RQ-40, DC-62
+
+진입: 리뷰 반영 커밋 `27201f7`, 깨끗한 작업 트리. 2026-11-24 사용자가 커밋 뒤 바로 배포를 요청했다.
+배포는 기존 RQ-21 방식이다. main에 있는 커밋에 `v0.9.0` 태그를 푸시하면 Publish to npm workflow가 검사 뒤 Trusted Publishing으로 게시한다.
+
+- [x] package.json·package-lock.json(두 위치)을 0.9.0으로 올린다. 의존성은 바꾸지 않는다.
+- [x] CHANGELOG의 Unreleased를 `0.9.0 — 2026-11-24`로 옮기고 리뷰 반영 동작(종료 코드 2, 앞 블록에 붙은 라벨, 일반 문장 무보고)을 맞춘다.
+  0.8.0 표기의 `(planned)`를 뺀다(실제 게시 2026-11-08T00:15:53Z).
+- [x] check·Node 테스트·설치 통합·pack dry-run을 0.9.0 후보에서 실행한다.
+- [ ] 사용자가 고른 경로로 main에 반영하고, main의 플랫폼 CI 통과 뒤 `v0.9.0` 태그를 푸시한다. npm 게시와 provenance를 확인한다.
+
+기준 검증: `27201f7`의 check·Node 253·Chrome 56 통과. 종료: npm latest 0.9.0과 gitHead가 태그 커밋과 같다.
+
+검증(2026-11-24, macOS / Node 24.22.1): check(102 JS·kit 1.6.0), Node 253/253, 설치 통합 8/8(설치 Chrome 158) 통과.
+`npm pack --dry-run`은 docatlas@0.9.0·65파일·압축 110,353·해제 375,943바이트, CLI `--version`은 0.9.0이다.
+
+Files:
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -3205,12 +3230,12 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 이 프로젝트의 현재 인계는 이 블록 하나다. 이전 내용은 git 이력에 남는다.
 2026-10-28 이전의 인계와 검증 기록은 [인계 이력](./handoff/HISTORY.md#구현-계획에서-옮긴-기록)에 있다.
 
-- 현재 작업(2026-11-24): RQ-38~40 기록 형식 완화·형식 진단·스킬 힌트. 브랜치 `feat/record-format-diagnostics`,
-  계획 `a53d6d9`, 구현 `491e02d`. [작업 절](#기록-형식-완화와-형식-진단--계획).
-- 완료: 1~3단계, Test Hardening, Integration Test, reviewer 검토(REQUEST_CHANGES) 반영. 스킬·룰은 kit 1.6.0 그대로이고 리뷰 반영에서 바꾸지 않았다.
-- 검증: check(102 JS·kit 1.6.0), Node 253/253, Chrome 56/56. 설치 통합 8/8과 F-08·pack 비교는 `491e02d` 기준이며 리뷰 반영은 패키지 구성을 바꾸지 않았다.
-  0.8.0 파서 대비 기록 손실 0(이 저장소 51개·업무 저장소 332개 Markdown).
-- 다음: 리뷰 반영 커밋(사용자 요청 시), 필요하면 재검토. 이후 0.9.0 배포 준비 절(버전·CHANGELOG 날짜·0.8.0 `(planned)` 수정), 태그·게시는 사용자 단계.
+- 현재 작업(2026-11-24): RQ-38~40과 0.9.0 배포. 브랜치 `feat/record-format-diagnostics`,
+  계획 `a53d6d9`, 구현 `491e02d`, 리뷰 반영 `27201f7`, 그리고 이 인계를 포함한 0.9.0 배포 준비 커밋.
+  [작업 절](#기록-형식-완화와-형식-진단--계획), [배포 절](#090-배포--준비).
+- 완료: 1~3단계, Test Hardening, Integration Test, reviewer 검토 반영, 0.9.0 버전·CHANGELOG 준비와 로컬 검증.
+- 검증: check(102 JS·kit 1.6.0), Node 253/253, Chrome 56/56(`27201f7`), 설치 통합 8/8, pack 0.9.0 65파일·110,353바이트.
+- 다음: main 반영(사용자가 고른 경로) → main 플랫폼 CI 통과 → `v0.9.0` 태그 푸시 → Publish to npm 결과·npm latest·gitHead·provenance 확인.
 - 남은 인수: M-42~45 사람 확인, M-45의 실제 designer 세션, 독립 합성 에이전트 확인(선택). 기존 M-39·40, DC-46 최종 UX·DC-49 검토, 플랫폼·클라우드 인수는 각 절 상태를 유지한다.
-- 커밋: 최신 커밋 `491e02d`. 리뷰 반영은 아직 커밋하지 않았다. 외부 사본(wiki·ctxbin)은 사용자가 요청할 때 갱신한다.
-- 차단: 없음.
+- 외부 사본(wiki·ctxbin)은 사용자가 요청할 때 갱신한다.
+- 차단: 없음. 원격 반영과 태그 푸시는 사용자 확인 대기.
