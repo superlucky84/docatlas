@@ -7,6 +7,20 @@ Agent skill and rule versions are tracked separately in
 
 ## Unreleased
 
+- Related files now read `Files:` blocks that a formatter separated with a blank line, a fenced
+  block of `path (kind)` lines after `Files:`, entries without a change kind (shown as
+  "Kind not recorded"), and `Refs:` IDs such as `FH-RQ-02` or `DC-3a`. One malformed entry no longer
+  ends its block.
+- Records that cannot be read are reported instead of showing an empty list: the **Related files**
+  button shows the issue count, and the panel lists each line with the reason.
+- New `docatlas check [<file.md> ...]` reports the same issues without starting a server. It writes
+  nothing; exit codes are 0 (no errors), 1 (errors, or warnings with `--strict`), and 2 (invalid
+  arguments or settings). `--json` prints one object for tools and agents.
+- Agent kit 1.6.0: designer 1.4.0, implementer 1.4.0, reviewer 1.6.0, and maintainer 1.1.0 mention
+  the fenced form, keep the `Files:` label exact with status notes in the checklist, and run
+  `docatlas check` when it is available. The maintainer repairs record formats without converting
+  between the list and fenced forms.
+
 ## 0.8.0 — 2026-11-08 (planned)
 
 - Agent kit 1.5.0 adds optional `doc-driven-maintainer-v1` 1.0.0 for requested document

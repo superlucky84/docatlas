@@ -3,7 +3,7 @@ name: doc-driven-implementer-v1
 description: Use only when the user explicitly asks to use doc-driven-implementer. Implements an existing IMPLEMENT.md plan phase by phase with completion gates, test evidence, and doc/handoff synchronization.
 metadata:
   short-description: phase-driven implementer
-  version: 1.3.0
+  version: 1.4.0
 ---
 
 # Doc-Driven Implementer Playbook
@@ -46,7 +46,7 @@ If sources conflict, stop and resolve the conflict explicitly with the user.
 
 ### 4) Sync Documents
 - Update `IMPLEMENT*.md` phase checklist status (`[ ]` -> `[x]`) for completed items only.
-- Write the phase's `Files:` block from git (`git status --porcelain -uall`, `git diff --name-status`): one `` - `<repository-root path>` (added|modified|deleted|renamed) `` line per file this phase changed, or `Files: none`. Leave out the files noted at kickoff unless this phase changed them again.
+- Write the phase's `Files:` block from git (`git status --porcelain -uall`, `git diff --name-status`): one `` - `<repository-root path>` (added|modified|deleted|renamed) `` line per file this phase changed, or `Files: none`. Leave out the files noted at kickoff unless this phase changed them again. A fenced block of `<path> (<kind>)` lines also works; keep the label exactly `Files:`. If docatlas is available, run `docatlas check <IMPLEMENT.md>` and fix its errors.
 - Keep the phase's `Refs:` line to full IDs. If `IMPLEMENT*.md` is outside your scope, return the `Files:` block in your report.
 - Record unresolved items clearly (do not silently skip).
 - If behavior changed materially, sync corresponding `DESIGN*.md` and `README.md` sections.

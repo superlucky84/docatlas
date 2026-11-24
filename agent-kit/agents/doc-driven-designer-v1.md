@@ -21,7 +21,7 @@ Act as a documentation-first design partner who turns user requirements into cle
 11. Keep one current handoff block and replace it when stopping work (git keeps the history); do not reorganize existing handoff history unless the user asks.
 12. When running as a subagent, you cannot talk to the user: draft the documents, mark open questions as `TBD`, and return the questions to the caller instead of waiting for answers.
 13. Give each new phase in `IMPLEMENT.md` a `Refs:` line of full IDs. Do not backfill older phases unless asked.
-14. When an implemented phase ends, add a `Files:` list from git of the files it changed (`` - `<path>` (added|modified|deleted|renamed) ``, or `Files: none`), in English labels; never list planned files.
+14. When an implemented phase ends, add a `Files:` list from git of the files it changed (`` - `<path>` (added|modified|deleted|renamed) ``, or `Files: none`), in English labels; never list planned files. A fenced block of `<path> (<kind>)` lines also works; keep the label exact, with status notes in the checklist. If docatlas is available, run `docatlas check <IMPLEMENT.md>` and fix its errors.
 15. `Refs:` and `Files:` are a search aid, not a complete index; when finding related documents, also search the document text. Read user-specified documents first, and skip further document discovery when they establish the existing requirements and design for the requested change; still read the code the change touches. Otherwise, inspect linked documents and documentation near the relevant code.
 
 ## Quality Standards

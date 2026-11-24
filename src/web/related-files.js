@@ -9,7 +9,7 @@ const routeUrl = (id, fragment = '') => '/?doc=' + encodeURIComponent(id) +
   (fragment ? '#' + encodeURIComponent(fragment) : '');
 const normalize = value => value.normalize('NFC').toLowerCase();
 const kinds = { added: 'Added in this phase', modified: 'Modified in this phase',
-  deleted: 'Deleted in this phase', renamed: 'Renamed in this phase' };
+  deleted: 'Deleted in this phase', renamed: 'Renamed in this phase', unknown: 'Kind not recorded' };
 
 export function createRelatedFiles({ openDocument }) {
   const dialog = $('related-files-dialog');
@@ -156,10 +156,12 @@ export function createRelatedFiles({ openDocument }) {
       return section;
     }));
     if (!files.length) {
+      const unreadable = !query && (data.issues || []).some(issue => issue.level === 'error');
       const empty = node('div', 'files-empty');
-      empty.append(node('strong', '', query ? 'No matching files' : 'No file records yet'),
-        node('p', '', query ? 'Try a file name, folder, or requirement ID.' :
-          'This document and its implementation plan have no recorded files. Related files may still be mentioned in the document text.'));
+      empty.append(node('strong', '', query ? 'No matching files' : unreadable ? 'File records could not be read' : 'No file records yet'),
+        node('p', '', query ? 'Try a file name, folder, or requirement ID.' : unreadable
+          ? 'Fix the record format issues above: follow "Files:" with a list or a fenced block of paths.'
+          : 'This document and its implementation plan have no recorded files. Related files may still be mentioned in the document text.'));
       list.append(empty);
     }
     list.scrollTop = scroll;
@@ -171,6 +173,53 @@ export function createRelatedFiles({ openDocument }) {
     }
     needsRender = false;
     renderedFilter = $('files-search').value;
+  }
+
+  // DC-60: show unreadable records instead of a silent empty list. Missing kinds stay on their file rows.
+  function renderIssues() {
+    const box = $('files-issues');
+    const active = document.activeElement;
+    const focusKey = box.contains(active) ? active.dataset.focusKey : null;
+    const listed = (data.issues || []).filter(issue => issue.code !== 'files-kind');
+    const borrowed = data.sourceIssues || [];
+    box.hidden = !listed.length && !borrowed.length;
+    if (box.hidden) {
+      box.replaceChildren();
+      if (focusKey && dialog.open) $('files-search').focus({ preventScroll: true });
+      return;
+    }
+    const errors = listed.filter(issue => issue.level === 'error').length;
+    const title = node('h3', '', listed.length
+      ? errors + (errors === 1 ? ' record format issue' : ' record format issues') +
+        (listed.length > errors ? ' · ' + (listed.length - errors) + ' skipped' : '')
+      : 'The implementation plan has record format issues');
+    title.id = 'files-issues-title';
+    const list = node('ul');
+    for (const issue of listed) {
+      const item = node('li');
+      const line = issue.anchor ? node('a', 'files-issue-line', 'Line ' + issue.line) : node('span', 'files-issue-line', 'Line ' + issue.line);
+      if (issue.anchor) {
+        line.href = routeUrl(currentId, issue.anchor);
+        line.dataset.focusKey = 'issue:' + issue.line + ':' + issue.code;
+        line.onclick = event => navigate(event, currentId, issue.anchor);
+      }
+      item.append(line, node('span', '', issue.message));
+      list.append(item);
+    }
+    for (const source of borrowed) {
+      const item = node('li');
+      const link = node('a', '', source.sourcePath + ' ↗');
+      link.href = routeUrl(source.documentId);
+      link.dataset.focusKey = 'source-issue:' + source.documentId;
+      link.onclick = event => navigate(event, source.documentId);
+      item.append(link, node('span', '', source.errors + (source.errors === 1 ? ' issue' : ' issues') + ' in its Files or Refs records'));
+      list.append(item);
+    }
+    box.replaceChildren(title, list);
+    if (focusKey && dialog.open) {
+      const target = box.querySelector('[data-focus-key="' + CSS.escape(focusKey) + '"]');
+      (target || $('files-search')).focus({ preventScroll: true });
+    }
   }
 
   $('related-files-toggle').onclick = () => {
@@ -205,6 +254,11 @@ export function createRelatedFiles({ openDocument }) {
       }
       data = document.relatedFiles || { files: [], sources: [], recordCount: 0, scope: 'document' };
       $('related-files-count').textContent = String(data.files.length);
+      const errors = (data.issues || []).filter(issue => issue.level === 'error').length +
+        (data.sourceIssues || []).reduce((sum, source) => sum + source.errors, 0);
+      $('related-files-issues').hidden = !errors;
+      $('related-files-issues').textContent = errors ? '⚠ ' + errors + (errors === 1 ? ' issue' : ' issues') : '';
+      renderIssues();
       $('files-total').textContent = String(data.files.length);
       $('files-scope').textContent = data.scope === 'document'
         ? 'Recorded in this document' : 'From this feature’s implementation plan';
