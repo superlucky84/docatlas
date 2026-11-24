@@ -42,7 +42,8 @@ test('the agents help covers every install option, action and exit code', async 
     '  0  Done', '  1  Failed', '  2  Invalid', '  3  Done, but',
     'installs the kit items marked default below', 'add --only <name> for each', 'including items not marked default',
     'tell the user which files were skipped or blocked', 'Never add --force on your own',
-    'If you are an agent other than Claude Code or Codex', 'https://github.com/superlucky84/docatlas/tree/main/agent-kit',
+    'If you are an agent other than Claude Code, Codex or Antigravity', 'https://github.com/superlucky84/docatlas/tree/main/agent-kit',
+    'Antigravity  ~/.gemini/config/skills/<name>/SKILL.md  ~/.gemini/config/agents/<name>.md',
     path.join(KIT_DIRECTORY, 'skills', '<name>', 'SKILL.md'), path.join(KIT_DIRECTORY, 'agents', '<name>.md')]) {
     assert.ok(help.includes(text), text);
   }
@@ -74,9 +75,13 @@ test('a dry run prints the plan and writes nothing', async t => {
     ['dry-run', 'create', 'new', 'claude', 'agent'],
     ['dry-run', 'create', 'new', 'codex', 'skill'],
     ['dry-run', 'create', 'new', 'codex', 'agent'],
-    ['dry-run', 'summary', 'create=4', 'replace=0', 'unchanged=0']
+    ['dry-run', 'create', 'new', 'antigravity', 'skill'],
+    ['dry-run', 'create', 'new', 'antigravity', 'agent'],
+    ['dry-run', 'summary', 'create=6', 'replace=0', 'unchanged=0']
   ]);
   assert.equal(result.lines[0][6], path.join(workspace.home, '.claude', 'skills', 'sample-designer', 'SKILL.md'));
+  assert.equal(result.lines[4][6], path.join(workspace.home, '.gemini', 'config', 'skills', 'sample-designer', 'SKILL.md'));
+  assert.equal(result.lines[5][6], path.join(workspace.home, '.gemini', 'config', 'agents', 'sample-designer.md'));
 });
 
 test('an install writes every file and its record, and a second run changes nothing', async t => {
@@ -89,14 +94,21 @@ test('an install writes every file and its record, and a second run changes noth
   assert.equal(await read(path.join(workspace.home, '.claude', 'agents', 'sample-designer.md')), item.files.agent.text);
   assert.equal(await read(path.join(workspace.home, '.agents', 'skills', 'sample-designer', 'SKILL.md')), item.files.skill.text);
   assert.equal(await read(path.join(workspace.home, '.codex', 'agents', 'sample-designer.toml')), item.files.codexAgent.text);
+  assert.equal(await read(path.join(workspace.home, '.gemini', 'config', 'skills', 'sample-designer', 'SKILL.md')), item.files.skill.text);
+  assert.equal(await read(path.join(workspace.home, '.gemini', 'config', 'agents', 'sample-designer.md')), item.files.agent.text);
   const recordPath = path.join(workspace.home, '.docatlas', 'agents.json');
   assert.deepEqual(first.lines.at(-2), ['record', recordPath]);
   const record = JSON.parse(await read(recordPath));
   assert.deepEqual(Object.keys(record.files), [
-    'claude/agent/sample-designer', 'claude/skill/sample-designer', 'codex/agent/sample-designer', 'codex/skill/sample-designer'
+    'antigravity/agent/sample-designer', 'antigravity/skill/sample-designer',
+    'claude/agent/sample-designer', 'claude/skill/sample-designer',
+    'codex/agent/sample-designer', 'codex/skill/sample-designer'
   ]);
   assert.deepEqual(record.files['codex/agent/sample-designer'], {
     path: '.codex/agents/sample-designer.toml', kitVersion: '1.0.0', version: '1.1.0', sha256: item.files.codexAgent.sha256
+  });
+  assert.deepEqual(record.files['antigravity/agent/sample-designer'], {
+    path: '.gemini/config/agents/sample-designer.md', kitVersion: '1.0.0', version: '1.1.0', sha256: item.files.agent.sha256
   });
   assert.equal((await fs.readdir(path.join(workspace.home, '.codex', 'agents'))).length, 1, 'no temporary files remain');
 
@@ -104,13 +116,17 @@ test('an install writes every file and its record, and a second run changes noth
   const second = await agents(workspace, ['install', '--target', 'all']);
   assert.equal(second.code, 0);
   assert.deepEqual(await snapshot(workspace.root), before);
-  assert.deepEqual(second.lines.map(line => line[0]), ['unchanged', 'unchanged', 'unchanged', 'unchanged', 'summary']);
+  assert.deepEqual(second.lines.map(line => line[0]), ['unchanged', 'unchanged', 'unchanged', 'unchanged', 'unchanged', 'unchanged', 'summary']);
 });
 
 test('without --target, a home with one client folder gets files for that client only', async t => {
-  for (const [folder, client, absent] of [['.claude', 'claude', ['.codex', '.agents']], ['.codex', 'codex', ['.claude']]]) {
+  for (const [folder, client, absent] of [
+    ['.claude', 'claude', ['.codex', '.agents', '.gemini']],
+    ['.codex', 'codex', ['.claude', '.gemini']],
+    ['.gemini/config', 'antigravity', ['.claude', '.codex', '.agents']]
+  ]) {
     const workspace = await setup(t);
-    await fs.mkdir(path.join(workspace.home, folder));
+    await fs.mkdir(path.join(workspace.home, ...folder.split('/')), { recursive: true });
     const result = await agents(workspace, ['install']);
     assert.equal(result.code, 0, result.stderr);
     const files = result.lines.filter(line => line[0] === 'create');
@@ -161,11 +177,11 @@ test('invalid arguments exit 2 and an empty home asks for --target', async t => 
     [[], /Missing agents command/],
     [['remove'], /Unknown agents command: remove/],
     [['install', 'extra'], /positional/i],
-    [['install', '--target', 'cursor'], /--target must be one of: claude, codex, all[\s\S]*other than Claude Code or Codex/],
+    [['install', '--target', 'cursor'], /--target must be one of: claude, codex, antigravity, all[\s\S]*other than Claude Code, Codex or Antigravity/],
     [['install', '--all', '--only', 'sample-reviewer'], /either all items or named items/],
     [['install', '--only', 'missing', '--target', 'claude'], /Unknown agent kit item: missing/],
     [['install', '--root', 'missing'], /Project root not found/],
-    [['install'], /Choose clients with --target claude, codex or all[\s\S]*other than Claude Code or Codex/]
+    [['install'], /Choose clients with --target claude, codex, antigravity or all[\s\S]*other than Claude Code, Codex or Antigravity/]
   ]) {
     const result = await agents(workspace, args);
     assert.equal(result.code, 2, JSON.stringify(args));

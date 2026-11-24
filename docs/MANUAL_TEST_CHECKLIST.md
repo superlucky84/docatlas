@@ -1,6 +1,6 @@
 # docatlas 수동 검증 체크리스트
 
-문서 기준: 2026-11-24.
+문서 기준: 2026-11-25.
 [요구사항](./REQUIREMENTS.md) · [설계](./DESIGN.md) · [구현 계획](./IMPLEMENT.md)
 
 수집기·서버·지도·서식 읽기·참조 탐색을 구현했다. 아래 수동 인수 전체의 상태와
@@ -807,6 +807,22 @@ Test Hardening의 info 없는 펜스·CRLF·들여쓴 라벨·빈 블록 범위 
 통과: 스킬 안내와 검사로 같은 실수가 줄어든다. 파일 검사와 실제 에이전트 행동을 구분해 기록한다.
 자동 근거(2026-11-24): kit 1.6.0 check, 0.8.0 게시본 해시 보존 테스트, 0.8.0 설치본의 replace recorded/previous-file 계획 16파일.
 추가 분량은 스킬 합계 +159단어(목표보다 9단어 많음). 에이전트 행동 확인은 미실행.
+
+### M-46 — Antigravity 스킬·룰 설치와 경로 공유
+
+대응: RQ-41 / DC-63. 예제: F-09 확장. 상태: 통과(자동 검증 및 실제 Antigravity 세션 발견 확인 완료).
+
+- [x] 홈 폴더에 `~/.gemini/config`(또는 `~/.gemini/antigravity`, `~/.gemini/antigravity-cli`)만 있을 때 `--target` 없이 설치하면 Antigravity 전역 위치(`~/.gemini/config/skills/<name>/SKILL.md`, `~/.gemini/config/agents/<name>.md`)에만 기본 세 쌍이 설치되고 다른 클라이언트 폴더를 만들지 않는다.
+- [x] Antigravity 에이전트 룰은 원본 `agent-kit/agents/<name>.md` Markdown 그대로 설치되고, 이전 배포본(`previous-file`·`previous-body`) 교체와 수정본 보호(`skip-modified`)·`ctxbin` 관리 사본 보호(`skip-managed`)가 동작한다.
+- [x] `--project` 설치 시 Antigravity 스킬은 `<root>/.agents/skills/<name>/SKILL.md`에, 에이전트 룰은 `<root>/.agents/agents/<name>.md`에 설치되며, 반대쪽 범위에 같은 이름이 있으면 Antigravity가 프로젝트 사본을 우선 사용한다는 경고가 출력된다.
+- [x] `--project` 설치에서 Codex와 Antigravity를 함께 설치할 때 공유 경로인 `<root>/.agents/skills/<name>/SKILL.md`에서 중복 쓰기나 `--force` 백업 충돌이 발생하지 않고, 두 클라이언트의 설치 기록과 재실행 `unchanged`가 정상 동작한다.
+- [x] 전역 설치에서 `~/.gemini` 또는 `~/.gemini/config`가 디렉터리를 가리키는 심볼릭 링크일 때 허용하고, 그 아래 경로와 프로젝트 `.agents`의 심볼릭 링크는 `blocked (symlink)`로 거부한다.
+- [x] `docatlas agents help`와 `--help`에 Antigravity 경로와 `--target claude|codex|antigravity|all`이 안내된다.
+- [x] 실제 Antigravity 세션에서 설치된 스킬과 에이전트가 발견된다.
+  2026-11-25 사용자 실제 환경(`/Users/superlucky84`, Claude Code·Codex·Antigravity 전역, Antigravity CLI `agy 1.5.16`): `node bin/docatlas.js agents install --dry-run`에서 세 클라이언트가 자동 감지돼 `create=6`(Antigravity 기본 3쌍), `replace=12`(Claude·Codex recorded 1.5.0→1.6.0)를 출력했다. 이어서 사용자 승인으로 `node bin/docatlas.js agents install --all`을 실행해 `create=12`(Antigravity 6쌍 `~/.gemini/config/skills`·`agents`), `replace=16`(Claude·Codex 4쌍 갱신), `unchanged=10`(`private`·`backup`·정책 2개), `skipped=0`, `blocked=0`, 종료 0과 `~/.docatlas/agents.json` 갱신을 확인했다. 설치 직후 다음 턴에서 Antigravity 세션의 Available skills 목록이 `/Users/superlucky84/.gemini/config/skills/doc-driven-*-v1/SKILL.md` 6개로 전환되었고, Available subagents 목록에 `doc-driven-designer-v1`, `doc-driven-implementer-v1`, `doc-driven-reviewer-v1`, `doc-driven-private-v1`, `doc-driven-backup-v1`, `doc-driven-maintainer-v1` 6개가 모두 발견됨을 확인했다.
+
+통과: Antigravity가 Claude Code·Codex와 동일한 보호·기록·갱신 규칙으로 설치되고 공유 경로 충돌이 없다.
+자동 근거(2026-11-25): `agent-kit-plan.test.js`·`agent-kit-install.test.js`·`agent-kit-hardening.test.js`(51/51), `platform.test.js`(73/73), `integration/agent-kit.test.js`(F-09). 실제 Antigravity 새 세션 발견 확인은 별도 수동 인수다.
 
 ## 관련 파일·파일명 검색 자동 근거 — 2026-11-04
 

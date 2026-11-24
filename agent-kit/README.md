@@ -2,7 +2,7 @@
 
 The canonical doc-driven agent skills and agent rules for
 [Doc-Driven Development](https://github.com/superlucky84/docatlas/blob/main/METHOD.md).
-docatlas installs them for Claude Code and Codex.
+docatlas installs them for Claude Code, Codex, and Antigravity.
 
 | Name | Version | Skill | Agent rule | Installed by default |
 | --- | --- | --- | --- | --- |
@@ -19,7 +19,7 @@ Kit version 1.6.0. [manifest.json](manifest.json) records each item's version an
 ## Install
 
 `docatlas agents install`, available since 0.3.0, copies the skills and rules to the folders that
-Claude Code and Codex read automatically.
+Claude Code, Codex, and Antigravity read automatically.
 
 ```sh
 npx docatlas agents install --dry-run   # preview; writes nothing
@@ -57,19 +57,23 @@ install. Select it with `--all` or `--only doc-driven-maintainer-v1`. Like the b
 includes a Codex policy with `allow_implicit_invocation: false`; ordinary coding and phase
 completion do not call it. Other items have no additional policy file.
 
-The command installs for Claude Code and Codex only. Other agents can still use the kit: the
+The command installs for Claude Code, Codex, and Antigravity. Other agents can still use the kit: the
 skills and rules are plain Markdown in this folder, and `docatlas agents help` prints their
 location in the installed package. An agent should ask you where its client keeps rules or skills
 and adapt the files there. docatlas does not track or update those copies, so repeat this after
 updating docatlas.
 
 - The default installs the three default items into your home folder: `~/.claude/skills`,
-  `~/.claude/agents`, `~/.agents/skills`, and `~/.codex/agents`, for the clients whose folders exist.
-  Claude Code is found by `~/.claude`, and Codex by `~/.codex` or `~/.agents`, so if you use only one
-  of them you get only its files. Add `--only <name>` to install fewer items, `--target` to choose
-  clients, and `--project` to install into the project instead. Claude Code uses a global skill before
-  a project skill with the same name, and Codex reads project agents only in trusted projects; the
-  command warns about both.
+  `~/.claude/agents`, `~/.agents/skills`, `~/.codex/agents`, `~/.gemini/config/skills`, and
+  `~/.gemini/config/agents`, for the clients whose folders exist. Claude Code is found by
+  `~/.claude`, Codex by `~/.codex` or `~/.agents`, and Antigravity by `~/.gemini/config`,
+  `~/.gemini/antigravity`, or `~/.gemini/antigravity-cli`, so if you use only one of them you get
+  only its files. Add `--only <name>` to install fewer items, `--target` (`claude`, `codex`,
+  `antigravity`, or `all`) to choose clients, and `--project` to install into the project instead
+  (`<root>/.claude/`, `<root>/.agents/skills/`, `<root>/.codex/agents/`, and `<root>/.agents/agents/`).
+  Claude Code uses a global skill before a project skill with the same name, Codex reads project
+  agents only in trusted projects, and Antigravity prefers project skills and agents over global
+  ones; the command warns about these rules.
 - After updating docatlas, run the same command again. Files you edited, files from a newer docatlas,
   and files managed by ctxbin are skipped; `--force` replaces them after saving a backup in
   `~/.docatlas/backups/`. Install records are kept in `~/.docatlas/agents.json`, or in

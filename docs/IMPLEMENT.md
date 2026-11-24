@@ -1,11 +1,13 @@
 # docatlas 구현 계획
 
-문서 기준: 2026-11-24.
+문서 기준: 2026-11-25.
 [요구사항](./REQUIREMENTS.md) · [설계](./DESIGN.md) · [수동 검증](./MANUAL_TEST_CHECKLIST.md)
 
 ## 현재 상태와 작업 순서
 
-- 현재 작업(2026-11-24): RQ-38~40 기록 형식 완화·형식 진단·스킬 힌트. 1~3단계·Test Hardening·Integration Test 자동 검증과 리뷰 반영 완료. 구현 커밋 `491e02d`, 리뷰 반영은 미커밋.
+- 현재 작업(2026-11-25): RQ-41 Antigravity 클라이언트 설치 지원(DC-63, M-46)과 0.10.0 배포 준비 완료.
+  [작업 절](#antigravity-클라이언트-설치-지원--계획).
+- 이전 작업(2026-11-24): RQ-38~40 기록 형식 완화·형식 진단·스킬 힌트. 1~3단계·Test Hardening·Integration Test 자동 검증과 리뷰 반영 완료. 구현 커밋 `491e02d`, PR #6 병합(`fba3e24`).
   [작업 절](#기록-형식-완화와-형식-진단--계획).
 - 이전 작업(2026-11-08): RQ-33~37 구현·자동/합성 검증 완료. 계획 커밋 `09fd3e8` 뒤 designer 1.3.1과
   선택 maintainer 1.0.0을 kit 1.5.0으로 구현했다. PR #5 리뷰 후속(DC-58)으로 두 역할의 문구를 보완했다.
@@ -3001,6 +3003,122 @@ Files:
 - `docs/DESIGN.md` (modified)
 - `docs/IMPLEMENT.md` (modified)
 
+## Antigravity 클라이언트 설치 지원 — 계획
+
+Refs: RQ-41, DC-63, M-46
+
+상태: 2026-11-25 사용자 요청 및 추천안 전부 확정(DC-63). 시작 HEAD는 `fba3e24`(main, PR #6 병합)이고 작업 트리는 clean이었다.
+`agent-kit/`의 스킬·룰 원본과 `manifest.json`의 kit 1.6.0 버전·해시는 유지한다.
+
+### 기준 문서 — 작성 완료
+
+진입: RQ-16~18 에이전트 스킬 설치 계약, `src/agent-kit/`(`plan.js`·`install.js`·`command.js`·`notice.js`), Antigravity 커스터마이징 경로 규칙을 확인한다.
+
+- [x] 사용자 요청과 확정된 추천안 4가지(전역 `~/.gemini/config/`·프로젝트 `<root>/.agents/` 경로, 원본 Markdown 에이전트 룰, `--target antigravity`와 자동 감지 기준, 프로젝트 `.agents/skills/` 경로의 Codex 공유 처리)를 RQ-41·DC-63으로 기록한다.
+- [x] 단계별 진입·기준 테스트·종료 기준과 M-46 수동 검증 체크리스트를 연결한다.
+
+기준 검증: 시작 작업 트리 clean(`fba3e24`), `docatlas check docs/IMPLEMENT.md` 오류 0.
+종료: 네 문서의 요구·결정·단계·인수가 모순 없이 연결된다.
+
+Files:
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 1단계 — 설치 판정·적용·명령과 도움말: 구현·검증 완료
+
+진입: 기준 문서 완료, DC-63 확정.
+
+- [x] `src/agent-kit/plan.js`: `CLIENTS`에 `'antigravity'`를 추가하고, 범위별 경로(`global`은 `.gemini/config/{skills,agents}`, `project`는 `.agents/{skills,agents}`), `detectClients`(`~/.gemini/config`·`~/.gemini/antigravity`·`~/.gemini/antigravity-cli`), `SAME_NAME` 경고, 반대쪽 범위 경로 대조, `ctxbin` 관리 폴더 확인, 전역 심볼릭 링크 예외(`.gemini`·`.gemini/config`), 같은 경로·해시 설치 기록 인식을 구현한다.
+- [x] `src/agent-kit/install.js`: 한 실행에서 같은 대상 `path`와 같은 `content`를 쓰는 작업(예: `--project`에서 Codex와 Antigravity의 `<root>/.agents/skills/<name>/SKILL.md`)을 물리적으로 한 번만 검사·백업·저널 기록·원자적 쓰기하도록 보강한다.
+- [x] `src/agent-kit/command.js` · `src/cli.js`: `--target claude|codex|antigravity|all`, `agents help`의 위치·옵션·다른 에이전트 안내와 빈 홈/잘못된 `--target` 오류 문구를 갱신한다.
+- [x] `test/agent-kit-plan.test.js` · `test/agent-kit-install.test.js`: Antigravity 감지·전역/프로젝트 계획·설치·재실행·같은 이름 경고·도움말 검사를 추가하고 `--target all` 기대값을 세 클라이언트에 맞춘다.
+
+기준 검증: `npm run check`, `node --test test/agent-kit*.js`.
+종료: 세 클라이언트 모두 전역·프로젝트 계획과 설치·재실행이 통과하고 기존 Claude Code·Codex 동작이 유지된다. M-46.
+
+검증(2026-11-25, macOS / Node 24.22.1): `npm run check`(102 JS·kit 1.6.0 여섯 쌍), `agent-kit` 단위 테스트 43/43 통과, `docatlas check docs/IMPLEMENT.md` 오류 0·경고 0.
+
+Files:
+- `src/agent-kit/plan.js` (modified)
+- `src/agent-kit/install.js` (modified)
+- `src/agent-kit/command.js` (modified)
+- `src/cli.js` (modified)
+- `test/agent-kit-plan.test.js` (modified)
+- `test/agent-kit-install.test.js` (modified)
+- `docs/IMPLEMENT.md` (modified)
+
+### Test Hardening: 구현·검증 완료
+
+진입: 1단계 완료.
+
+- [x] 프로젝트 설치(`--project --target all`)에서 Codex와 Antigravity가 공유하는 `<root>/.agents/skills/<name>/SKILL.md`의 수정본 건너뛰기(`skip-modified`), `--force` 단일 백업과 교체, 중간 실패 시 롤백 복원을 검증한다.
+- [x] 한 클라이언트로 먼저 프로젝트 설치한 뒤 다른 클라이언트나 `--target all`로 업데이트할 때 공유 스킬이 `replace (recorded)` 또는 `skip-downgrade`로 판정되는지 검증한다.
+- [x] 전역 설치에서 `~/.gemini` 또는 `~/.gemini/config`가 디렉터리 심볼릭 링크일 때 허용하고, 하위 `skills`·`agents`나 프로젝트 `.agents`가 심볼릭 링크일 때 `blocked (symlink)`로 막는지 검증한다.
+- [x] 한글·공백 HOME/프로젝트 경로, 동시 실행 잠금, `ctxbin` 관리 사본 보호를 세 클라이언트 기준으로 확인한다.
+
+기준 검증: `npm test`.
+종료: 공유 경로와 심볼릭 링크·권한·실패 복구 경계에서 데이터 손실이나 중복 백업 오류가 없다. M-46.
+
+검증(2026-11-25, macOS / Node 25.6.1): `agent-kit-hardening.test.js` 8/8(새 경계 테스트 2개 포함), `agent-kit` 전체 51/51, `npm test` 전체 255/255 통과.
+
+Files:
+- `test/agent-kit-hardening.test.js` (modified)
+- `docs/IMPLEMENT.md` (modified)
+
+### Integration Test와 안내 문서 반영: 구현·검증 완료
+
+진입: Test Hardening 통과.
+
+- [x] `agent-kit/README.md`, `README.md`, `METHOD.md`, `METHOD.ko.md`, `CHANGELOG.md`(Unreleased)에 Antigravity 설치 지원을 반영하고 `METHOD.md`·`METHOD.ko.md` 구조를 대조한다.
+- [x] `test/platform.test.js`와 `test/integration/agent-kit.test.js`(F-09)에서 실제 production tarball로 세 클라이언트 설치·재실행·프로젝트 설치·업데이트 안내를 검증한다.
+- [x] `npm run check`, `npm test`, `npm run test:platform`, `node --test test/integration/agent-kit.test.js`, `npm pack --dry-run`, `node bin/docatlas.js check docs/IMPLEMENT.md`를 실행하고 결과를 기록한다.
+
+기준 검증: `npm run check`, `npm test`, `npm run test:platform`, `node --test test/integration/agent-kit.test.js`, `npm pack --dry-run`.
+종료: 모든 자동 검증과 `docatlas check`가 통과하고 M-46 자동 근거와 현재 인계가 최신 상태로 기록된다.
+
+검증(2026-11-25, macOS / Node 25.6.1): `npm run check`(102 JS·kit 1.6.0 여섯 쌍), `npm test` 255/255, `npm run test:platform` 73/73,
+`test/integration/agent-kit.test.js`(F-09) 1/1 통과. `METHOD.md`·`METHOD.ko.md`는 제목 20·목록 69·펜스 8·표 행 24·링크 13으로 구조가 같다.
+`npm pack --dry-run`은 65파일(패키지 110.9kB·해제 378.9kB)이며 런타임 의존성 변화가 없다. `docatlas check docs/IMPLEMENT.md` 오류 0·경고 0.
+사용자 실제 HOME(`/Users/superlucky84`)에서 `agents install --dry-run`(`create=6`·`replace=12`) 확인 후 승인받아 `agents install --all`을 실행했다:
+세 클라이언트 자동 감지, Antigravity 6쌍 `create=12`(`~/.gemini/config/skills`·`agents`), Claude·Codex `replace=16`·`unchanged=10`, `skipped=0`·`blocked=0`, 종료 코드 0.
+
+Files:
+- `agent-kit/README.md` (modified)
+- `README.md` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `CHANGELOG.md` (modified)
+- `test/platform.test.js` (modified)
+- `test/integration/agent-kit.test.js` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 0.10.0 배포 준비: 완료
+
+진입: `doc-driven-reviewer-v1` 리뷰 `APPROVE`와 사용자 실제 HOME의 `agents install --all` 및 Antigravity 세션 발견(M-46) 확인 완료.
+
+- [x] `package.json`·`package-lock.json`(두 위치)을 `0.10.0`으로 올리고 `package.json`의 `description`·`keywords`에 Antigravity를 추가한다. 의존성과 kit 1.6.0은 유지한다.
+- [x] `CHANGELOG.md`의 Unreleased 항목을 `0.10.0 — 2026-11-25`로 정리한다.
+- [x] `M-46`의 실제 Antigravity 세션(`agy 1.5.16`) 스킬·서브에이전트 6종 발견 결과를 기록한다.
+- [x] `npm run check`, `node bin/docatlas.js --version`, `npm pack --dry-run`, `node bin/docatlas.js check docs/IMPLEMENT.md`를 0.10.0 후보에서 확인한다.
+
+기준 검증: 직전 1~3단계 회귀. 종료: `0.10.0` metadata/CLI/tarball 일치와 `docatlas check` 오류 0. 태그 푸시와 npm 게시는 사용자 단계다.
+
+검증(2026-11-25, macOS / Node 25.6.1): `npm run check`(102 JS·kit 1.6.0), `node bin/docatlas.js --version` 출력 `0.10.0`,
+`npm pack --dry-run` `docatlas@0.10.0` 65파일, `node bin/docatlas.js check docs/IMPLEMENT.md` 오류 0·경고 0.
+
+Files:
+- `package.json` (modified)
+- `package-lock.json` (modified)
+- `CHANGELOG.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
 ## 검증 예제와 기록
 
 F-01~08의 구체적인 구성은 [수동 검증의 가상 프로젝트](./MANUAL_TEST_CHECKLIST.md#가상-프로젝트)를 따른다.
@@ -3230,12 +3348,9 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 이 프로젝트의 현재 인계는 이 블록 하나다. 이전 내용은 git 이력에 남는다.
 2026-10-28 이전의 인계와 검증 기록은 [인계 이력](./handoff/HISTORY.md#구현-계획에서-옮긴-기록)에 있다.
 
-- 현재 작업(2026-11-24): RQ-38~40과 0.9.0 배포. 브랜치 `feat/record-format-diagnostics`,
-  계획 `a53d6d9`, 구현 `491e02d`, 리뷰 반영 `27201f7`, 그리고 이 인계를 포함한 0.9.0 배포 준비 커밋.
-  [작업 절](#기록-형식-완화와-형식-진단--계획), [배포 절](#090-배포--준비).
-- 완료: 1~3단계, Test Hardening, Integration Test, reviewer 검토 반영, 0.9.0 버전·CHANGELOG 준비와 로컬 검증.
-- 검증: check(102 JS·kit 1.6.0), Node 253/253, Chrome 56/56(`27201f7`), 설치 통합 8/8, pack 0.9.0 65파일·110,353바이트.
-- 다음: main 반영(사용자가 고른 경로) → main 플랫폼 CI 통과 → `v0.9.0` 태그 푸시 → Publish to npm 결과·npm latest·gitHead·provenance 확인.
-- 남은 인수: M-42~45 사람 확인, M-45의 실제 designer 세션, 독립 합성 에이전트 확인(선택). 기존 M-39·40, DC-46 최종 UX·DC-49 검토, 플랫폼·클라우드 인수는 각 절 상태를 유지한다.
-- 외부 사본(wiki·ctxbin)은 사용자가 요청할 때 갱신한다.
-- 차단: 없음. 원격 반영과 태그 푸시는 사용자 확인 대기.
+- 현재 작업(2026-11-25): RQ-41 Antigravity 클라이언트 설치 지원(DC-63, M-46)과 0.10.0 배포 준비. 시작 커밋 `fba3e24`(main), 현재 변경은 미커밋.
+  [작업 절](#antigravity-클라이언트-설치-지원--계획).
+- 완료: 기준 문서 4종(RQ-41, DC-63, 구현 단계, M-46), 1단계(`src/agent-kit/` 판정·적용·명령·도움말), Test Hardening, Integration Test(F-09·platform)와 안내 문서(`agent-kit/README.md`, `README.md`, `METHOD.md`, `METHOD.ko.md`, `CHANGELOG.md`), `doc-driven-reviewer-v1` 리뷰(`APPROVE`), 사용자 실제 환경 `agents install --all` 및 Antigravity 세션 6종 스킬·서브에이전트 발견 확인(M-46 통과), `0.10.0` 버전 준비.
+- 검증: `npm run check`(102 JS·kit 1.6.0), `npm test` 255/255, `npm run test:platform` 73/73, `test/integration/agent-kit.test.js` 1/1, `npm pack --dry-run` `docatlas@0.10.0` 65파일, `docatlas check docs/IMPLEMENT.md` 오류 0·경고 0.
+- 다음: 커밋 및 main 반영 → main 플랫폼 CI 통과 → `v0.10.0` 태그 푸시(Publish to npm).
+- 차단: 없음.

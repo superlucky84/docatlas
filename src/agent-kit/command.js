@@ -22,7 +22,7 @@ export const EXIT = { OK: 0, FAILED: 1, USAGE: 2, NEEDS_DECISION: 3 };
 
 const TARGETS = [...CLIENTS, 'all'];
 const DECISIONS = new Set(['skip-modified', 'skip-downgrade', 'skip-managed', 'blocked']);
-const OTHER_AGENTS = 'If you are an agent other than Claude Code or Codex, do not pick a --target; see docatlas agents help.';
+const OTHER_AGENTS = 'If you are an agent other than Claude Code, Codex or Antigravity, do not pick a --target; see docatlas agents help.';
 
 export function agentsHelp(kit, kitDir = KIT_DIRECTORY) {
   const items = kit
@@ -30,7 +30,7 @@ export function agentsHelp(kit, kitDir = KIT_DIRECTORY) {
       (item.requires?.length ? '; needs ' + item.requires.join(', ') : ''))
     : ['  (the agent kit could not be read)'];
   return [
-    'docatlas agents — install doc-driven agent skills and rules for Claude Code and Codex', '',
+    'docatlas agents — install doc-driven agent skills and rules for Claude Code, Codex and Antigravity', '',
     'For AI agents running this for a user:',
     '  1. Without --only, the command installs the kit items marked default below. If the user wants',
     '     only some, add --only <name> for each. An item that needs another one works only when that',
@@ -43,8 +43,8 @@ export function agentsHelp(kit, kitDir = KIT_DIRECTORY) {
     '  Never add --force on your own. Use it only after the user says to replace the skipped files;',
     '  it backs them up first.',
     '  The command never asks questions. Read its output lines and exit code.', '',
-    'If you are an agent other than Claude Code or Codex:',
-    '  This command installs only for Claude Code and Codex. Do not pick a --target for them;',
+    'If you are an agent other than Claude Code, Codex or Antigravity:',
+    '  This command installs only for Claude Code, Codex and Antigravity. Do not pick a --target for them;',
     '  you would not read those folders. Use the Markdown sources instead:',
     '    ' + path.join(kitDir, 'skills', '<name>', 'SKILL.md') + '  (skill)',
     '    ' + path.join(kitDir, 'agents', '<name>.md') + '  (agent rule)',
@@ -52,22 +52,25 @@ export function agentsHelp(kit, kitDir = KIT_DIRECTORY) {
     '  Ask the user where your client keeps rules or skills, adapt the files there, and tell them',
     '  that docatlas will not track or update those copies, so repeat this after updating docatlas.', '',
     'Usage:',
-    '  docatlas agents install [--project] [--root <dir>] [--target claude|codex|all]',
+    '  docatlas agents install [--project] [--root <dir>] [--target claude|codex|antigravity|all]',
     '                          [--all | --only <name>] [--dry-run] [--force]',
     '  docatlas agents help', '',
     'Kit' + (kit ? ' ' + kit.kitVersion : '') + ':',
     ...items, '',
     'Where files go (global by default):',
-    '  Claude Code  ~/.claude/skills/<name>/SKILL.md  ~/.claude/agents/<name>.md',
-    '  Codex        ~/.agents/skills/<name>/SKILL.md  ~/.codex/agents/<name>.toml',
+    '  Claude Code  ~/.claude/skills/<name>/SKILL.md         ~/.claude/agents/<name>.md',
+    '  Codex        ~/.agents/skills/<name>/SKILL.md         ~/.codex/agents/<name>.toml',
     '  Codex        An item with invocationPolicy also installs skills/<name>/agents/openai.yaml.',
-    '  --project puts the same paths under the project root instead of the home folder.',
+    '  Antigravity  ~/.gemini/config/skills/<name>/SKILL.md  ~/.gemini/config/agents/<name>.md',
+    '  --project puts Claude Code under <root>/.claude/, Codex under <root>/.agents/skills/ and',
+    '  <root>/.codex/agents/, and Antigravity under <root>/.agents/skills/ and <root>/.agents/agents/.',
     '  Claude Code uses a global skill before a project skill with the same name.',
-    '  Codex reads project agents only in trusted projects and then prefers them over global ones.', '',
+    '  Codex reads project agents only in trusted projects and then prefers them over global ones.',
+    '  Antigravity prefers project skills and agents over global ones.', '',
     'Options:',
     '  --project          Install into the project root instead of the home folder.',
     '  --root <dir>       Project root for --project and same-name checks (default: current folder).',
-    '  --target <client>  claude, codex or all (default: clients whose folders exist in the home folder).',
+    '  --target <client>  claude, codex, antigravity or all (default: clients whose folders exist in the home folder).',
     '  --all              Install every kit item, including items not marked default.',
     '  --only <name>      Install only this item; repeat for more.',
     '  --dry-run          Print what would happen without writing.',
@@ -158,8 +161,8 @@ export async function runAgents(args, {
     ? await detectClients(homeFolder)
     : values.target === 'all' ? CLIENTS : [values.target];
   if (clients.length === 0) {
-    return usage('No Claude Code or Codex folder was found in ' + homeFolder +
-      '. Choose clients with --target claude, codex or all.\n' + OTHER_AGENTS);
+    return usage('No Claude Code, Codex or Antigravity folder was found in ' + homeFolder +
+      '. Choose clients with --target claude, codex, antigravity or all.\n' + OTHER_AGENTS);
   }
   const dryRun = values['dry-run'] === true;
   let plan;

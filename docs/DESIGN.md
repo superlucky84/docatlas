@@ -1,6 +1,6 @@
 # docatlas 설계
 
-문서 기준: 2026-11-24.
+문서 기준: 2026-11-25.
 [요구사항](./REQUIREMENTS.md) · [구현 계획](./IMPLEMENT.md) · [수동 검증](./MANUAL_TEST_CHECKLIST.md)
 
 수집 API·포그라운드 CLI·카드 지도와 Markdown 서식 읽기가 동작한다.
@@ -464,6 +464,38 @@ src/agent-kit/plan.js가 파일을 쓰지 않고 대상마다 아래 순서로 �
   --only로 낡은 항목을 모두 지정해 같은 항목이 갱신되게 한다. kit에 없는 이름은 무시한다.
 - 설치 기록이 없으면 안내하지 않는다. Confluence에서 손으로 복사한 사본에는 안내가 뜨지 않으므로, 팀이 준비될 때 설치 명령을 쓰기 시작하면 된다(4단계 결정).
 - 파일을 쓰지 않는다. 서버 준비를 기다리게 하지 않고 비동기로 확인하며 읽기 실패는 무시한다. 종료를 시작한 뒤에는 출력하지 않는다.
+
+### Antigravity 클라이언트 확장 — RQ-41 / DC-63 계약
+
+2026-11-25 사용자 요청 및 추천안 전부 확정(DC-63). 기존 Claude Code·Codex 설치 계약과 같은 구조로 Antigravity(`antigravity`)를 추가한다.
+`agent-kit/`의 스킬·룰 원본과 `manifest.json`의 버전·해시는 바꾸지 않는다.
+
+| 항목 | 전역 (기본) | 프로젝트 (`--project`) | 같은 이름일 때 |
+| --- | --- | --- | --- |
+| Antigravity 스킬 | `~/.gemini/config/skills/<name>/SKILL.md` | `<root>/.agents/skills/<name>/SKILL.md` | 프로젝트 우선 (`Antigravity uses the project skill instead of the global skill.`) |
+| Antigravity 룰 | `~/.gemini/config/agents/<name>.md` | `<root>/.agents/agents/<name>.md` | 프로젝트 우선 (`Antigravity uses the project agent instead of the global agent.`) |
+
+- **공식 표준 경로와 대칭 매핑**: Antigravity 공식 커스터마이징 루트인 전역 `~/.gemini/config/`와 프로젝트 `<root>/.agents/`를 사용한다.
+  상시 규칙 파일(`AGENTS.md`·`CLAUDE.md`·`GEMINI.md`)은 수정하지 않고, 스킬은 `skills/<name>/SKILL.md`에,
+  에이전트 룰은 Custom Agent/Subagent 위치인 `agents/<name>.md`에 설치한다.
+- **원본 Markdown 설치**: `agent-kit/agents/<name>.md`는 YAML frontmatter에 `name`과 `description`만 가진 원본 Markdown 그대로 설치한다.
+  Antigravity의 `mainAgent`·`subagent`·`tools`는 생략 시 기본 허용으로 동작하므로 도구 이름을 하드코딩해 변환하지 않는다.
+  이에 따라 `manifest.json`의 `agent` 해시와 `previous`의 `agent`(`file`·`body`) 해시를 변환 없이 그대로 재사용한다.
+  `invocationPolicy`(`skills/<name>/agents/openai.yaml`)는 Codex 전용으로 유지한다.
+- **명령 옵션과 자동 감지**:
+  - `CLIENTS = ['claude', 'codex', 'antigravity']`, `--target claude|codex|antigravity|all`.
+  - `detectClients(home)`는 홈 폴더에 `~/.gemini/config`, `~/.gemini/antigravity`, `~/.gemini/antigravity-cli` 중 하나가 있으면 `antigravity`를 추가한다.
+  - 전역 설치의 심볼릭 링크 예외는 클라이언트 루트인 `~/.gemini`와 `~/.gemini/config`가 디렉터리를 가리키는 심볼릭 링크일 때 허용한다.
+    그 아래(`skills/`·`agents/`·파일)와 프로젝트 설치의 심볼릭 링크는 기존처럼 `blocked (symlink)`로 거부한다.
+  - `ctxbin` 관리 사본 확인(`.ctxbin-sync.json`)은 각 대상의 `skills` 또는 `agents` 폴더(`~/.gemini/config/skills`, `~/.gemini/config/agents`, `<root>/.agents/skills`, `<root>/.agents/agents`)를 기준으로 검사한다.
+  - 반대쪽 범위(`global`↔`project`)의 같은 이름 경고는 범위별 경로(`~/.gemini/config/{skills,agents}/...` ↔ `<root>/.agents/{skills,agents}/...`)를 짝지어 확인한다.
+- **프로젝트 스킬 경로(`<root>/.agents/skills/<name>/SKILL.md`) 공유**:
+  - `--project` 설치에서 `codex`와 `antigravity`는 스킬 경로 `<root>/.agents/skills/<name>/SKILL.md`와 파일 내용(`SKILL.md` 원본)을 공유한다.
+  - 계획(`planInstall`)과 탭 구분 출력 줄, `.docatlas/agents.json` 설치 기록 키(`codex/skill/<name>`, `antigravity/skill/<name>`)는 클라이언트별로 각각 유지한다.
+  - 기존 파일 판정(`decide`)에서 설치 기록을 대조할 때 해당 클라이언트의 키뿐 아니라 같은 상대 경로(`parts.join('/')`)와 현재 해시를 가진 설치 기록도 인정해, 한 클라이언트로 먼저 설치한 프로젝트 스킬을 다른 클라이언트가 수정본(`skip-modified`)으로 오인하지 않게 한다.
+  - 적용(`applyPlan`)에서는 한 실행 내 `writes` 중 같은 대상 `path`와 같은 `content`를 가진 항목을 물리적으로 한 번만 검사·백업·기록(journal)·원자적 쓰기하여 중복 백업(`EEXIST`)이나 롤백 저널 오염을 막는다.
+- **도움말과 문서**: `docatlas --help`, `docatlas agents help`(위치 표·옵션·다른 에이전트 안내·오류 문구), `agent-kit/README.md`, `README.md`, `METHOD.md`·`METHOD.ko.md`에 Antigravity를 반영한다.
+- **배포 버전**: 새 클라이언트 자동 감지와 `--target antigravity` 옵션이 추가되어 같은 설치 명령을 다시 실행하면 Antigravity 파일이 새로 생기므로(0.4.0 전례), npm 패키지 버전을 `0.10.0` 마이너로 올리고 `package.json`의 `description`·`keywords`와 `CHANGELOG.md`를 맞춘다. kit 1.6.0과 런타임 의존성은 유지한다.
 
 ## Phase 5 검증 계약
 
@@ -1647,6 +1679,11 @@ Refs는 문서 범위와 실제 ID 정의를 대조한다. 형식 도입 전 문
 설계 결정을 해소할 때 근거와 대응 검증 결과를 함께 기록한다.
 기술 선택은 해당 단계에서 검증하며 일상적인 선택마다 별도 사용자 승인을 요구하지 않는다.
 
+- [x] DC-63: 2026-11-25 사용자 요청 및 추천안 전부 확정(RQ-41). `docatlas agents install`에 `antigravity` 클라이언트를 추가한다.
+  전역은 `~/.gemini/config/skills/<name>/SKILL.md`와 `~/.gemini/config/agents/<name>.md`, 프로젝트는 `<root>/.agents/skills/<name>/SKILL.md`와
+  `<root>/.agents/agents/<name>.md`를 사용하며 에이전트 룰은 원본 Markdown 그대로 설치한다. 자동 감지는 `~/.gemini/config`·`~/.gemini/antigravity`·`~/.gemini/antigravity-cli`로 판단하고,
+  프로젝트 스킬 경로(`.agents/skills`)를 Codex와 함께 설치할 때는 클라이언트별 출력·기록을 유지하되 물리적 쓰기·백업·롤백 저널은 경로별로 한 번만 수행한다.
+  스킬·룰 원본 내용은 바뀌지 않으므로 kit 1.6.0을 유지하고, 패키지는 새 클라이언트 지원에 따라 npm 0.10.0 마이너 후보로 준비한다. M-46.
 - [x] DC-59: 2026-11-24 사용자 요청(RQ-38). 확정: `Files:` 다음 펜스 목록을 기록으로 읽는다. 에이전트 권고·사용자 수용: 빈 줄·목록 기호 차이와
   두 단계 접두사·글자 접미 ID를 받고, 펜스 안 `Files:` 예시 제외를 유지한다. 같은 날 사용자 확정: kind 생략은 목록·펜스 모두
   `unknown`으로 읽고 검사에서 경고한다. M-42.

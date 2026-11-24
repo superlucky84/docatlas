@@ -39,7 +39,7 @@ Read the full method in [METHOD.md](https://github.com/superlucky84/docatlas/blo
 | Part | What it is | Start with |
 | --- | --- | --- |
 | The method | The workflow and its writing rules | [METHOD.md](https://github.com/superlucky84/docatlas/blob/main/METHOD.md) |
-| Agent kit | Designer, implementer, and reviewer skills and rules for Claude Code and Codex, plus an optional one for private documents | `npx docatlas agents install` |
+| Agent kit | Designer, implementer, and reviewer skills and rules for Claude Code, Codex, and Antigravity, plus optional roles for private documents, cloud backups, and maintenance | `npx docatlas agents install` |
 | Document map | A local browser view of every document in a project | `npx docatlas` |
 | Example | A made-up shop with a complete document set, shown in the screenshot above | [examples/sample-shop](https://github.com/superlucky84/docatlas/tree/main/examples/sample-shop) |
 
@@ -47,7 +47,7 @@ Read the full method in [METHOD.md](https://github.com/superlucky84/docatlas/blo
 
 You need Node.js 22+ and npm.
 
-1. Install the designer, implementer, and reviewer skills and rules for Claude Code and Codex:
+1. Install the designer, implementer, and reviewer skills and rules for Claude Code, Codex, and Antigravity:
 
    ```sh
    npx docatlas agents install --dry-run   # preview; writes nothing

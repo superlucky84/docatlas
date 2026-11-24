@@ -135,6 +135,21 @@ test('F-09: a packaged install manages agent skills globally and per project wit
   await fs.access(path.join(project, '.claude', 'skills', 'doc-driven-private-v1', 'SKILL.md'));
   await fs.access(path.join(project, '.claude', 'skills', 'doc-driven-maintainer-v1', 'SKILL.md'));
   await fs.access(path.join(project, '.docatlas', 'agents.json'));
+  const antigravityHome = path.join(temporary, '안티그라비티 홈');
+  await fs.mkdir(path.join(antigravityHome, '.gemini', 'config'), { recursive: true });
+  const antigravityGlobal = await npm(['exec', '--offline', '--', 'docatlas', 'agents', 'install'], project,
+    { HOME: antigravityHome, USERPROFILE: antigravityHome });
+  assert.equal(lines(antigravityGlobal.stdout).filter(line => line[0] === 'create').length, 6);
+  assert.equal(await fs.readFile(path.join(antigravityHome, '.gemini/config/skills', DESIGNER, 'SKILL.md'), 'utf8'), kitSkill);
+  const antigravityProject = await agents(['install', '--project', '--target', 'antigravity']);
+  const antigravityProjectLines = lines(antigravityProject.stdout);
+  assert.deepEqual(antigravityProjectLines.filter(line => line[0] === 'unchanged').map(line => [line[2], line[3]]), [
+    ['antigravity', 'skill'], ['antigravity', 'skill'], ['antigravity', 'skill']
+  ]);
+  assert.deepEqual(antigravityProjectLines.filter(line => line[0] === 'create').map(line => [line[2], line[3]]), [
+    ['antigravity', 'agent'], ['antigravity', 'agent'], ['antigravity', 'agent']
+  ]);
+  await fs.access(path.join(project, '.agents', 'agents', DESIGNER + '.md'));
   const documentsAfter = await filesIn(project);
   for (const name of Object.keys(documentsBefore)) {
     if (name !== 'package.json' && name !== 'package-lock.json') assert.equal(documentsAfter[name], documentsBefore[name], name);

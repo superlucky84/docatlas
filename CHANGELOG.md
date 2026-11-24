@@ -7,6 +7,14 @@ Agent skill and rule versions are tracked separately in
 
 ## Unreleased
 
+## 0.10.0 — 2026-11-25
+
+- `docatlas agents install` and `docatlas agents help` now support Antigravity (`--target antigravity`
+  or auto-detected from `~/.gemini/config`, `~/.gemini/antigravity`, or `~/.gemini/antigravity-cli`).
+  Global installs write skills to `~/.gemini/config/skills/<name>/SKILL.md` and agent rules to
+  `~/.gemini/config/agents/<name>.md`; `--project` installs write to `<root>/.agents/skills/<name>/SKILL.md`
+  and `<root>/.agents/agents/<name>.md`, sharing `<root>/.agents/skills/` cleanly with Codex.
+
 ## 0.9.0 — 2026-11-24
 
 - Related files now read `Files:` blocks that a formatter separated with a blank line, a fenced

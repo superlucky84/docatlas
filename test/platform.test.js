@@ -169,12 +169,15 @@ test('installed production tarball exposes npm launchers and reads a manifest-fr
   await assert.rejects(fs.access(path.join(agentHome, '.claude', 'skills')), { code: 'ENOENT' });
   await npm(agentCommand, temporary, agentEnv);
   const kitSkill = (await fs.readFile(path.join(repository, 'agent-kit/skills/doc-driven-designer-v1/SKILL.md'), 'utf8')).replace(/\r\n/g, '\n');
+  const kitAgent = (await fs.readFile(path.join(repository, 'agent-kit/agents/doc-driven-designer-v1.md'), 'utf8')).replace(/\r\n/g, '\n');
   assert.equal(await fs.readFile(path.join(agentHome, '.claude/skills/doc-driven-designer-v1/SKILL.md'), 'utf8'), kitSkill);
   assert.match(await fs.readFile(path.join(agentHome, '.codex/agents/doc-driven-designer-v1.toml'), 'utf8'), /^name = "doc-driven-designer-v1"\n/);
+  assert.equal(await fs.readFile(path.join(agentHome, '.gemini/config/skills/doc-driven-designer-v1/SKILL.md'), 'utf8'), kitSkill);
+  assert.equal(await fs.readFile(path.join(agentHome, '.gemini/config/agents/doc-driven-designer-v1.md'), 'utf8'), kitAgent);
   await fs.access(path.join(agentHome, '.docatlas/agents.json'));
   const rerun = await npm(agentCommand, temporary, agentEnv);
   assert.deepEqual(rerun.stdout.trimEnd().split('\n').filter(line => !line.startsWith('summary')).map(line => line.split('\t')[0]),
-    Array(12).fill('unchanged'));
+    Array(18).fill('unchanged'));
   const installed = path.join(temporary, 'node_modules/docatlas');
   const { run: installedRun } = await import(pathToFileURL(path.join(installed, 'src/cli.js')));
   const cli = await controlledCli(project, installedRun);

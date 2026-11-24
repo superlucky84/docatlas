@@ -17,7 +17,7 @@ const help = [
   '  docatlas --help',
   '  docatlas --version',
   '  docatlas check [<file.md> ...]     Find Refs: and Files: records the map cannot read.',
-  '  docatlas agents install [options]  Install doc-driven agent skills for Claude Code and Codex.',
+  '  docatlas agents install [options]  Install doc-driven agent skills for Claude Code, Codex and Antigravity.',
   '  docatlas agents help               Steps for people and AI agents running the install.',
   '  docatlas private init|status       Keep documents only you see in .docatlas/private/.',
   '  docatlas private backup|list|restore',

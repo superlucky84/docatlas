@@ -113,19 +113,33 @@ test('client detection follows the home folders that exist', async t => {
   assert.deepEqual(await detectClients(home), ['codex']);
   await fs.mkdir(path.join(home, '.claude'));
   assert.deepEqual(await detectClients(home), ['claude', 'codex']);
+  await fs.mkdir(path.join(home, '.gemini'));
+  assert.deepEqual(await detectClients(home), ['claude', 'codex'], 'a bare ~/.gemini folder is not Antigravity');
+  await fs.mkdir(path.join(home, '.gemini', 'config'));
+  assert.deepEqual(await detectClients(home), ['claude', 'codex', 'antigravity']);
+  await fs.rm(path.join(home, '.gemini', 'config'), { recursive: true });
+  await fs.mkdir(path.join(home, '.gemini', 'antigravity'));
+  assert.deepEqual(await detectClients(home), ['claude', 'codex', 'antigravity']);
+  await fs.rm(path.join(home, '.gemini', 'antigravity'), { recursive: true });
+  await fs.mkdir(path.join(home, '.gemini', 'antigravity-cli'));
+  assert.deepEqual(await detectClients(home), ['claude', 'codex', 'antigravity']);
 });
 
 test('an empty home plans a create for each client file and writes nothing', async t => {
   const { root, home, project, kit } = await sampleKit(t);
   const before = await snapshot(root);
-  const plan = await planInstall({ kit, items: selectItems(kit), scope: 'global', home, root: project, clients: ['claude', 'codex'] });
+  const plan = await planInstall({
+    kit, items: selectItems(kit), scope: 'global', home, root: project, clients: ['claude', 'codex', 'antigravity']
+  });
   assert.deepEqual(await snapshot(root), before);
   assert.equal(plan.base, home);
   assert.deepEqual(plan.actions.map(action => [action.relative, action.action]), [
     ['.claude/skills/sample-designer/SKILL.md', 'create'],
     ['.claude/agents/sample-designer.md', 'create'],
     ['.agents/skills/sample-designer/SKILL.md', 'create'],
-    ['.codex/agents/sample-designer.toml', 'create']
+    ['.codex/agents/sample-designer.toml', 'create'],
+    ['.gemini/config/skills/sample-designer/SKILL.md', 'create'],
+    ['.gemini/config/agents/sample-designer.md', 'create']
   ]);
   const codex = plan.actions[3];
   assert.equal(codex.path, path.join(home, '.codex', 'agents', 'sample-designer.toml'));
@@ -133,6 +147,10 @@ test('an empty home plans a create for each client file and writes nothing', asy
     name: 'sample-designer', description: 'Sample rule for installer tests.', body: '# Sample rule\n\nCurrent rule.\n'
   }));
   assert.equal(codex.sha256, hashText(codex.content));
+  const antigravityAgent = plan.actions[5];
+  assert.equal(antigravityAgent.path, path.join(home, '.gemini', 'config', 'agents', 'sample-designer.md'));
+  assert.equal(antigravityAgent.content, plan.actions[1].content);
+  assert.equal(antigravityAgent.sha256, plan.actions[1].sha256);
   assert.deepEqual(plan.warnings, []);
   await assert.rejects(planInstall({ kit, items: [], scope: 'global', home, clients: [] }), AgentKitError);
   await assert.rejects(planInstall({ kit, items: [], scope: 'shared', home, clients: ['claude'] }), /Unknown install scope/);
@@ -223,17 +241,29 @@ test('same-name warnings explain which copy each client uses', async t => {
   const { home, project, kit, write } = await sampleKit(t);
   const [item] = selectItems(kit);
   await write(home, '.claude/skills/sample-designer/SKILL.md', item.files.skill.text);
+  await write(home, '.gemini/config/skills/sample-designer/SKILL.md', item.files.skill.text);
+  await write(home, '.gemini/config/agents/sample-designer.md', item.files.agent.text);
   await write(project, '.codex/agents/sample-designer.toml', item.files.codexAgent.text);
-  const local = await planInstall({ kit, items: [item], scope: 'project', home, root: project, clients: ['claude', 'codex'] });
+  await write(project, '.agents/agents/sample-designer.md', item.files.agent.text);
+  const local = await planInstall({
+    kit, items: [item], scope: 'project', home, root: project, clients: ['claude', 'codex', 'antigravity']
+  });
   assert.deepEqual(local.warnings.map(warning => [warning.code, warning.client, warning.kind, warning.path]), [
     ['same-name', 'claude', 'skill', path.join(home, '.claude', 'skills', 'sample-designer', 'SKILL.md')],
+    ['same-name', 'antigravity', 'skill', path.join(home, '.gemini', 'config', 'skills', 'sample-designer', 'SKILL.md')],
+    ['same-name', 'antigravity', 'agent', path.join(home, '.gemini', 'config', 'agents', 'sample-designer.md')],
     ['codex-trust', 'codex', 'agent', undefined]
   ]);
   assert.match(local.warnings[0].message, /uses the global skill instead of the project skill/);
-  assert.match(local.warnings[1].message, /only after the project is trusted/);
-  const global = await planInstall({ kit, items: [item], scope: 'global', home, root: project, clients: ['codex'] });
-  assert.equal(global.warnings.length, 1);
+  assert.match(local.warnings[1].message, /Antigravity uses the project skill instead of the global skill/);
+  assert.match(local.warnings[2].message, /Antigravity uses the project agent instead of the global agent/);
+  assert.match(local.warnings[3].message, /only after the project is trusted/);
+  const global = await planInstall({
+    kit, items: [item], scope: 'global', home, root: project, clients: ['codex', 'antigravity']
+  });
+  assert.equal(global.warnings.length, 2);
   assert.match(global.warnings[0].message, /Codex uses the project agent instead of the global agent in a trusted project/);
+  assert.match(global.warnings[1].message, /Antigravity uses the project agent instead of the global agent/);
   const claudeOnly = await planInstall({ kit, items: [item], scope: 'project', home, root: project, clients: ['claude'] });
   assert.ok(!claudeOnly.warnings.some(warning => warning.code === 'codex-trust'));
   const same = await planInstall({ kit, items: [item], scope: 'global', home, root: home, clients: ['claude'] });

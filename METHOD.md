@@ -319,7 +319,7 @@ A starting point for the middle level. Copy it, then change it to fit your proje
   phases may not have them, so also search the document text when finding related documents.
 ```
 
-Codex reads `AGENTS.md` and Claude Code reads `CLAUDE.md`. If you use both, keep the text in
+Codex and Antigravity read `AGENTS.md` and Claude Code reads `CLAUDE.md`. If you use both, keep the text in
 one file; a `CLAUDE.md` can import it with a line containing `@AGENTS.md`.
 `docatlas agents install` never edits these files, so how much to adopt stays your choice.
 
@@ -339,7 +339,7 @@ A few prompts that fit the flow:
 ## Tools in this repository
 
 - **Agent kit:** `npx docatlas agents install` installs the designer, implementer, and reviewer
-  skills and rules for Claude Code and Codex. `--all` adds the private documents and backup skills.
+  skills and rules for Claude Code, Codex, and Antigravity. `--all` adds the private documents, backup, and maintainer skills.
 - **Document map:** `npx docatlas` opens a local map of every document in a project.
 
 Neither is required. The method is Markdown plus the habits above.

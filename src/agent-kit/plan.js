@@ -3,7 +3,7 @@ import path from 'node:path';
 import { AgentKitError, compareVersions } from './kit.js';
 import { bodyOf, hashText } from './text.js';
 
-export const CLIENTS = ['claude', 'codex'];
+export const CLIENTS = ['claude', 'codex', 'antigravity'];
 export const SCOPES = ['global', 'project'];
 export const RECORD_PATH = ['.docatlas', 'agents.json'];
 
@@ -17,16 +17,27 @@ const LAYOUT = {
     skill: name => ['.agents', 'skills', name, 'SKILL.md'],
     agent: name => ['.codex', 'agents', name + '.toml'],
     'skill-policy': name => ['.agents', 'skills', name, 'agents', 'openai.yaml']
+  },
+  antigravity: {
+    skill: (name, scope = 'global') => scope === 'project'
+      ? ['.agents', 'skills', name, 'SKILL.md']
+      : ['.gemini', 'config', 'skills', name, 'SKILL.md'],
+    agent: (name, scope = 'global') => scope === 'project'
+      ? ['.agents', 'agents', name + '.md']
+      : ['.gemini', 'config', 'agents', name + '.md']
   }
 };
 
 // What each client does when the global and project folders define the same name.
 // Claude Code: documentation checked 2026-10-28. Codex: observed with Codex CLI 0.165.0 on 2026-10-28.
+// Antigravity: customization loading priority checked 2026-11-25.
 const SAME_NAME = {
   'claude:skill': 'Claude Code uses the global skill instead of the project skill.',
   'claude:agent': 'Claude Code uses the project agent instead of the global agent.',
   'codex:skill': 'Codex lists both skills without merging them.',
-  'codex:agent': 'Codex uses the project agent instead of the global agent in a trusted project.'
+  'codex:agent': 'Codex uses the project agent instead of the global agent in a trusted project.',
+  'antigravity:skill': 'Antigravity uses the project skill instead of the global skill.',
+  'antigravity:agent': 'Antigravity uses the project agent instead of the global agent.'
 };
 const CODEX_TRUST = 'Codex reads project agents in .codex/agents only after the project is trusted.';
 
@@ -52,6 +63,11 @@ export async function detectClients(home) {
   }
   if (await lstatOrNull(path.join(home, '.codex')) || await lstatOrNull(path.join(home, '.agents'))) {
     found.push('codex');
+  }
+  if (await lstatOrNull(path.join(home, '.gemini', 'config')) ||
+    await lstatOrNull(path.join(home, '.gemini', 'antigravity')) ||
+    await lstatOrNull(path.join(home, '.gemini', 'antigravity-cli'))) {
+    found.push('antigravity');
   }
   return found;
 }
@@ -112,7 +128,7 @@ async function ctxbinNames(directory, cache) {
 }
 
 // Refuses paths that pass through a symbolic link. In the global scope the client folder
-// itself (for example ~/.claude kept in a dotfiles repository) may be a link to a directory.
+// itself (for example ~/.claude or ~/.gemini/config kept in a dotfiles repository) may be a link to a directory.
 export async function unsafeReason(base, parts, allowClientLink) {
   let current = base;
   for (const [index, part] of parts.entries()) {
@@ -123,7 +139,8 @@ export async function unsafeReason(base, parts, allowClientLink) {
     }
     const last = index === parts.length - 1;
     if (stat.isSymbolicLink()) {
-      if (!allowClientLink || index !== 0) {
+      const allowedRoot = index === 0 || (index === 1 && parts[0] === '.gemini' && part === 'config');
+      if (!allowClientLink || !allowedRoot) {
         return 'symlink';
       }
       const target = await fs.stat(current).catch(() => null);
@@ -137,6 +154,10 @@ export async function unsafeReason(base, parts, allowClientLink) {
     }
   }
   return null;
+}
+
+function containerParts(parts, kind) {
+  return parts.slice(0, kind === 'agent' ? -1 : kind === 'skill-policy' ? -3 : -2);
 }
 
 // observed is the target's hash at planning time; installs re-check it before writing.
@@ -159,11 +180,15 @@ async function decide({ base, parts, scope, item, client, kind, sha256, key, rec
     return outcome('unchanged', 'same', current);
   }
   const skip = (action, reason) => force ? outcome('replace', reason, current, true) : outcome(action, reason, current);
-  if ((await ctxbinNames(path.join(base, ...parts.slice(0, 2)), cache)).has(item.name)) {
+  if ((await ctxbinNames(path.join(base, ...containerParts(parts, kind)), cache)).has(item.name)) {
     return skip('skip-managed', 'ctxbin');
   }
-  const entry = recorded[key];
-  if (isRecord(entry) && entry.path === parts.join('/') && entry.sha256 === current) {
+  const relative = parts.join('/');
+  const direct = recorded[key];
+  const entry = isRecord(direct) && direct.path === relative && direct.sha256 === current
+    ? direct
+    : Object.values(recorded).find(candidate => isRecord(candidate) && candidate.path === relative && candidate.sha256 === current);
+  if (entry) {
     if (compareVersions(entry.kitVersion, kitVersion) > 0) {
       return skip('skip-downgrade', 'downgrade');
     }
@@ -201,6 +226,7 @@ export async function planInstall({ kit, items, scope, home, root, clients, forc
   }
   const base = scope === 'global' ? home : root;
   const other = scope === 'global' ? root : home;
+  const otherScope = scope === 'global' ? 'project' : 'global';
   if (!base) {
     throw new AgentKitError(scope === 'global' ? 'A home folder is required.' : 'A project root is required.');
   }
@@ -212,7 +238,7 @@ export async function planInstall({ kit, items, scope, home, root, clients, forc
     for (const client of clients) {
       const kinds = client === 'codex' && item.files.policy ? [...KINDS, 'skill-policy'] : KINDS;
       for (const kind of kinds) {
-        const parts = LAYOUT[client][kind](item.name);
+        const parts = LAYOUT[client][kind](item.name, scope);
         const key = client + '/' + kind + '/' + item.name;
         const { text, sha256 } = desiredFile(item, client, kind);
         const result = await decide({
@@ -222,7 +248,8 @@ export async function planInstall({ kit, items, scope, home, root, clients, forc
           ...result, key, client, kind, name: item.name, version: item.version,
           relative: parts.join('/'), path: path.join(base, ...parts), content: text, sha256
         });
-        const counterpart = other && path.resolve(other) !== path.resolve(base) ? path.join(other, ...parts) : null;
+        const otherParts = LAYOUT[client][kind](item.name, otherScope);
+        const counterpart = other && path.resolve(other) !== path.resolve(base) ? path.join(other, ...otherParts) : null;
         if (counterpart && await lstatOrNull(counterpart)) {
           warnings.push({
             code: 'same-name', client, kind, name: item.name, path: counterpart,

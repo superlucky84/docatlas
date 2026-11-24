@@ -1,6 +1,6 @@
 # docatlas 요구사항
 
-문서 기준: 2026-11-24. 문서 기반 개발(Doc-Driven Development)을 사용하는
+문서 기준: 2026-11-25. 문서 기반 개발(Doc-Driven Development)을 사용하는
 프로젝트를 위한 독립 CLI 도구다. DDD는 이 문서에서 이 의미로 사용한다.
 
 [설계](./DESIGN.md) · [구현 계획](./IMPLEMENT.md) · [수동 검증](./MANUAL_TEST_CHECKLIST.md)
@@ -100,6 +100,7 @@
 | RQ-38 | 포매터가 바꾼 표기, `Files:` 바로 다음의 코드 펜스 목록, 프로젝트의 ID 체계(`FH-RQ-02`, `DC-3a`)를 Files·Refs 기록으로 읽는다(2026-11-24 사용자 요청). | Prettier 서식화 전후의 추출 결과가 같다. 펜스 목록의 경로와 kind 없는 항목이 관련 파일로 보인다. 펜스 안의 `Files:` 형식 예시는 기록이 되지 않는다. DC-59, M-42. |
 | RQ-39 | 읽지 못한 기록을 조용히 넘기지 않는다. 뷰어에 줄 번호와 이유를 보이고, 같은 검사를 CLI 명령으로 실행한다(2026-11-24 사용자 요청). | 깨진 블록이 있는 문서에서 "기록 없음" 대신 오류 줄과 이유가 보인다. CLI 검사가 오류를 종료 코드와 파싱 가능한 결과로 보고하고 문서를 바꾸지 않는다. DC-60, M-43, M-44. |
 | RQ-40 | designer·implementer·reviewer·maintainer 스킬과 룰에 허용 형식과 피할 형식을 짧게 알리고, 기록을 쓰거나 고친 뒤 검사하게 한다. 역할당 몇 줄 수준으로 억제한다(2026-11-24 사용자 확인). | 네 역할이 같은 허용 형식을 말하고 문법 전체는 작성 역할에만 있다. 정비자는 펜스와 목록을 서로 바꾸지 않고 형식 오류만 고친다. 추가 분량을 기록한다. DC-61, M-45. |
+| RQ-41 | docatlas agents install과 도움말에 Antigravity 클라이언트를 추가해 Claude Code·Codex와 같은 방식으로 스킬과 에이전트 룰을 전역 및 프로젝트 위치에 설치·갱신한다(2026-11-25 사용자 요청·추천안 확정). | 전역(`~/.gemini/config/skills`·`agents`)과 프로젝트(`<root>/.agents/skills`·`agents`) 설치, 클라이언트 자동 감지, 원본 Markdown 에이전트 룰 설치, 프로젝트 스킬 경로(`.agents/skills`)의 Codex 공유, 기존 보호·백업·기록·업데이트 안내를 검증한다. DC-63, M-46. |
 
 카드의 정확한 크기, 색상과 문서 뷰어의 배치는 설계 제안이다.
 사용자가 제시한 화면 아이디어는 실제 문서로 검토하며 개선할 수 있다.
@@ -410,6 +411,32 @@ METHOD 두 언어판·guide/document-map.md다. RQ-20의 권장 작성 형식(�
 구체적인 계약은 [설계](./DESIGN.md#기록-형식-완화와-형식-진단--rq-3840-계약),
 단계는 [구현 계획](./IMPLEMENT.md#기록-형식-완화와-형식-진단--계획), 인수는 수동 검증 M-42~45를 따른다.
 
+## Antigravity 에이전트 스킬·룰 설치 지원 — 2026-11-25 사용자 결정
+
+상태: **구현·자동 검증·실제 세션 인수 완료, 0.10.0 배포 준비**. 기준 문서는 이 docs/의 네 파일이다. 구현 범위는 `src/agent-kit/`(`plan.js`·`install.js`·`command.js`),
+`src/cli.js` 도움말, `package.json`·`package-lock.json`, `agent-kit/README.md`, `README.md`, `METHOD.md`·`METHOD.ko.md`, `CHANGELOG.md`와 대응 테스트다.
+`agent-kit/`의 여섯 스킬·룰 원본 파일과 `manifest.json`의 버전·해시는 바꾸지 않는다.
+
+- 확인됨(2026-11-25 사용자 요청): `docatlas agents install`에 Claude Code와 Codex만 있고 Antigravity가 빠져 있으므로,
+  기존 두 클라이언트에 준하는 방식으로 Antigravity 설치 지원을 추가한다. 앞으로 정책이 바뀌지 않을 공식 표준 위치에 설치하기를 원했다.
+- 확인됨(2026-11-25, DC-63 추천안 전부 확정):
+  - **설치 위치**: Antigravity 공식 커스터마이징 표준 루트인 전역 `~/.gemini/config/`와 프로젝트 `<root>/.agents/`를 사용한다.
+    스킬은 전역 `~/.gemini/config/skills/<name>/SKILL.md`·프로젝트 `<root>/.agents/skills/<name>/SKILL.md`에,
+    에이전트 룰은 전역 `~/.gemini/config/agents/<name>.md`·프로젝트 `<root>/.agents/agents/<name>.md`에 설치한다.
+    상시 규칙 파일(`AGENTS.md`·`CLAUDE.md`·`GEMINI.md`)은 수정하지 않는다.
+  - **에이전트 파일 형식**: Claude Code와 마찬가지로 `agent-kit/agents/<name>.md` 원본 Markdown을 변환 없이 그대로 설치한다.
+    내부 도구 이름을 frontmatter에 하드코딩하지 않아 향후 정책·도구 변경의 영향을 피하고, `manifest.json`의 기존 `agent` 해시와
+    `previous` 해시(과거 버전 교체 판정)를 그대로 재사용한다. `invocationPolicy`(`agents/openai.yaml`)는 Codex 전용으로 유지한다.
+  - **클라이언트 지정과 자동 감지**: `--target`에 `antigravity`를 추가한다(`claude|codex|antigravity|all`).
+    `--target`이 없을 때는 홈 폴더에 `~/.gemini/config`, `~/.gemini/antigravity`, `~/.gemini/antigravity-cli` 중 하나가 있으면
+    Antigravity를 감지한다. 전역 설치의 dotfiles 심볼릭 링크 예외는 `~/.gemini`와 `~/.gemini/config` 디렉터리 링크에 적용한다.
+  - **프로젝트 스킬 경로 공유**: `--project` 설치에서 Codex와 Antigravity가 공유하는 `<root>/.agents/skills/<name>/SKILL.md`는
+    클라이언트별 계획·출력 줄·설치 기록 키(`codex/skill/<name>`, `antigravity/skill/<name>`)를 유지하되,
+    같은 실행 안에서 동일 경로·동일 내용 파일을 중복으로 쓰거나 백업 충돌을 일으키지 않게 병합하고, 같은 경로·해시의 기존 설치 기록을 함께 인식한다.
+
+구체적인 계약은 [설계](./DESIGN.md#antigravity-클라이언트-확장--rq-41--dc-63-계약),
+단계는 [구현 계획](./IMPLEMENT.md#antigravity-클라이언트-설치-지원--계획), 인수는 수동 검증 M-46을 따른다.
+
 ## npm 게시 자동화 — 2026-11-01 사용자 결정
 
 사용자 질문: npm 배포를 GitHub Actions로 자동화할 수 있나. 지금까지는 사용자가 main에서 npm publish를 직접 실행했다.
@@ -539,7 +566,8 @@ RQ-34~36의 후속 문서 정비 역할은 사용자가 요청한 에이전트 �
 2026-11-08 RQ-33~37 구현·자동/합성 검증 완료: DC-56의 이름·버전·호출 정책·반환 구성을 기존 kit 구조로 해소했다.
 기본 설치 제외·선택 설치는 사용자 결정대로 유지하며, 구현·행동 인수 결과는 M-35~40으로 구분해 기록한다.
 2026-11-08 PR #5 리뷰 후속(DC-58)의 문구 보완은 사용자 확정으로 해소했다.
-2026-11-24 RQ-38~40을 정리하고 DC-59~62를 같은 날 사용자 확정으로 해소했다. 새 TBD는 없다.
+2026-11-24 RQ-38~40을 정리하고 DC-59~62를 같은 날 사용자 확정으로 해소했다.
+2026-11-25 Antigravity 클라이언트 설치 지원(RQ-41)의 DC-63을 사용자 추천안 확정으로 해소했다. 새 TBD는 없다.
 
 수집·계층·제목·설명·선택 설정의 첫 계약은 Phase 1에서 구현했다.
 렌더링·링크·이미지·읽기 상태의 첫 계약은 Phase 3에서 구현했다.

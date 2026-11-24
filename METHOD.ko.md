@@ -288,7 +288,7 @@ Implementer와 Reviewer는 요청할 때만 실행됩니다. 정확한 규칙은
   있으니 관련 문서를 찾을 때 본문도 함께 검색한다.
 ```
 
-Codex는 `AGENTS.md`를, Claude Code는 `CLAUDE.md`를 읽습니다. 둘 다 쓴다면 내용은 한 파일에 두고,
+Codex와 Antigravity는 `AGENTS.md`를, Claude Code는 `CLAUDE.md`를 읽습니다. 둘 다 쓴다면 내용은 한 파일에 두고,
 `CLAUDE.md`에 `@AGENTS.md` 한 줄을 넣어 가져올 수 있습니다. `docatlas agents install`은 이 파일들을
 고치지 않으므로 얼마나 적용할지는 언제나 사용자가 정합니다.
 
@@ -306,8 +306,8 @@ Codex는 `AGENTS.md`를, Claude Code는 `CLAUDE.md`를 읽습니다. 둘 다 쓴
 
 ## 이 저장소의 도구
 
-- **에이전트 킷:** `npx docatlas agents install`이 Claude Code와 Codex용 designer·implementer·reviewer
-  스킬과 룰을 설치합니다. `--all`을 주면 개인 문서와 백업 스킬도 설치합니다.
+- **에이전트 킷:** `npx docatlas agents install`이 Claude Code·Codex·Antigravity용 designer·implementer·reviewer
+  스킬과 룰을 설치합니다. `--all`을 주면 개인 문서·백업·정비자 스킬도 설치합니다.
 - **문서 지도:** `npx docatlas`가 프로젝트의 모든 문서를 보여 주는 로컬 지도를 엽니다.
 
 둘 다 필수는 아닙니다. 방법론은 Markdown과 위의 습관이 전부입니다.

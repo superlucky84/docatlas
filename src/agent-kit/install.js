@@ -105,6 +105,24 @@ function sortedObject(value) {
   return Object.fromEntries(Object.entries(value).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 }
 
+function uniqueWrites(actions) {
+  const byPath = new Map();
+  for (const action of actions) {
+    if (!WRITES.has(action.action)) {
+      continue;
+    }
+    const existing = byPath.get(action.path);
+    if (!existing) {
+      byPath.set(action.path, action);
+    } else if (existing.content !== action.content || existing.observed !== action.observed) {
+      throw new AgentKitError('Conflicting writes planned for ' + action.path + '. Nothing was changed.');
+    } else if (action.backup && !existing.backup) {
+      byPath.set(action.path, { ...existing, backup: true });
+    }
+  }
+  return [...byPath.values()];
+}
+
 async function checkTargets(plan, writes) {
   const allowClientLink = plan.scope === 'global';
   for (const action of writes) {
@@ -129,7 +147,7 @@ export async function applyPlan(plan, { home, now = new Date() } = {}) {
   if (!home) {
     throw new AgentKitError('A home folder is required for backups.');
   }
-  const writes = plan.actions.filter(action => WRITES.has(action.action));
+  const writes = uniqueWrites(plan.actions);
   const created = [];
   const journal = [];
   const backups = [];
