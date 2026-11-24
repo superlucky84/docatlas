@@ -4,9 +4,13 @@ import GithubSlugger, { slug } from 'github-slugger';
 const md = new MarkdownIt({ html: false, linkify: false, typographer: false });
 const KIND = '(?: \\((added|modified|deleted|renamed)\\))?';
 // RQ-20 list entries; DC-59 makes the kind optional and accepts any bullet marker.
-const LIST_ENTRY = new RegExp('^[-*+] `([^`]+)`(?: -> `([^`]+)`)?' + KIND + '$');
-// DC-59 fenced entries: one path per line, backticks optional.
-const FENCE_ENTRY = new RegExp('^`?([^`]+?)`?(?: -> `?([^`]+?)`?)?' + KIND + '$');
+const LIST_ENTRY = new RegExp('^ {0,3}[-*+] `([^`]+)`(?: -> `([^`]+)`)?' + KIND + '$');
+// DC-59 fenced entries: one path per line. A path with spaces keeps its backticks, so trailing notes are errors.
+const FENCE_PATH = '(?:`([^`]+)`|([^\\s`]+))';
+const FENCE_ENTRY = new RegExp('^' + FENCE_PATH + '(?: -> ' + FENCE_PATH + ')?' + KIND + '$');
+const LIST_ITEM = /^ {0,3}[-*+](?:\s|$)/;
+const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
+const LABEL = /^ {0,3}Files:(?: none)?\s*$/;
 const ID = '[A-Z][A-Z0-9]*(?:-[A-Z][A-Z0-9]*)*-[0-9]+[a-z]?';
 const REFS = new RegExp('^Refs: (none|' + ID + '(?:,\\s*' + ID + ')*)$');
 
@@ -24,46 +28,47 @@ function safePath(value) {
     !value.split('/').some(part => part === '..' || part === '.') && !value.includes('//');
 }
 
-/** Turn one matched entry into a file record, or null when its paths are unsafe or inconsistent. */
-function toFile(match) {
-  const [, first, second, written] = match;
+/** Turn one parsed entry into a file record, or null when its paths are unsafe or inconsistent. */
+function toFile({ first, second, written }) {
   // An arrow already says the entry is a rename, so only a bare path falls back to unknown.
   const kind = written || (second ? 'renamed' : 'unknown');
   if (!safePath(first) || (second && !safePath(second)) || Boolean(second) !== (kind === 'renamed')) return null;
   return { path: second || first, kind, ...(second ? { oldPath: first } : {}) };
 }
 
-/** Find each top-level `Files:` paragraph and the list or fence after it, whatever blank lines separate them. */
-function fileBlocks(tokens, lines) {
-  const blocks = new Map();
-  for (let index = 0; index < tokens.length; index++) {
-    const token = tokens[index];
-    if (token.type !== 'paragraph_open' || token.level !== 0) continue;
-    const line = token.map[0];
-    // A top-level paragraph may be indented up to three spaces.
-    const label = lines[line].trim();
-    if (label !== 'Files:' && label !== 'Files: none') continue;
-    if (token.map[1] - line !== 1) {
-      // Text right under the label joins its paragraph, so there is no list or fence to read.
-      blocks.set(line, { broken: true, none: label === 'Files: none', entries: [] });
-      continue;
+function parseList(text) {
+  const match = text.match(LIST_ENTRY);
+  return match && { first: match[1], second: match[2], written: match[3] };
+}
+
+function parseFenced(text) {
+  const match = text.match(FENCE_ENTRY);
+  return match && { first: match[1] ?? match[2], second: match[3] ?? match[4], written: match[5] };
+}
+
+/**
+ * Read the list or fenced block after a `Files:` label, whatever blank lines separate them. This works
+ * line by line, like RQ-20, so a label that Markdown joins to the text above it is still read.
+ */
+function readBlock(lines, label) {
+  const entries = [];
+  let line = label + 1;
+  while (line < lines.length && !lines[line].trim()) line++;
+  const fence = lines[line]?.match(FENCE_OPEN);
+  if (fence) {
+    const close = new RegExp('^ {0,3}' + fence[1][0].replace('`', '\\`') + '{' + fence[1].length + ',}\\s*$');
+    for (line++; line < lines.length && !close.test(lines[line]); line++) {
+      if (lines[line].trim()) entries.push({ line, entry: parseFenced(lines[line].trim()) });
     }
-    const entries = [];
-    const next = tokens[index + 3];
-    if (label === 'Files:' && next?.type === 'bullet_list_open' && next.level === 0) {
-      for (let item = index + 4; tokens[item] && tokens[item].type !== 'bullet_list_close'; item++) {
-        if (tokens[item].type !== 'list_item_open' || tokens[item].level !== 1) continue;
-        const at = tokens[item].map[0];
-        entries.push({ line: at, match: lines[at].trim().match(LIST_ENTRY) });
-      }
-    } else if (label === 'Files:' && next?.type === 'fence' && next.level === 0) {
-      next.content.split('\n').forEach((text, offset) => {
-        if (text.trim()) entries.push({ line: next.map[0] + 1 + offset, match: text.trim().match(FENCE_ENTRY) });
-      });
-    }
-    blocks.set(line, { none: label === 'Files: none', entries });
+    return entries;
   }
-  return blocks;
+  while (line < lines.length && LIST_ITEM.test(lines[line])) {
+    entries.push({ line, entry: parseList(lines[line].trimEnd()) });
+    let next = line + 1;
+    while (next < lines.length && !lines[next].trim()) next++;
+    line = next;
+  }
+  return entries;
 }
 
 const LABEL_LIKE = /^(?:\*\*|__)?Files(?:\*\*|__)?\s*(?:\([^)]*\))?\s*:/;
@@ -108,7 +113,6 @@ export function extractRecordData(markdown) {
       });
     }
   }
-  const blocks = fileBlocks(tokens, lines);
   const stack = [];
   const records = [];
   const issues = [];
@@ -126,28 +130,27 @@ export function extractRecordData(markdown) {
     const text = lines[line].trimEnd();
     const refs = text.match(REFS);
     if (refs && stack.length) stack.at(-1).refs = refs[1] === 'none' ? [] : refs[1].split(/,\s*/);
-    else if (!refs && text.startsWith('Refs:')) report(line, 'refs-format');
-    const block = blocks.get(line);
-    if (!block) {
-      if (/^Files:\s*\S/.test(text)) report(line, 'files-inline');
-      else if (text !== 'Files:' && LABEL_LIKE.test(text)) report(line, 'files-label');
+    // Ordinary prose that starts with "Refs:" is not reported unless it tries to name an ID.
+    else if (!refs && text.startsWith('Refs:') && /[A-Z][A-Z0-9]*-[0-9]/.test(text)) report(line, 'refs-format');
+    if (!LABEL.test(text)) {
+      // Likewise "Files:" prose is reported only when the label line holds something path-like.
+      if (/^Files:\s*\S/.test(text) && /[`/,]|\w\.\w/.test(text.slice(6))) report(line, 'files-inline');
+      else if (!/^Files:/.test(text) && LABEL_LIKE.test(text)) report(line, 'files-label');
       continue;
     }
-    if (block.broken) {
-      report(line, block.none ? 'files-label' : 'files-empty');
-      continue;
-    }
+    const none = text.trim() === 'Files: none';
+    const entries = none ? [] : readBlock(lines, line);
     const files = [];
-    for (const entry of block.entries) {
-      const file = entry.match && toFile(entry.match);
-      if (!entry.match) report(entry.line, 'files-entry');
-      else if (!file) report(entry.line, 'files-path');
+    for (const { line: at, entry } of entries) {
+      const file = entry && toFile(entry);
+      if (!entry) report(at, 'files-entry');
+      else if (!file) report(at, 'files-path');
       else {
-        if (file.kind === 'unknown') report(entry.line, 'files-kind');
+        if (file.kind === 'unknown') report(at, 'files-kind');
         files.push(file);
       }
     }
-    if (!block.none && !block.entries.length) report(line, 'files-empty');
+    if (!none && !entries.length) report(line, 'files-empty');
     if (!stack.length) continue;
     records.push({
       title: stack.at(-1).title, section: stack.map(item => item.title).slice(1).join(' / ') || stack[0].title,

@@ -52,7 +52,7 @@ test('a fenced path list after Files: is a record and a missing kind reads as un
   const plan = [
     '# Plan', '', '## Text fence', '', 'Files:', '', '```text', 'src/a.js (modified)', '',
     'src/b.js', '`src/c.js` (added)', 'src/old.js -> src/new.js', '```', '',
-    '## Bare fence', '', 'Files:', '~~~', 'src/사용 방법.js', '~~~', '',
+    '## Bare fence', '', 'Files:', '~~~', '`src/사용 방법.js`', '~~~', '',
     '## Bare list', '', 'Files:', '- `src/d.js`', '+ `src/e.js` (deleted)', ''
   ].join('\n');
   const records = extractPhaseRecords(plan);
@@ -60,11 +60,12 @@ test('a fenced path list after Files: is a record and a missing kind reads as un
     [{ path: 'src/a.js', kind: 'modified' }, { path: 'src/b.js', kind: 'unknown' }, { path: 'src/c.js', kind: 'added' },
       { path: 'src/new.js', kind: 'renamed', oldPath: 'src/old.js' }],
     [{ path: 'src/사용 방법.js', kind: 'unknown' }],
-    [{ path: 'src/d.js', kind: 'unknown' }]
+    // Mixed markers start a new Markdown list but stay in the same record.
+    [{ path: 'src/d.js', kind: 'unknown' }, { path: 'src/e.js', kind: 'deleted' }]
   ]);
 });
 
-test('examples and labels that are not a top-level Files: paragraph stay out of the records', () => {
+test('examples and labels that are not a top-level Files: line stay out of the records', () => {
   const plan = [
     '# Plan', '', '## Work', '',
     '~~~~markdown', 'Files:', '', '```text', 'fake/fenced.js', '```', '~~~~', '',
@@ -74,8 +75,10 @@ test('examples and labels that are not a top-level Files: paragraph stay out of 
     'Files (in progress):', '- `fake/annotated.js` (added)', '',
     'Files:', 'Paragraph instead of a list.', ''
   ].join('\n');
-  const records = extractPhaseRecords(plan);
-  assert.equal(records.length, 0);
+  const { records, issues } = extractRecordData(plan);
+  // Only the exact label at the end is a record; with prose instead of a list it is empty and reported.
+  assert.deepEqual(records.map(record => record.files), [[]]);
+  assert.deepEqual(issues.map(issue => issue.code), ['files-inline', 'files-label', 'files-empty']);
 });
 
 test('one malformed entry is skipped without ending its block', () => {
@@ -140,7 +143,7 @@ test('format issues name the original line, level, and phase but skip examples i
     [at('- `no-kind.js`'), 'files-kind', 'warning', 'next']
   ].sort((a, b) => a[0] - b[0]));
   assert.ok(issues.every(issue => issue.message));
-  assert.deepEqual(records.map(record => record.files.map(file => file.path)), [['ok.js', 'no-kind.js'], []]);
+  assert.deepEqual(records.map(record => record.files.map(file => file.path)), [[], ['ok.js', 'no-kind.js'], []]);
   assert.deepEqual(extractRecordData(PHASE_PLAN).issues, []);
 });
 
@@ -188,4 +191,34 @@ test('an empty Files: block keeps the document scope and reports why it has no f
   const notes = relatedFilesFor(generation.documents.get('docs/checkout/NOTES.md'), generation);
   assert.equal(notes.scope, 'document');
   assert.deepEqual([notes.files, notes.recordCount, notes.issues.map(issue => issue.code)], [[], 1, ['files-empty']]);
+});
+
+test('a label joined to the text above it is still read, as in RQ-20', () => {
+  const cases = [
+    'Verified: ok.\nFiles:\n- `a.js` (added)',
+    '- [x] Done.\nFiles:\n- `a.js` (added)',
+    '| Check | Result |\n| --- | --- |\n| unit | pass |\nFiles:\n- `a.js` (added)',
+    'Verified: ok.\nFiles:\n```text\na.js (added)\n```'
+  ];
+  for (const body of cases) {
+    const { records, issues } = extractRecordData('# Plan\n\n## Work\n\n' + body + '\n');
+    assert.deepEqual([records.map(record => record.files), issues], [[[{ path: 'a.js', kind: 'added' }]], []], body);
+  }
+  const none = extractRecordData('# Plan\n\n## Work\n\nDone.\nFiles: none\n');
+  assert.deepEqual([none.records.length, none.records[0].files, none.issues], [1, [], []]);
+});
+
+test('fenced entries with notes, unknown kinds, or unquoted spaces are reported instead of read as paths', () => {
+  const lines = ['# Plan', '', '## Work', '', 'Files:', '```text', 'src/a.js (modified) - parser change', 'src/b.js (changed)',
+    '├── src/', 'src/c.js  (added)', '- src/d.js (added)', 'src/my file.js', '`src/my file.js` (added)', 'src/e.js (added)', '```', ''];
+  const { records, issues } = extractRecordData(lines.join('\n'));
+  assert.deepEqual(records[0].files, [{ path: 'src/my file.js', kind: 'added' }, { path: 'src/e.js', kind: 'added' }]);
+  assert.deepEqual(issues.map(issue => [issue.line, issue.code]), [7, 8, 9, 10, 11, 12].map(line => [line, 'files-entry']));
+});
+
+test('ordinary prose that starts with Files: or Refs: is not reported', () => {
+  const { records, issues } = extractRecordData(['# Notes', '', '## Panel', '', 'Files: the panel lists them.',
+    'Refs: see the design.', 'Files: `a.js`, `b.js`', 'Refs: RQ-1 and RQ-2', ''].join('\n'));
+  assert.deepEqual(records, []);
+  assert.deepEqual(issues.map(issue => [issue.line, issue.code]), [[7, 'files-inline'], [8, 'refs-format']]);
 });

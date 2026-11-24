@@ -224,4 +224,10 @@ test('a document whose only records are unreadable says so instead of reporting 
   await expect(page.locator('#related-files-issues')).toHaveText('⚠ 1 issue');
   await page.locator('#related-files-toggle').click();
   await expect(page.locator('.files-empty strong')).toHaveText('File records could not be read');
+  // A design document borrowing that plan points to the plan instead of saying nothing was recorded.
+  await page.goto(app.url + '?doc=docs%2Fcheckout%2FDESIGN.md');
+  await expect(page.locator('#related-files-issues')).toHaveText('⚠ 1 issue');
+  await page.locator('#related-files-toggle').click();
+  await expect(page.locator('#files-issues h3')).toHaveText('The implementation plan has record format issues');
+  await expect(page.locator('.files-empty strong')).toHaveText('File records could not be read');
 });

@@ -156,11 +156,12 @@ export function createRelatedFiles({ openDocument }) {
       return section;
     }));
     if (!files.length) {
-      const unreadable = !query && (data.issues || []).some(issue => issue.level === 'error');
+      // The issue list above already names each line, so the empty state only says why nothing is listed.
+      const unreadable = !query && ((data.issues || []).some(issue => issue.level === 'error') || (data.sourceIssues || []).length);
       const empty = node('div', 'files-empty');
       empty.append(node('strong', '', query ? 'No matching files' : unreadable ? 'File records could not be read' : 'No file records yet'),
         node('p', '', query ? 'Try a file name, folder, or requirement ID.' : unreadable
-          ? 'Fix the record format issues above: follow "Files:" with a list or a fenced block of paths.'
+          ? 'Fix the record format issues listed above: follow "Files:" with a list or a fenced block of paths.'
           : 'This document and its implementation plan have no recorded files. Related files may still be mentioned in the document text.'));
       list.append(empty);
     }
@@ -195,12 +196,16 @@ export function createRelatedFiles({ openDocument }) {
       : 'The implementation plan has record format issues');
     title.id = 'files-issues-title';
     const list = node('ul');
+    const seen = new Map();
     for (const issue of listed) {
       const item = node('li');
+      // Line numbers move when text above changes, so focus follows the issue's phase and order instead.
+      const key = issue.code + ':' + (issue.anchor || '');
+      seen.set(key, (seen.get(key) || 0) + 1);
       const line = issue.anchor ? node('a', 'files-issue-line', 'Line ' + issue.line) : node('span', 'files-issue-line', 'Line ' + issue.line);
       if (issue.anchor) {
         line.href = routeUrl(currentId, issue.anchor);
-        line.dataset.focusKey = 'issue:' + issue.line + ':' + issue.code;
+        line.dataset.focusKey = 'issue:' + key + ':' + seen.get(key);
         line.onclick = event => navigate(event, currentId, issue.anchor);
       }
       item.append(line, node('span', '', issue.message));
@@ -224,7 +229,10 @@ export function createRelatedFiles({ openDocument }) {
 
   $('related-files-toggle').onclick = () => {
     dialog.showModal();
-    if (needsRender || renderedFilter !== $('files-search').value) render();
+    if (needsRender || renderedFilter !== $('files-search').value) {
+      renderIssues();
+      render();
+    }
     $('related-files-toggle').setAttribute('aria-expanded', 'true');
     $('files-search').focus({ preventScroll: true });
   };
@@ -258,14 +266,20 @@ export function createRelatedFiles({ openDocument }) {
         (data.sourceIssues || []).reduce((sum, source) => sum + source.errors, 0);
       $('related-files-issues').hidden = !errors;
       $('related-files-issues').textContent = errors ? '⚠ ' + errors + (errors === 1 ? ' issue' : ' issues') : '';
-      renderIssues();
       $('files-total').textContent = String(data.files.length);
       $('files-scope').textContent = data.scope === 'document'
         ? 'Recorded in this document' : 'From this feature’s implementation plan';
       $('files-origin').textContent = data.sources.join(' · ') || 'No implementation plan in this document group';
       needsRender = true;
-      if (dialog.open) render();
-      else $('files-list').replaceChildren();
+      // DC-46: a closed panel keeps only counts and origin; its lists are built when it opens.
+      if (dialog.open) {
+        renderIssues();
+        render();
+      } else {
+        $('files-list').replaceChildren();
+        $('files-issues').replaceChildren();
+        $('files-issues').hidden = true;
+      }
     }
   };
 }

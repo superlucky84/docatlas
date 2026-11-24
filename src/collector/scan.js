@@ -79,15 +79,15 @@ function buildGroups(documents, config, project, warnings, headings) {
   return [...groups.values()].sort((left, right) => compare(left.id, right.id));
 }
 
-/**
- * Read a project's Markdown and return a deterministic document-map snapshot.
- * This function never modifies the target project or starts a server.
- */
 function recordFields(markdown) {
   const { records, issues } = extractRecordData(markdown);
   return { phaseRecords: records, recordIssues: issues };
 }
 
+/**
+ * Read a project's Markdown and return a deterministic document-map snapshot.
+ * This function never modifies the target project or starts a server.
+ */
 export async function scanProject(directory = process.cwd(), { previous, collectionOptions = {} } = {}) {
   const selection = normalizeCollectionOptions(collectionOptions);
   let root;

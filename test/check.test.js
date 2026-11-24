@@ -65,6 +65,8 @@ test('check takes explicit Markdown files and applies --strict to warnings', asy
   assert.equal((await check(['b/IMPLEMENT.md', '--root', project.root, '--strict'], docs)).code, 1);
   assert.equal(JSON.parse((await check([path.join(docs, 'b/IMPLEMENT.md'), '--json'], project.root)).out).issues[0].path,
     'docs/b/IMPLEMENT.md');
+  // Text output names files from the current directory so editors can open path:line.
+  assert.match((await check(['b/IMPLEMENT.md', '--root', project.root], docs)).out, /^b\/IMPLEMENT\.md:7: warning files-kind/m);
 });
 
 test('check rejects unknown options, missing files, other file types, files outside the root, and bad roots', async t => {
@@ -74,6 +76,16 @@ test('check rejects unknown options, missing files, other file types, files outs
     [['--wrong'], /--help/], [['docs/missing.md'], /file not found/], [['notes.txt'], /not a Markdown file/],
     [[path.join(outside.root, 'IMPLEMENT.md')], /outside the project/], [['--root', path.join(project.root, 'nope')], /Cannot open/]
   ];
+  await fs.mkdir(path.join(project.root, 'folder.md'));
+  cases.push([['folder.md'], /regular files/]);
+  try {
+    await fs.symlink(path.join(project.root, 'docs/IMPLEMENT.md'), path.join(project.root, 'link.md'));
+    await fs.symlink(path.join(outside.root, 'IMPLEMENT.md'), path.join(project.root, 'escape.md'));
+    cases.push([['link.md'], /regular files/], [['escape.md'], /regular files/]);
+  } catch (error) {
+    if (!['EPERM', 'EACCES'].includes(error.code)) throw error;
+    t.diagnostic('symbolic links are not available: ' + error.code);
+  }
   for (const [args, message] of cases) {
     const result = await check(args, project.root);
     assert.equal(result.code, 2, args.join(' '));

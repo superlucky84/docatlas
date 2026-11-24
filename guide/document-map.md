@@ -168,9 +168,11 @@ to its implementation heading. Markdown files are grouped under **Documentation*
 Changes such as added, modified, deleted, or renamed describe the recorded phase, not the
 current working tree. Entries written without a change kind show **Kind not recorded**.
 These records may be incomplete, especially in older documents.
+The panel supports narrow screens and preserves focus during automatic updates. Press
+Escape or use the close button to return to reading.
 
 The map reads a `Files:` line followed by a list or by a fenced block, with or without blank
-lines between them:
+lines between them. A fenced path that contains spaces keeps its backticks:
 
 ~~~markdown
 Files:
@@ -182,6 +184,7 @@ Files:
 ```text
 src/checkout/session.js (modified)
 src/checkout/cart.js
+`src/checkout/gift card.js` (added)
 ```
 ~~~
 
@@ -200,13 +203,12 @@ npx docatlas check docs/checkout/IMPLEMENT.md
 npx docatlas check --json                   # one JSON object for tools and agents
 ~~~
 
-Each line reads `path:line level code message`. It exits 0 when there are no errors, 1 when
-there are errors, and 2 for invalid arguments or settings. Warnings, for entries without a
+Each line reads `path:line level code message`, with paths from the current directory. It exits
+0 when there are no errors, 1 when there are record errors, and 2 for invalid arguments or settings
+or when the check could not run. Warnings, for entries without a
 change kind or skipped unsafe paths, do not fail the check unless you pass `--strict`. The
 command reads the same configuration and `--root`, `--docs-dir`, and `--all-md` options as
 the map, and never changes files. Run `docatlas check --help` for the record formats.
-The panel supports narrow screens and preserves focus during automatic updates. Press
-Escape or use the close button to return to reading.
 
 Installed packages include the built browser assets. `npx docatlas` does not require the
 target project to build the UI or install a build tool.

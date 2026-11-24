@@ -6,6 +6,7 @@ import { extractRecordData } from '../collector/phase-records.js';
 import { readRegularFile } from '../collector/read.js';
 import { scanProject } from '../collector/scan.js';
 
+// 1 means only that record errors were found, so agents can tell a failed run (2) from a format problem.
 export const CHECK_EXIT = { OK: 0, FOUND: 1, USAGE: 2 };
 
 export const CHECK_HELP = [
@@ -14,6 +15,7 @@ export const CHECK_HELP = [
   '  docatlas check [<file.md> ...] [--root <directory>] [--docs-dir <path>] [--all-md] [--json] [--strict]', '',
   'Without files, checks every document the document map collects (same configuration and options).',
   'With files, checks only those Markdown files; paths are relative to the current directory.',
+  'Text output prints paths from the current directory; JSON paths are relative to the project root.',
   'Nothing is written, and no server or browser starts.', '',
   'Options:',
   '  --root <directory>  Project root (default: current directory).',
@@ -22,7 +24,8 @@ export const CHECK_HELP = [
   '  --json              Print one JSON object instead of text.',
   '  --strict            Exit 1 for warnings too.',
   '  -h, --help          Show this help.', '',
-  'Exit codes: 0 no errors (warnings allowed unless --strict), 1 errors found, 2 invalid arguments or settings.', '',
+  'Exit codes: 0 no errors (warnings allowed unless --strict), 1 record errors found,',
+  '            2 invalid arguments or settings, or the check could not run.', '',
   'Readable records:',
   '  Refs: RQ-1, DC-2          (or Refs: none)',
   '  Files:                    followed by a list ...',
@@ -31,6 +34,7 @@ export const CHECK_HELP = [
   '  Files:                    ... or by a fenced block, one path per line',
   '  ```text',
   '  src/a.js (modified)',
+  '  `src/a path with spaces.js` (added)',
   '  ```',
   '  Files: none               when a phase changed no files', '',
   'For AI agents: after writing a phase\'s Files: block, run docatlas check <IMPLEMENT.md> (or npx docatlas check)',
@@ -119,10 +123,10 @@ export async function runCheck(args, { stdout = process.stdout, stderr = process
       ? await readFiles(root, cwd, positionals)
       : await readCollected(root, { docsDirs: values['docs-dir'] || [], allMarkdown: values['all-md'] || false });
   } catch (error) {
-    stderr.write(error.message + '\n');
     const usage = error instanceof UsageError || error instanceof ConfigurationError ||
       error instanceof ProjectError || error instanceof CollectionOptionsError;
-    return usage ? CHECK_EXIT.USAGE : CHECK_EXIT.FOUND;
+    stderr.write((usage ? '' : 'Could not check records: ') + error.message + '\n');
+    return CHECK_EXIT.USAGE;
   }
   const { results } = checked;
   const issues = results.flatMap(result => result.issues.map(issue => ({ path: result.path, ...issue })));
@@ -137,7 +141,8 @@ export async function runCheck(args, { stdout = process.stdout, stderr = process
   if (values.json) {
     stdout.write(JSON.stringify({ version: 1, root: checked.root, ...summary, issues }, null, 2) + '\n');
   } else {
-    const lines = textReport(results);
+    const shown = result => path.relative(cwd, path.join(checked.root, result.path)).split(path.sep).join('/') || result.path;
+    const lines = textReport(results.map(result => ({ ...result, path: shown(result) })));
     if (lines.length) stdout.write(lines.join('\n') + '\n');
     stdout.write(`Checked ${summary.documents} ${summary.documents === 1 ? 'document' : 'documents'}: ` +
       `${summary.records} Files records with ${summary.entries} file entries in ${summary.recordDocuments} of them; ` +

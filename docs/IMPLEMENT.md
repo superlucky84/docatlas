@@ -5,7 +5,7 @@
 
 ## 현재 상태와 작업 순서
 
-- 현재 작업(2026-11-24): RQ-38~40 기록 형식 완화·형식 진단·스킬 힌트. 1~3단계·Test Hardening·Integration Test 자동 검증 완료, 미커밋.
+- 현재 작업(2026-11-24): RQ-38~40 기록 형식 완화·형식 진단·스킬 힌트. 1~3단계·Test Hardening·Integration Test 자동 검증과 리뷰 반영 완료. 구현 커밋 `491e02d`, 리뷰 반영은 미커밋.
   [작업 절](#기록-형식-완화와-형식-진단--계획).
 - 이전 작업(2026-11-08): RQ-33~37 구현·자동/합성 검증 완료. 계획 커밋 `09fd3e8` 뒤 designer 1.3.1과
   선택 maintainer 1.0.0을 kit 1.5.0으로 구현했다. PR #5 리뷰 후속(DC-58)으로 두 역할의 문구를 보완했다.
@@ -2752,7 +2752,8 @@ Files:
 
 Refs: RQ-38, RQ-39, RQ-40, DC-59, DC-60, DC-61, DC-62, M-42, M-43, M-44, M-45
 
-상태: 2026-11-24 1~3단계·Test Hardening·Integration Test 자동 검증 완료, 미커밋. 독립 합성 에이전트 확인과 사람 인수(M-42~45)는 남아 있다. 시작 HEAD는 `0ba3895`(main, PR #5 병합·v0.8.0 태그)이고 작업 트리는 clean이었다.
+상태: 2026-11-24 1~3단계·Test Hardening·Integration Test 자동 검증 완료(구현 커밋 `491e02d`), 리뷰 반영 완료·미커밋.
+독립 합성 에이전트 확인(사용자가 리뷰로 대체)과 사람 인수(M-42~45)는 남아 있다. 시작 HEAD는 `0ba3895`(main, PR #5 병합·v0.8.0 태그)이고 작업 트리는 clean이었다.
 같은 날 사용자가 DC-59(목록·펜스 kind 생략 허용과 경고), DC-60(`docatlas check`, 경고만 있으면 0·`--strict`면 1),
 DC-62(npm 0.9.0)를 권고대로 확정했다.
 
@@ -2930,6 +2931,48 @@ Files:
 
 Files:
 - `test/integration/package.test.js` (modified)
+- `docs/IMPLEMENT.md` (modified)
+- `docs/MANUAL_TEST_CHECKLIST.md` (modified)
+
+### 리뷰 반영 — 구현·검증 완료
+
+진입: 사용자 요청으로 doc-driven-reviewer가 `a53d6d9..491e02d`를 검토했다. 판정 REQUEST_CHANGES(치명 1·경고 5·제안 8).
+사용자는 권장안대로 반영하되 스킬·룰이 장황해지지 않게 하라고 했다. 스킬·룰은 바꾸지 않았다.
+
+- [x] 치명: 문장·체크리스트·표 바로 아래 붙은 `Files:` 라벨을 0.8.0과 달리 알림 없이 놓치던 문제. 블록 찾기를 줄 단위로 되돌리고
+  회귀 테스트(문장·체크리스트·표·펜스·`Files: none`)를 더했다. 서로 다른 목록 기호가 이어진 목록도 같은 기록으로 읽는다(제안 7).
+- [x] 경고 1: 펜스 항목의 백틱 없는 경로에 공백이 있으면 `files-entry`로 보고한다. 공백 있는 경로는 백틱으로 감싼다.
+- [x] 경고 2: 빌려 온 구현 계획에만 오류가 있는 문서의 빈 화면도 "File records could not be read"로 안내한다. 첫 오류 재표시는 하지 않고 설계에 반영했다.
+- [x] 경고 3: 커밋 뒤 남은 "구현 전"·"미커밋" 상태 문구를 고쳤다.
+- [x] 경고 4: guide의 패널 설명 문단을 Related files 절로 되돌렸다.
+- [x] 경고 5: `docatlas check`의 심볼릭 링크(안·밖)와 `.md` 이름 폴더 거부 테스트를 더했다.
+- [x] 제안: 실행 실패도 종료 코드 2(1은 기록 오류만), 사람용 출력 경로는 현재 폴더 기준, BOM 정규식 이스케이프 복원,
+  `scanProject` JSDoc 위치, 닫힌 패널의 오류 목록 지연 생성, 줄 번호 대신 코드·앵커·순번 초점 키.
+- [x] 범위 질문 1(사용자 수용): 에이전트 안내는 `docatlas check --help`에 두고 `docatlas agents help`는 바꾸지 않는다. DC-60·M-44 문구를 맞췄다.
+- [x] 범위 질문 2(사용자 수용): 일반 문장 오탐을 줄인다. `files-inline`은 경로로 보이는 내용, `refs-format`은 ID로 보이는 내용이 있을 때만 보고한다.
+
+기준 검증: 리뷰 시점 `491e02d`의 check·Node 250·Chrome 56·설치 통합 8 통과.
+종료: 회귀 테스트와 전체 테스트 통과, 0.8.0 파서 대비 기록 손실 0을 두 저장소에서 확인한다.
+
+검증(2026-11-24, macOS / Node 24.22.1): check(102 JS·kit 1.6.0), Node 253/253, 설치 Chrome 56/56.
+파서 테스트 3개(라벨이 앞 블록에 붙는 경우, 펜스 항목 오류, 일반 문장 무보고)를 더하고, 동작이 바뀐 기존 기대값 3개
+(서로 다른 기호 목록, 공백 경로 펜스, `Files:` 뒤 문장의 빈 기록)를 고쳤다. 0.8.0 파서(`0ba3895`)와 전수 비교:
+이 저장소 Markdown 51개는 기록 59·항목 496으로 같고 손실 0, 진단 0. 비공개 업무 저장소 Markdown 332개는 기록 37 유지,
+항목 151→246, 손실 0, 오류 4·경고 62로 일반 문장 오탐이 없다. 그 저장소의 git 상태는 변하지 않았다.
+
+Files:
+- `src/collector/phase-records.js` (modified)
+- `src/collector/scan.js` (modified)
+- `src/check/command.js` (modified)
+- `src/web/related-files.js` (modified)
+- `test/phase-records.test.js` (modified)
+- `test/check.test.js` (modified)
+- `test/browser/related-files.spec.js` (modified)
+- `guide/document-map.md` (modified)
+- `METHOD.md` (modified)
+- `METHOD.ko.md` (modified)
+- `docs/REQUIREMENTS.md` (modified)
+- `docs/DESIGN.md` (modified)
 - `docs/IMPLEMENT.md` (modified)
 - `docs/MANUAL_TEST_CHECKLIST.md` (modified)
 
@@ -3163,13 +3206,11 @@ npm ci가 받아 둔 잠금파일의 tarball만으로는 새 의존성 트리를
 2026-10-28 이전의 인계와 검증 기록은 [인계 이력](./handoff/HISTORY.md#구현-계획에서-옮긴-기록)에 있다.
 
 - 현재 작업(2026-11-24): RQ-38~40 기록 형식 완화·형식 진단·스킬 힌트. 브랜치 `feat/record-format-diagnostics`,
-  계획 커밋 `a53d6d9`. [작업 절](#기록-형식-완화와-형식-진단--계획).
-- 완료: 1단계 파서 완화(빈 줄·목록 기호·펜스·kind 생략·들여쓴 라벨·새 Refs ID), 2단계 진단 7종·패널 경고·`docatlas check`,
-  3단계 kit 1.6.0(designer 1.4.0·implementer 1.4.0·reviewer 1.6.0·maintainer 1.1.0)과 METHOD·README·guide·CHANGELOG Unreleased.
-- 검증: check(102 JS·kit 1.6.0), Node 250/250, Chrome 56/56, 설치 통합 8/8, F-08 회귀 없음, pack +5,620/+19,966바이트·의존성 동일,
-  0.8.0 kit 설치본의 교체 인식. 비공개 업무 저장소 읽기 전용 검사: 기록 37·항목 246·오류 4·경고 62(그 저장소 무변경).
-- 다음: (1) 구현 변경 커밋(사용자 요청 시), (2) 선택: reviewer 검토, Test Hardening의 독립 합성 에이전트 확인(서브에이전트 실행 승인 필요),
-  (3) 0.9.0 배포 준비 절 작성(버전·CHANGELOG 날짜·0.8.0 `(planned)` 표기 수정), 태그·게시는 사용자 단계.
-- 남은 인수: M-42~45 사람 확인, M-45의 실제 designer 세션. 기존 M-39·40, DC-46 최종 UX·DC-49 검토, 플랫폼·클라우드 인수는 각 절 상태를 유지한다.
-- 커밋: 최신 커밋 `a53d6d9`(계획). 구현·문서 변경은 아직 커밋하지 않았다. 외부 사본(wiki·ctxbin)은 사용자가 요청할 때 갱신한다.
+  계획 `a53d6d9`, 구현 `491e02d`. [작업 절](#기록-형식-완화와-형식-진단--계획).
+- 완료: 1~3단계, Test Hardening, Integration Test, reviewer 검토(REQUEST_CHANGES) 반영. 스킬·룰은 kit 1.6.0 그대로이고 리뷰 반영에서 바꾸지 않았다.
+- 검증: check(102 JS·kit 1.6.0), Node 253/253, Chrome 56/56. 설치 통합 8/8과 F-08·pack 비교는 `491e02d` 기준이며 리뷰 반영은 패키지 구성을 바꾸지 않았다.
+  0.8.0 파서 대비 기록 손실 0(이 저장소 51개·업무 저장소 332개 Markdown).
+- 다음: 리뷰 반영 커밋(사용자 요청 시), 필요하면 재검토. 이후 0.9.0 배포 준비 절(버전·CHANGELOG 날짜·0.8.0 `(planned)` 수정), 태그·게시는 사용자 단계.
+- 남은 인수: M-42~45 사람 확인, M-45의 실제 designer 세션, 독립 합성 에이전트 확인(선택). 기존 M-39·40, DC-46 최종 UX·DC-49 검토, 플랫폼·클라우드 인수는 각 절 상태를 유지한다.
+- 커밋: 최신 커밋 `491e02d`. 리뷰 반영은 아직 커밋하지 않았다. 외부 사본(wiki·ctxbin)은 사용자가 요청할 때 갱신한다.
 - 차단: 없음.

@@ -377,7 +377,7 @@ RQ-20의 스킬·룰·METHOD 형식은 변경하지 않는다.
 
 ## 기록 형식 완화와 형식 진단 — 2026-11-24 사용자 요청
 
-상태: **요구사항·설계 정리, 구현 전**. 기준 문서는 이 docs/의 네 파일이다. 구현 범위는 `src/collector/phase-records.js`·
+상태: **구현·자동 검증 완료, 사람 인수 대기**(`491e02d`와 리뷰 반영). 기준 문서는 이 docs/의 네 파일이다. 구현 범위는 `src/collector/phase-records.js`·
 `related-files.js`, `src/server/index.js`, `src/web/`의 관련 파일 패널, `src/cli.js`의 새 검사 명령, `agent-kit/`의 네 역할과
 METHOD 두 언어판·guide/document-map.md다. RQ-20의 권장 작성 형식(목록·영어 라벨·저장소 루트 경로)은 바꾸지 않는다.
 

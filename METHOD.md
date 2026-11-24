@@ -175,7 +175,7 @@ Files:
   `(renamed)`. A phase that changed nothing gets `Files: none`. Many generated files in one
   folder can be a single folder entry ending in `/`.
 - A fenced block right after `Files:` works too, with one `path (kind)` per line and no
-  backticks; formatters leave it alone. Keep the label exactly `Files:` or `Files: none`: notes
+  backticks unless the path has spaces; formatters leave it alone. Keep the label exactly `Files:` or `Files: none`: notes
   such as "in progress" belong in the checklist, and paths never go on the label line.
   `npx docatlas check` reports records that tools cannot read.
 - Write Files when an implemented phase ends, whichever agent implemented it, from git
