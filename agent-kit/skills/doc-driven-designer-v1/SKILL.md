@@ -3,7 +3,7 @@ name: doc-driven-designer-v1
 description: Use when a user wants help capturing requirements and co-producing design and implementation documentation before or during development. Build and maintain REQUIREMENTS.md, DESIGN.md, IMPLEMENT.md, and MANUAL_TEST_CHECKLIST.md with explicit decision checklists, phased plans, and test gates that support multi-agent handoff.
 metadata:
   short-description: documentation-first designer
-  version: 1.3.1
+  version: 1.4.0
 ---
 
 # Doc-Driven Designer Playbook
@@ -71,6 +71,8 @@ Files:
 - Write `Refs:` under the phase heading when you create the phase: full IDs separated by `, ` (never `RQ-1·3`), or `Refs: none`.
 - Write `Files:` when an implemented phase ends, never while planning. When you start implementing it, note the changed files (`git status --porcelain -uall`).
 - At the end, build `Files:` from git (`git status --porcelain -uall`, `git diff --name-status`), not memory: one line per file this phase changed, documents included, with a repository-root path and `added`, `modified`, `deleted`, or `renamed`. Leave out files noted at the start unless this phase changed them again. Use `Files: none` if nothing changed.
+- A fenced block of `<path> (<kind>)` lines right after `Files:` also works. Keep the label exactly `Files:` or `Files: none`; status notes go in the checklist, and paths never go on the label line.
+- If docatlas is available, run `docatlas check <IMPLEMENT.md>` and fix its errors.
 - Keep these labels in English in any document language. Do not backfill older phases unless asked.
 - The records are a search aid, not a complete index; older phases have none. When finding documents about a file or ID, also search the document text.
 

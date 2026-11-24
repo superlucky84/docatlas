@@ -174,12 +174,17 @@ Files:
   repository root in backticks, followed by `(added)`, `(modified)`, `(deleted)`, or
   `(renamed)`. A phase that changed nothing gets `Files: none`. Many generated files in one
   folder can be a single folder entry ending in `/`.
+- A fenced block right after `Files:` works too, with one `path (kind)` per line and no
+  backticks unless the path has spaces; formatters leave it alone. Keep the label exactly `Files:` or `Files: none`: notes
+  such as "in progress" belong in the checklist, and paths never go on the label line.
+  `npx docatlas check` reports records that tools cannot read.
 - Write Files when an implemented phase ends, whichever agent implemented it, from git
   (`git status --porcelain -uall` and `git diff --name-status`), not from memory. List only
   this phase's changes, documents included. Leave out files that earlier uncommitted phases
   changed unless this phase changed them again. Planned files stay in the checklist text.
 - Keep `Refs:`, `Files:`, the kinds, and `none` in English whatever language the documents
-  use. Tools skip code blocks, so examples like the one above are not records.
+  use. Tools ignore `Refs:` and `Files:` lines inside code blocks, so examples like the one
+  above are not records.
 - The records are a search aid, not a complete index. Older phases and work done without them
   have none, so when you or an agent look for documents about a file or ID, search the document
   text as well and never read a missing record as "unrelated".

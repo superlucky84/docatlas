@@ -61,7 +61,7 @@
           <div class="document-breadcrumb"><span id="document-area"></span><span id="document-private" class="private-badge" hidden>Private</span><span id="document-mode" class="source-label">Reading</span><button id="view-toggle" class="view-toggle" type="button">View source</button></div>
           <h1 id="document-title" tabindex="-1"></h1>
           <p id="document-path" class="document-path"></p>
-          <button id="related-files-toggle" class="related-files-toggle" type="button" aria-haspopup="dialog" aria-controls="related-files-dialog">Related files <span id="related-files-count">0</span></button>
+          <button id="related-files-toggle" class="related-files-toggle" type="button" aria-haspopup="dialog" aria-controls="related-files-dialog">Related files <span id="related-files-count">0</span><span id="related-files-issues" class="files-issue-badge" hidden></span></button>
         </header>
         <div id="link-notice" class="reader-notice" role="status" hidden>
           <span id="link-message"></span><code id="link-path" hidden></code>
@@ -87,6 +87,7 @@
       <button id="related-files-close" class="files-close" type="button" aria-label="Close related files">×</button>
     </header>
     <div class="files-context"><p id="files-scope"></p><p id="files-origin"></p></div>
+    <section id="files-issues" class="files-issues" aria-labelledby="files-issues-title" hidden></section>
     <div class="files-search-wrap">
       <label class="sr-only" for="files-search">Filter related files</label>
       <input id="files-search" class="files-search" type="search" placeholder="Filter by path, phase, or ID…" autocomplete="off" spellcheck="false">

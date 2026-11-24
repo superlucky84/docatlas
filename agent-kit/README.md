@@ -6,14 +6,14 @@ docatlas installs them for Claude Code and Codex.
 
 | Name | Version | Skill | Agent rule | Installed by default |
 | --- | --- | --- | --- | --- |
-| doc-driven-designer-v1 | 1.3.1 | [SKILL.md](skills/doc-driven-designer-v1/SKILL.md) | [rule](agents/doc-driven-designer-v1.md) | Yes |
-| doc-driven-implementer-v1 | 1.3.0 | [SKILL.md](skills/doc-driven-implementer-v1/SKILL.md) | [rule](agents/doc-driven-implementer-v1.md) | Yes |
-| doc-driven-reviewer-v1 | 1.5.0 | [SKILL.md](skills/doc-driven-reviewer-v1/SKILL.md) | [rule](agents/doc-driven-reviewer-v1.md) | Yes |
+| doc-driven-designer-v1 | 1.4.0 | [SKILL.md](skills/doc-driven-designer-v1/SKILL.md) | [rule](agents/doc-driven-designer-v1.md) | Yes |
+| doc-driven-implementer-v1 | 1.4.0 | [SKILL.md](skills/doc-driven-implementer-v1/SKILL.md) | [rule](agents/doc-driven-implementer-v1.md) | Yes |
+| doc-driven-reviewer-v1 | 1.6.0 | [SKILL.md](skills/doc-driven-reviewer-v1/SKILL.md) | [rule](agents/doc-driven-reviewer-v1.md) | Yes |
 | doc-driven-private-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-private-v1/SKILL.md) | [rule](agents/doc-driven-private-v1.md) | No; needs the designer |
 | doc-driven-backup-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-backup-v1/SKILL.md) | [rule](agents/doc-driven-backup-v1.md) | No; explicit cloud requests only |
-| doc-driven-maintainer-v1 | 1.0.0 | [SKILL.md](skills/doc-driven-maintainer-v1/SKILL.md) | [rule](agents/doc-driven-maintainer-v1.md) | No; requested document inspection and repair |
+| doc-driven-maintainer-v1 | 1.1.0 | [SKILL.md](skills/doc-driven-maintainer-v1/SKILL.md) | [rule](agents/doc-driven-maintainer-v1.md) | No; requested document inspection and repair |
 
-Kit version 1.5.0. [manifest.json](manifest.json) records each item's version and hashes, and
+Kit version 1.6.0. [manifest.json](manifest.json) records each item's version and hashes, and
 `requires` names the items another item needs.
 
 ## Install

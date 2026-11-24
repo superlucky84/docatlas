@@ -11,7 +11,7 @@ import {
 
 import { resolveRedirects } from './redirects.js';
 import { readRegularFile } from './read.js';
-import { extractPhaseRecords } from './phase-records.js';
+import { extractRecordData } from './phase-records.js';
 
 const compare = (left, right) => left < right ? -1 : left > right ? 1 : 0;
 const hash = value => createHash('sha256').update(value).digest('hex');
@@ -77,6 +77,11 @@ function buildGroups(documents, config, project, warnings, headings) {
     }
   }
   return [...groups.values()].sort((left, right) => compare(left.id, right.id));
+}
+
+function recordFields(markdown) {
+  const { records, issues } = extractRecordData(markdown);
+  return { phaseRecords: records, recordIssues: issues };
 }
 
 /**
@@ -174,7 +179,7 @@ export async function scanProject(directory = process.cwd(), { previous, collect
       const contentHash = hash(markdown);
       const cached = previous?.snapshot.project.id === project.id ? previous.metadataCache?.get(relative) : null;
       const metadata = cached?.contentHash === contentHash
-        ? cached : { ...extractMetadata(markdown, name), phaseRecords: extractPhaseRecords(markdown), contentHash };
+        ? cached : { ...extractMetadata(markdown, name), ...recordFields(markdown), contentHash };
       metadataCache.set(relative, metadata);
       headings.set(relative, metadata.headingTitle);
       contents.set(relative, markdown);

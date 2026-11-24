@@ -190,3 +190,44 @@ test('closed panels defer their lists and reuse unchanged content when reopened'
   await page.locator('#related-files-toggle').click();
   await expect(page.locator('.file-card')).toHaveCount(7);
 });
+
+test('unreadable records show their lines, link to the phase, and clear after a fix', async ({ page }) => {
+  await expect(page.locator('#live-status')).toHaveText('Live updates');
+  const broken = '# Checkout — Implementation\n\n## Guest session\n\nFiles (in progress):\n- `src/checkout/session.js` (added)\n\n' +
+    '## Cart\n\nFiles:\n\n```text\nsrc/checkout/cart.js\n```\n';
+  await project.write('docs/checkout/IMPLEMENT.md', broken);
+  await expect(page.locator('#related-files-issues')).toHaveText('⚠ 1 issue');
+  await page.locator('#related-files-toggle').click();
+  await expect(page.locator('#files-issues')).toContainText('docs/checkout/IMPLEMENT.md ↗');
+  await page.goto(app.url + '?doc=docs%2Fcheckout%2FIMPLEMENT.md');
+  await expect(page.locator('#document-title')).toHaveText('Checkout — Implementation');
+  await expect(page.locator('#related-files-count')).toHaveText('1');
+  await page.locator('#related-files-toggle').click();
+  await expect(page.locator('#files-issues h3')).toHaveText('1 record format issue');
+  await expect(page.locator('#files-issues li')).toContainText(['Line 5']);
+  await page.locator('.file-summary').click();
+  await expect(page.locator('.file-change-kind')).toHaveText('Kind not recorded');
+  await page.getByRole('link', { name: 'Line 5', exact: true }).click();
+  await expect(page.locator('#related-files-dialog')).not.toBeVisible();
+  expect(decodeURIComponent(new URL(page.url()).hash.slice(1))).toBe('guest-session');
+  await page.locator('#related-files-toggle').click();
+  await project.write('docs/checkout/IMPLEMENT.md', broken.replace('Files (in progress):', 'Files:'));
+  await expect(page.locator('#related-files-count')).toHaveText('2');
+  await expect(page.locator('#files-issues')).toBeHidden();
+  await expect(page.locator('#related-files-issues')).toBeHidden();
+  await expect(page.locator('#related-files-dialog')).toBeVisible();
+});
+
+test('a document whose only records are unreadable says so instead of reporting none', async ({ page }) => {
+  await project.write('docs/checkout/IMPLEMENT.md', '# Checkout — Implementation\n\n## Work\n\nFiles: `src/a.js`, `src/b.js`\n');
+  await page.goto(app.url + '?doc=docs%2Fcheckout%2FIMPLEMENT.md');
+  await expect(page.locator('#related-files-issues')).toHaveText('⚠ 1 issue');
+  await page.locator('#related-files-toggle').click();
+  await expect(page.locator('.files-empty strong')).toHaveText('File records could not be read');
+  // A design document borrowing that plan points to the plan instead of saying nothing was recorded.
+  await page.goto(app.url + '?doc=docs%2Fcheckout%2FDESIGN.md');
+  await expect(page.locator('#related-files-issues')).toHaveText('⚠ 1 issue');
+  await page.locator('#related-files-toggle').click();
+  await expect(page.locator('#files-issues h3')).toHaveText('The implementation plan has record format issues');
+  await expect(page.locator('.files-empty strong')).toHaveText('File records could not be read');
+});

@@ -1,20 +1,41 @@
 {
   "schema": 1,
-  "kitVersion": "1.5.0",
+  "kitVersion": "1.6.0",
   "items": [
     {
       "name": "doc-driven-designer-v1",
-      "version": "1.3.1",
+      "version": "1.4.0",
       "default": true,
       "skill": {
         "path": "skills/doc-driven-designer-v1/SKILL.md",
-        "sha256": "11402dae8928660227ceffb1ce405d774112e1131467d78c75f0707c57c19eb0"
+        "sha256": "4fe36d23f25b28a82d3c65f39e3d778f505b35a46c8a049eef017b7371b299a8"
       },
       "agent": {
         "path": "agents/doc-driven-designer-v1.md",
-        "sha256": "a885db63a9042427c520e08204238074b2933786157327f59647f9c544f04833"
+        "sha256": "f9e77747217c141d80380453a3cb3be355d88b9bc07a1f26cbae1293527cd0b5"
       },
       "previous": [
+        {
+          "version": "1.3.1",
+          "kind": "codex-agent",
+          "part": "file",
+          "sha256": "358d562185922f196f4610cf21f1ae077ce58acba54fb219137ddfa966174a76",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.3.1",
+          "kind": "agent",
+          "part": "file",
+          "sha256": "a885db63a9042427c520e08204238074b2933786157327f59647f9c544f04833",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.3.1",
+          "kind": "skill",
+          "part": "file",
+          "sha256": "11402dae8928660227ceffb1ce405d774112e1131467d78c75f0707c57c19eb0",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
         {
           "version": "1.3.0",
           "kind": "codex-agent",
@@ -96,17 +117,38 @@
     },
     {
       "name": "doc-driven-implementer-v1",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "default": true,
       "skill": {
         "path": "skills/doc-driven-implementer-v1/SKILL.md",
-        "sha256": "7ed64b2e34812379b5ddb133423c317e9207f54193f5d532457b299927ef15a0"
+        "sha256": "c9eee3ac2548aa53227ff26bbd4d3c95aeb2aee4e0e5bda0c74fbc1cba3ffbe0"
       },
       "agent": {
         "path": "agents/doc-driven-implementer-v1.md",
-        "sha256": "3b38acafd4d244db808af94e791aae6f6841b32f3bc39798c04de40652b691af"
+        "sha256": "bdceb81e9c285806e87efe6782c4d212008879801b58868936476efecb0cf568"
       },
       "previous": [
+        {
+          "version": "1.3.0",
+          "kind": "codex-agent",
+          "part": "file",
+          "sha256": "18b0765c4e4b1b0b48de135da3f996b178e5fac6c8e2332e9179c94a14c55068",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.3.0",
+          "kind": "agent",
+          "part": "file",
+          "sha256": "3b38acafd4d244db808af94e791aae6f6841b32f3bc39798c04de40652b691af",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.3.0",
+          "kind": "skill",
+          "part": "file",
+          "sha256": "7ed64b2e34812379b5ddb133423c317e9207f54193f5d532457b299927ef15a0",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
         {
           "version": "1.2.0",
           "kind": "skill",
@@ -167,17 +209,38 @@
     },
     {
       "name": "doc-driven-reviewer-v1",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "default": true,
       "skill": {
         "path": "skills/doc-driven-reviewer-v1/SKILL.md",
-        "sha256": "a14f4d210e42c5d1d8b299feb515208a702cdfc14781cce2ded00cd34b6c6a71"
+        "sha256": "a911430497215a2e4a6dd0259398a5be867fd5d054d87734ac07493d561776bf"
       },
       "agent": {
         "path": "agents/doc-driven-reviewer-v1.md",
-        "sha256": "fbbd578703a28031636aad66e64c40da0c907c877d9c7d444cafb366f6649ebd"
+        "sha256": "c42279a83aaa22e638c8209b47944994d58713fb0a5d2a9ff8a6a3491b686a96"
       },
       "previous": [
+        {
+          "version": "1.5.0",
+          "kind": "codex-agent",
+          "part": "file",
+          "sha256": "e23db2b58665f77d649166e9ecc82f65582591ccc7337dc1704626390045815b",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.5.0",
+          "kind": "agent",
+          "part": "file",
+          "sha256": "fbbd578703a28031636aad66e64c40da0c907c877d9c7d444cafb366f6649ebd",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.5.0",
+          "kind": "skill",
+          "part": "file",
+          "sha256": "a14f4d210e42c5d1d8b299feb515208a702cdfc14781cce2ded00cd34b6c6a71",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
         {
           "version": "1.4.0",
           "kind": "skill",
@@ -252,17 +315,39 @@
     },
     {
       "name": "doc-driven-maintainer-v1",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "default": false,
       "skill": {
         "path": "skills/doc-driven-maintainer-v1/SKILL.md",
-        "sha256": "07b6b888f801ff085ece56cc8c11dc5368c270660e1397931a81cbffaf9c2d20"
+        "sha256": "31cc8143171da0109fbe2b4aaa7c3058b4aa6cd7e26f19414e3d6178b07e567a"
       },
       "agent": {
         "path": "agents/doc-driven-maintainer-v1.md",
-        "sha256": "09c54ee48d41265b13d3d268738f742d245704c109a9b0ac4539ee4af100887b"
+        "sha256": "9d548ade4f79a5fd3a36541dbe58ad08d7bdd48e3f27cd485c8c2f2cea20da50"
       },
-      "previous": [],
+      "previous": [
+        {
+          "version": "1.0.0",
+          "kind": "codex-agent",
+          "part": "file",
+          "sha256": "f5ffb61ef432bcf9a886e9c64c475ac0e63149d53d70a5cf199da0a7d892b029",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.0.0",
+          "kind": "agent",
+          "part": "file",
+          "sha256": "09c54ee48d41265b13d3d268738f742d245704c109a9b0ac4539ee4af100887b",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        },
+        {
+          "version": "1.0.0",
+          "kind": "skill",
+          "part": "file",
+          "sha256": "07b6b888f801ff085ece56cc8c11dc5368c270660e1397931a81cbffaf9c2d20",
+          "source": "docatlas agent kit 1.5.0 (docatlas 0.8.0)"
+        }
+      ],
       "invocationPolicy": {
         "path": "skills/doc-driven-maintainer-v1/agents/openai.yaml",
         "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"

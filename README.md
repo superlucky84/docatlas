@@ -112,6 +112,10 @@ npx docatlas
 | `--help`, `-h` | Show options and configuration guidance. |
 | `--version`, `-v` | Show the version actually running. |
 
+To find `Refs:` and `Files:` records the map cannot read, run `npx docatlas check`, or
+`npx docatlas check docs/feature/IMPLEMENT.md` for one plan. It writes nothing and exits 1 when
+it finds errors, so agents can run it after writing a phase record.
+
 Keep the terminal open; Ctrl+C stops the server. It runs on macOS, Windows, and Linux; see
 [Windows, Linux, and WSL](https://github.com/superlucky84/docatlas/blob/main/guide/platforms.md)
 for commands and verification status. Local installs, reading, search, live updates, and the

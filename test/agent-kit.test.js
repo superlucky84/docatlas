@@ -80,19 +80,45 @@ test('invocation policies are hashed, restricted to their own skill, and contain
   hasError((await checkAgentKit(escaped)).errors, /exact skill agents\/openai.yaml/);
 });
 
-test('the implementer, reviewer and private pairs retain their published versions and source hashes', async () => {
+test('the private pair keeps its published version and source hashes', async () => {
   const { manifest } = await checkAgentKit(repositoryKit);
-  assert.deepEqual(manifest.items.slice(1, 4).map(item => [item.name, item.version, item.skill.sha256, item.agent.sha256]), [
-    ['doc-driven-implementer-v1', '1.3.0', '7ed64b2e34812379b5ddb133423c317e9207f54193f5d532457b299927ef15a0', '3b38acafd4d244db808af94e791aae6f6841b32f3bc39798c04de40652b691af'],
-    ['doc-driven-reviewer-v1', '1.5.0', 'a14f4d210e42c5d1d8b299feb515208a702cdfc14781cce2ded00cd34b6c6a71', 'fbbd578703a28031636aad66e64c40da0c907c877d9c7d444cafb366f6649ebd'],
+  assert.deepEqual(manifest.items.slice(3, 4).map(item => [item.name, item.version, item.skill.sha256, item.agent.sha256]), [
     ['doc-driven-private-v1', '1.0.0', '6f6cb31afdc0ffd84aff345d3ec71e642fdb053f7bb0efeffb768a848b590461', '36e549f3ef9991d6c25f5343cbf924f329879f2acf515aa5e0904d03c14559d0']
   ]);
 });
 
-test('designer upgrades retain hashes for the published skill, rule and rendered Codex agent', async () => {
+test('kit 1.6.0 upgrades retain the skill, rule and rendered Codex agent hashes published in docatlas 0.8.0', async () => {
   const { manifest } = await checkAgentKit(repositoryKit);
+  const versions = Object.fromEntries(manifest.items.map(item => [item.name, item.version]));
+  assert.deepEqual([versions['doc-driven-designer-v1'], versions['doc-driven-implementer-v1'],
+    versions['doc-driven-reviewer-v1'], versions['doc-driven-maintainer-v1']], ['1.4.0', '1.4.0', '1.6.0', '1.1.0']);
+  for (const [name, version, hashes] of [
+    ['doc-driven-designer-v1', '1.3.1', [
+      ['agent', 'file', 'a885db63a9042427c520e08204238074b2933786157327f59647f9c544f04833'],
+      ['codex-agent', 'file', '358d562185922f196f4610cf21f1ae077ce58acba54fb219137ddfa966174a76'],
+      ['skill', 'file', '11402dae8928660227ceffb1ce405d774112e1131467d78c75f0707c57c19eb0']
+    ]],
+    ['doc-driven-implementer-v1', '1.3.0', [
+      ['agent', 'file', '3b38acafd4d244db808af94e791aae6f6841b32f3bc39798c04de40652b691af'],
+      ['codex-agent', 'file', '18b0765c4e4b1b0b48de135da3f996b178e5fac6c8e2332e9179c94a14c55068'],
+      ['skill', 'file', '7ed64b2e34812379b5ddb133423c317e9207f54193f5d532457b299927ef15a0']
+    ]],
+    ['doc-driven-reviewer-v1', '1.5.0', [
+      ['agent', 'file', 'fbbd578703a28031636aad66e64c40da0c907c877d9c7d444cafb366f6649ebd'],
+      ['codex-agent', 'file', 'e23db2b58665f77d649166e9ecc82f65582591ccc7337dc1704626390045815b'],
+      ['skill', 'file', 'a14f4d210e42c5d1d8b299feb515208a702cdfc14781cce2ded00cd34b6c6a71']
+    ]],
+    ['doc-driven-maintainer-v1', '1.0.0', [
+      ['agent', 'file', '09c54ee48d41265b13d3d268738f742d245704c109a9b0ac4539ee4af100887b'],
+      ['codex-agent', 'file', 'f5ffb61ef432bcf9a886e9c64c475ac0e63149d53d70a5cf199da0a7d892b029'],
+      ['skill', 'file', '07b6b888f801ff085ece56cc8c11dc5368c270660e1397931a81cbffaf9c2d20']
+    ]]
+  ]) {
+    const item = manifest.items.find(candidate => candidate.name === name);
+    assert.deepEqual(item.previous.filter(entry => entry.version === version)
+      .map(entry => [entry.kind, entry.part, entry.sha256]).sort(), hashes, name);
+  }
   const designer = manifest.items.find(item => item.name === 'doc-driven-designer-v1');
-  assert.equal(designer.version, '1.3.1');
   assert.deepEqual(designer.previous.filter(item => item.version === '1.3.0').map(item => [item.kind, item.part, item.sha256]).sort(), [
     ['agent', 'file', 'da1c557ab7e62affe05753af95ffd36adc1d83d05bcfb7d35f8a7e7e53216378'],
     ['codex-agent', 'file', 'edc325070497a64e689de5db00c4cc654dfd7097ac2abfb2119f1e78f754bc75'],

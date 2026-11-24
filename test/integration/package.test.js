@@ -120,6 +120,9 @@ test('F-07: a production tarball runs independently and preserves both target pr
     assert.match(error.stderr, /Run docatlas --help/);
     return true;
   });
+  const checked = JSON.parse((await npm(['exec', '--offline', '--', 'docatlas', 'check', '--json'], js.root)).stdout);
+  assert.deepEqual([checked.records, checked.entries, checked.errors, checked.warnings], [1, 1, 0, 0]);
+  assert.match((await npm(['exec', '--offline', '--', 'docatlas', 'check', '--help'], js.root)).stdout, /Exit codes: 0 no errors/);
   const beforeJs = await filesIn(js.root);
   const beforeNonJs = await filesIn(nonJs.root);
   const alias = path.join(installRoot, 'non-js-alias');

@@ -3,7 +3,7 @@ name: doc-driven-maintainer-v1
 description: Inspect existing project documents against code, tests, and recorded decisions only when documentation maintenance is requested. Report drift, missing records, and merge or move recommendations; apply only explicitly requested document changes. Do not invoke during ordinary design, implementation, or review.
 metadata:
   short-description: requested documentation inspection and repair
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Documentation Maintainer
@@ -20,6 +20,8 @@ Make existing documents reliable for the next task. Use only for the maintenance
 ## Historical Records
 
 `Files:` records what a phase changed, not all code currently related to it. Missing records from before the convention are not automatically defects. Only investigate backfilling older phases when requested, and only reconstruct a record when Git evidence identifies that phase and its changed files. If changes from several phases cannot be separated, report the uncertainty instead of guessing.
+
+A list or a fenced block of `<path> (<kind>)` lines after an exact `Files:` label are both valid; do not convert between them. Report `docatlas check` errors when it is available. Repair only the format: move label notes such as `Files (in progress):` to the checklist and inline paths onto their own lines; add a missing kind only from that phase's Git evidence.
 
 Preserve historical deleted/renamed paths and verification results. List current related code separately in the report; never turn today's inventory into a past phase's `Files:` block or silently resolve a `TBD`.
 

@@ -24,9 +24,17 @@ export function relatedFilesFor(document, generation) {
       }
     }
   }
+  const errorsIn = candidate => (generation.metadataCache.get(candidate.id)?.recordIssues || [])
+    .filter(issue => issue.level === 'error').length;
   return {
     scope: own.length ? 'document' : 'feature', recordCount,
     sources: sources.map(source => source.relativePath),
-    files: [...files.values()].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0)
+    files: [...files.values()].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0),
+    // DC-60: this document's own format issues, plus error counts of the plans a feature view borrows from.
+    issues: generation.metadataCache.get(document.id)?.recordIssues || [],
+    // A plan without readable records can be its own feature source; its issues are already listed above.
+    sourceIssues: own.length ? [] : sources.filter(source => source.id !== document.id).map(source => ({
+      documentId: source.canonicalId || source.id, sourcePath: source.relativePath, errors: errorsIn(source)
+    })).filter(source => source.errors)
   };
 }

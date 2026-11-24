@@ -16,6 +16,7 @@ const help = [
   '  docatlas [--root <directory>] [--docs-dir <directory>] [--all-md] [--no-open]',
   '  docatlas --help',
   '  docatlas --version',
+  '  docatlas check [<file.md> ...]     Find Refs: and Files: records the map cannot read.',
   '  docatlas agents install [options]  Install doc-driven agent skills for Claude Code and Codex.',
   '  docatlas agents help               Steps for people and AI agents running the install.',
   '  docatlas private init|status       Keep documents only you see in .docatlas/private/.',
@@ -54,6 +55,10 @@ export async function run(args, {
   }
   if (args[0] === 'private') {
     return runPrivate(args.slice(1), { stdout, stderr, cwd, home, now });
+  }
+  if (args[0] === 'check') {
+    const { runCheck } = await import('./check/command.js');
+    return runCheck(args.slice(1), { stdout, stderr, cwd });
   }
   if (args[0] === 'private-cloud') {
     const { runCloud } = await import('./private-cloud/command.js');

@@ -166,9 +166,49 @@ requirement/decision ID; copy a path, open an indexed Markdown document, or foll
 to its implementation heading. Markdown files are grouped under **Documentation**.
 
 Changes such as added, modified, deleted, or renamed describe the recorded phase, not the
-current working tree. These records may be incomplete, especially in older documents.
+current working tree. Entries written without a change kind show **Kind not recorded**.
+These records may be incomplete, especially in older documents.
 The panel supports narrow screens and preserves focus during automatic updates. Press
 Escape or use the close button to return to reading.
+
+The map reads a `Files:` line followed by a list or by a fenced block, with or without blank
+lines between them. A fenced path that contains spaces keeps its backticks:
+
+~~~markdown
+Files:
+- `src/checkout/session.js` (added)
+- `src/checkout/old.js` -> `src/checkout/cart.js` (renamed)
+
+Files:
+
+```text
+src/checkout/session.js (modified)
+src/checkout/cart.js
+`src/checkout/gift card.js` (added)
+```
+~~~
+
+`Refs:` takes full IDs such as `RQ-1`, `FH-RQ-02`, or `DC-3a`. When a record cannot be read,
+such as `Files (in progress):` or paths listed on the label line, the **Related files** button
+shows the number of issues and the panel lists each line with the reason. The panel also
+says when the feature's implementation plan has issues.
+
+### Checking records
+
+`docatlas check` reports the same issues without starting a server:
+
+~~~sh
+npx docatlas check                          # every collected document
+npx docatlas check docs/checkout/IMPLEMENT.md
+npx docatlas check --json                   # one JSON object for tools and agents
+~~~
+
+Each line reads `path:line level code message`, with paths from the current directory. It exits
+0 when there are no errors, 1 when there are record errors, and 2 for invalid arguments or settings
+or when the check could not run. Warnings, for entries without a
+change kind or skipped unsafe paths, do not fail the check unless you pass `--strict`. The
+command reads the same configuration and `--root`, `--docs-dir`, and `--all-md` options as
+the map, and never changes files. Run `docatlas check --help` for the record formats.
 
 Installed packages include the built browser assets. `npx docatlas` does not require the
 target project to build the UI or install a build tool.
